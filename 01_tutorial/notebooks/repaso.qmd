@@ -1,0 +1,445 @@
+---
+title: "repaso"
+format: html
+---
+
+# Sobre Quarto
+
+**Quarto** es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia y Observable. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.
+
+Se vale de una librería (`rmarkdown`) que viene embebida con la instalación de RStudio, y se carga por defecto en todas las sesiones.
+
+Con Quarto podemos integrar el código a la comunicación de la información de forma transparente y reproducible. Esto es útil para comunicar resultados, colaborar con otros analistas y documentar los procesos.
+
+Los componentes de un archivo Quarto son:
+
+-   **Code Cells**: bloques de código
+
+-   **Texto Markdown**: usa Pandoc para traducir lo que escribimos a cualquier otro formato (PDF, HTML, Word, etc.)
+
+-   **Encabezado YAML**: metadata sobre las características del output
+
+En los archivos .qmd el working directory por defecto es el directorio donde vive el archivo. Es muy útil tener a mano el [cheatsheet oficial](https://github.com/rstudio/cheatsheets/blob/master/rmarkdown-2.0.pdf) de markdown.
+
+# Sobre R y RStudio
+
+R es un buen lenguaje para introducir un público no programador en la ciencia de datos porque
+
+-   es una herramienta diseñada específicamente para la ciencia de datos.
+
+-   es un lenguaje de programación. A diferencia de Excel o lenguajes basados en tablas, es muy flexible para desarrollar soluciones a medida.
+
+-   es de código abierto y gratuito. A diferencia de otras herramientas, tiene una comunidad muy activa que desarrolla funcionalidades nuevas constantemente y es muy flexible para crear visualizaciones y hacer estadística avanzada.
+
+¿Es la mejor herramienta? Depende del contexto. En la práctica, la mayoría de los equipos de ciencia de datos usan una mezcla de herramientas (como R y Python), según las necesidades del problema.
+
+Los paneles principales de RStudio son
+
+-   la consola, donde se ejecuta el código R y se imprimen las respuestas de R.
+
+-   el panel de variables (o Environment), donde se describen los objetos que almacenamos en memoria.
+
+-   El panel de salidas gráficas (Plots), donde se visualizan los gráficos.
+
+# Scripts de R
+
+Un script es una secuencia de comandos que se guarda como un archivo de texto. Luego este archivo puede enviarse a R para ser ejecutado línea por línea. Los scripts se guardan con extensión .R o .r.
+
+Para escribir un script podemos usar el editor de RStudio (`File --> New File --> R Script`). RStudio guardará automáticamente el contenido del editor al salir y lo cargará automáticamente al volver a abrirlo. Sin embargo, es una buena idea guardar los scripts regularmente.
+
+# Proyectos de RStudio
+
+En general es conveniente almacenar juntos todos los archivos asociados con un proyecto dado: datos de entrada, scripts, resultados, informes, etc. El soporte de RStudio para esta forma de trabajo son los proyectos.
+
+Para crear un proyecto ir a `File --> New project`. Al abrir un proyecto, el directorio de trabajo (working directory) pasa a ser la raíz del proyecto.
+
+```{r}
+getwd()
+```
+
+De esta manera, podemos trabajar únicamente con rutas relativas y hacemos que nuestros análisis sean reproducibles. Todo lo que necesitamos está en un solo lugar y separado del resto de los proyectos.
+
+En el panel de Files podemos ir a `More --> Show Folder in New Window` para gestionar los archivos desde el explorador del OS.
+
+# Repaso de R
+
+Veamos algunos fundamentos de R. Podemos ir ejecutando código del editor en la consola con **Ctrl+Enter**.
+
+## Asignación
+
+```{r}
+mi_numero <- 12 
+mi_numero
+```
+
+Con el operador de asignación estamos guardando un número en una **variable** cuyo nombre es `mi_numero`, que ahora aparece en el panel de variables. Es aconsejable **usar nombres descriptivos** cuando almacenamos objetos.
+
+```{r}
+# con numeral iniciamos un comentario
+
+mi_numero <- 15 # las variables son mutables
+mi_numero = 15 # también podemos usar = para asignar
+otro_numero = mi_numero # podemos instanciar nuevos a partir de otros ya instanciados
+```
+
+## Operadores
+
+Los operadores son funciones de 1 o 2 argumentos. El operador más utilizado es el de asignación (`<-` o `=`). Hay muchos otros.
+
+Operadores **aritméticos**:
+
+```{r}
+x <- 3 
+y <- 10.82 
+y + x # suma 
+y - x # resta 
+y * x # multiplicacion 
+y / x # division 
+x**y # exponente 
+x^y # exponente
+```
+
+Operadores **relacionales**: `<`, `<=`, `>`, `>=`, `==`, y `!=`.
+
+```{r}
+x <- 3 
+y <- 10 
+x == 1 
+x == y 
+y > x 
+y != x
+```
+
+Operadores **lógicos**: `!`, `&`, y `|`.
+
+```{r}
+TRUE 
+!FALSE 
+!F 
+F & T 
+F | T 
+x == 1 & y == 4
+x == 1 | y == 80 
+!(x > y) # equivale a x <= y
+```
+
+## Tipos de datos
+
+R nos permite almacenar **datos de distinto tipo**. Para consultar el tipo de dato de un objeto podemos usar la función `typeof()`. Veamos los formatos de datos más comunes.
+
+Datos **numéricos** ("double" o "integer").
+
+```{r}
+TRUE 
+```
+
+```{r}
+typeof(5) 
+typeof(5) 
+typeof(5L)
+```
+
+Lógicos o **booleanos** ("logical").
+
+```{r}
+typeof(TRUE) 
+typeof(!F)
+```
+
+Cadenas de caracteres o **strings** ("character").
+
+```{r}
+typeof("hola!") 
+typeof("5") 
+typeof("TRUE") 
+```
+
+**`NA`** es el valor que se usa para representar **valores no disponibles o faltantes** (*Not Available*). En general, estos valores requieren ser manipulados de maneras particulares.
+
+```{r}
+5>= NA
+NA + 10 *4
+```
+
+Para saber si un valor es desconocido o si una variable contiene valores desconocidos, debemos usar la función is.na().
+
+```{r}
+is.na(NA)
+```
+
+## Tipos de objetos
+
+Además de los tipos de datos, R ofrece distintos **tipos de objetos para almacenar datos**. Los fundamentales son los siguientes.
+
+Los **vectores (atómicos)** admiten un único tipo de dato (numérico, character, lógico, etc.) y una sola dimensión. Los podemos crear con la función `c()` de concatenar.
+
+```{r}
+mis_numeros <- c(0, 2.5, 5, 3, 8, NA) # concatenar 
+typeof(mis_numeros)  
+length(mis_numeros)
+```
+
+```{r}
+# en realidad un elemento suelto ES un vector 
+length(mi_numero)  
+length("hola que tal")
+```
+
+```{r}
+mis_strings <- c("a", "b", "c", "d", "X") 
+typeof(mis_strings) 
+
+mis_logicos <- c(F, T, F, T, T) 
+typeof(mis_logicos) 
+
+todo_junto <- c(mis_strings, mis_logicos) 
+typeof(todo_junto) 
+```
+
+Podemos extraer elementos específicos de los vectores usando corchetes (**indexing** o **subsetting**).
+
+```{r}
+# con enteros 
+mis_numeros[1] 
+mis_numeros[c(1,5)] 
+mis_numeros[-4]
+mi_numero[1] # un "elemento" ES un vector  
+
+# con booleanos que actúen de filtro
+mis_strings[mis_logicos] 
+mis_numeros[mis_numeros > 4]
+```
+
+Las **matrices** son objetos que admiten un único tipo de dato (numérico, character, lógico, etc.) y tienen **dos dimensiones** (filas y columnas). Las podemos construir con `matrix()`.
+
+```{r}
+mi_matriz <- matrix(data=1:25, nrow=5, ncol=5) 
+mi_matriz 
+class(mi_matriz)
+```
+
+Y podemos extraer elementos con subsetting:
+
+```{r}
+mi_matriz[1,]
+mi_matriz[1,4]
+mi_matriz[,2]
+```
+
+Las **listas** (o vectores recursivos) son secuencias de objetos que pueden ser de cualquier tipo.
+
+```{r}
+nombres <- c("juan", "pedro", "ana") 
+edades <- c(30, 36, 21, 20, 18, 42, 61) 
+mi_lista <- list(nombres, edades, mi_matriz) 
+mi_lista
+```
+
+Podemos hacer subsetting sobre las listas sucesivamente para explorarlas. Y los elementos de una lista pueden ser listas!
+
+```{r}
+mi_lista[1] 
+mi_lista[[1]] 
+mi_lista[[1]][2] 
+mi_lista[[3]][1, ]
+```
+
+Los **data frames** son un tipo especial de lista cuyos elementos son vectores de la misma longitud.
+
+```{r}
+nombre <- c("juan", "pedro", "ana") 
+edad <- c(20, 30, 55) 
+altura <- c(1.63, 1.80, 1.75)
+mi_df <- data.frame(nombre, edad, altura)
+mi_df
+```
+
+Podemos consultar los elementos con subsetting por nombre o posición:
+
+```{r}
+mi_df[, 1] 
+mi_df["nombre"] 
+mi_df[["nombre"]] 
+mi_df$nombre 
+mi_df[3, "edad"]
+```
+
+## Funciones
+
+R tiene **funciones** internas que podemos aplicar a objetos y obtener resultados. Las funciones pueden recibir una entrada o input **(argumentos)**, ejecutan instrucciones y pueden devolver una salida o output. Veamos algunos ejemplos:
+
+```{r}
+length(mis_numeros) 
+dim(mi_matriz) 
+names(mi_df) 
+names(mi_lista)
+```
+
+Otras funciones muy usadas son:
+
+```{r}
+rep(5, 10)  
+1:20 
+seq(1, 20, 2) 
+sample(1:10, 15, replace=T) 
+unique(c(2,3,8,3,2)) 
+rm(mi_lista)
+```
+
+Muchos estadísticos son funciones que podemos aplicar a vectores numéricos:
+
+```{r}
+mean(0:100) 
+mis_numeros
+mean(mis_numeros) 
+mean(mis_numeros, na.rm=T) 
+min(mis_numeros, na.rm=T) 
+max(mis_numeros, na.rm=T) 
+sd(mis_numeros, na.rm=T) 
+quantile(mis_numeros, na.rm=T)
+```
+
+R es un lenguaje de programación y como tal nos ofrece muchas funcionalidades para ejecutar instrucciones muy diversas de manera sistemática. Vamos a ver superficialmente algunas.
+
+## Funciones
+
+Si queremos ejecutar instrucciones parecidas muchas veces, copiar y pegar seguramente es subóptimo. Por ejemplo,
+
+```{r}
+# queremos generar muchas imágenes aleatorias en blanco y negro 
+nums1 <- sample(0:255, size=300*300, replace=T) 
+mat1 <- matrix(nums1, nrow=300, ncol=300) 
+nums2 <- sample(0:255, size=300*300, replace=T) 
+mat2 <- matrix(nums2, nrow=300, ncol=300) 
+nums3 <- sample(0:255, size=300*300, replace=T) 
+mat3 <- matrix(nums3, nrow=300, ncol=300) 
+
+image(mat1, axes=FALSE, col = gray.colors(255))
+```
+
+Esto es poco legible y muy susceptible a bugs (si quiero actualizar el código tengo que cambiarlo muchas veces; al copiar y pegar me puedo olvidar de cambiar un nombre). Entonces, podemos escribir nuestras propias funciones:
+
+```{r}
+matriz_aleatoria <- function(rows, cols, min=0, max=255) {
+  nums <- sample(min:max, size=rows*cols, replace=T)   
+  mat <- matrix(nums, nrow=rows, ncol=cols)   
+  return(mat) 
+} 
+# todo lo que asignemos adentro de la fn NO existe fuera de este entorno. Podemos llamar acá objetos fuera del entorno de la fn, pero no es recomendable en general.
+```
+
+```{r}
+mat1 <- matriz_aleatoria(300, 300, min=0, max=255) 
+mat2 <- matriz_aleatoria(300, 300, min=0, max=255) 
+mat3 <- matriz_aleatoria(300, 300, min=0, max=255)
+image(mat1+mat2+mat3, axes=FALSE, col = gray.colors(255))
+```
+
+Ahora separamos el código de su ejecución. Esto es más legible, más fácil de actualizar y reduce la probabilidad de errores.
+
+## Condicionales
+
+Podemos ejecutar código de manera condicional (cuando se cumple una condición).
+
+```{r}
+promedio <- mean(mis_numeros, na.rm=T) 
+log_promedio <- 0 
+if (promedio > 0) {  
+  # se ejecuta si la cond. es TRUE   
+  log_promedio <- log(promedio) 
+}
+print(log_promedio)
+```
+
+```{r}
+# equivalente: 
+promedio <- mean(mis_numeros, na.rm=T) 
+if (promedio > 0) {  
+  # se ejecuta si la cond. es TRUE   
+  log_promedio <- log(promedio) 
+} else {   
+    # se ejecuta si la cond. es FALSE   
+  log_promedio <- 0 
+}
+print(log_promedio)
+```
+
+```{r}
+# multiples condiciones encadenadas: 
+promedio <- mean(mis_numeros, na.rm=T) 
+promedio <- -12
+if (promedio > 0) {
+  print(log(promedio)) 
+} else if (promedio == 0) {
+    print(0) 
+} else {   
+    print("ERROR!") 
+}
+```
+
+## Iteración
+
+Otra herramienta para reducir la duplicación de código es la **iteración**. Nos sirve cuando queremos repetir la misma operación muchas veces.
+
+```{r}
+# En general no deberíamos copiar muchas veces el mismo código
+mat1 <- matriz_aleatoria(300, 300, min=0, max=255)
+mat2 <- matriz_aleatoria(300, 300, min=0, max=255)
+mat3 <- matriz_aleatoria(300, 300, min=0, max=255) 
+# ...  
+```
+
+```{r}
+# Suele ser conveniente hacer algo de este estilo
+matrices <- list() 
+# objeto para guardar los outputs 
+for (i in 1:100) { 
+  # iterador     
+  matrices[[i]] <- matriz_aleatoria(300, 300, min=0, max=255) 
+}
+
+```
+
+# Librerías
+
+Las **librerías** o paquetes son conjuntos de **funciones empaquetadas**. Dado que R es de código abierto, los usuarios pueden **expandir la funcionalidad** de R desarrollando y disponibilizando librerías para el resto de la comunidad. Gracias a esto, las capacidades de R crecen continuamente, sin necesidad de lanzamientos centralizados a gran escala.
+
+Con `install.packages("paquete")` podemos instalar librerías que estén disponibles en CRAN (el repositorio oficial de R). Una vez instalado, podemos cargar el paquete para usar sus funciones con `library(paquete)`. En una computadora dada alcanza con instalar los paquetes una sola vez; pero para usarlos, tenemos que cargarlo en cada nueva sesión de R.
+
+```{r}
+# install.packages("tidyverse") #comentar para renderizar
+```
+
+```{r}
+library(tidyverse)
+```
+
+`tidyverse` es un conjunto de paquetes ampliamente usado por la comunidad (incluye `dplyr`, `tidyr`, `ggplot2`, `lubridate`, `purrr`, etc.).
+
+Si queremos ser explícitos sobre el origen de una función, podemos escribir con la sintaxis `paquete::funcion()` -- por ejemplo, `ggplot2::ggplot()`.
+
+Una de las funciones más usadas de `tidyverse` es el operador *pipe* de la librería `magrittr`: `%>%`. Este operador nos permite modificar el orden en el que escribimos las funciones para volverlas más legibles:
+
+```{r}
+mi_vector <- c(8, 9, 1, -10, 1,0, 0, 9, 56, 30)
+
+head(sort(mi_vector)) # en este caso leemos de adentro para afuera
+
+mi_vector %>% sort() %>% head() # leemos de izquierda a derecha
+
+mi_vector %>% 
+  sort() %>% 
+  head() # o de arriba hacia abajo
+
+```
+
+# Algunos punteros útiles
+
+-   [R for Data Science](https://r4ds.hadley.nz/) (H. Wickham et al)
+-   [Advanced R](https://adv-r.hadley.nz/) (H. Wickham)
+-   [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/) (Yihui Xie, J. J. Allaire y G. Grolemund)
+-   [RMarkdown for Scientists](https://rmd4sci.njtierney.com/) (N. Tierney)
+
+# Sobre la utilización de Git
+
+Una vez instalado Git
