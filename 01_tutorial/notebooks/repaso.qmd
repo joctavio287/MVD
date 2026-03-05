@@ -3,9 +3,9 @@ title: "repaso"
 format: html
 ---
 
-# Sobre Quarto
+# Sobre Quarto/Notebooks en general
 
-**Quarto** es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia y Observable. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.
+**Quarto** es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.
 
 Se vale de una librería (`rmarkdown`) que viene embebida con la instalación de RStudio, y se carga por defecto en todas las sesiones.
 
@@ -437,9 +437,14 @@ mi_vector %>%
 
 -   [R for Data Science](https://r4ds.hadley.nz/) (H. Wickham et al)
 -   [Advanced R](https://adv-r.hadley.nz/) (H. Wickham)
--   [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/) (Yihui Xie, J. J. Allaire y G. Grolemund)
+-   PONER QUARTO
 -   [RMarkdown for Scientists](https://rmd4sci.njtierney.com/) (N. Tierney)
 
 # Sobre la utilización de Git
 
 Una vez instalado Git
+
+``` powershell
+git init
+
+```
