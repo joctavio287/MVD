@@ -1,6 +1,6 @@
 ---
-title: "repaso"
-format: html
+title: "Repaso de R"
+format: pdf
 ---
 
 # Sobre Quarto/Notebooks en general
@@ -20,6 +20,8 @@ Los componentes de un archivo Quarto son:
 -   **Encabezado YAML**: metadata sobre las características del output
 
 En los archivos .qmd el working directory por defecto es el directorio donde vive el archivo. Es muy útil tener a mano el [cheatsheet oficial](https://github.com/rstudio/cheatsheets/blob/master/rmarkdown-2.0.pdf) de markdown.
+
+La principal ventaja de este tipo de archivos es que con solo cambiar el *format* en el encabezado del yaml podemos tener tanto un .pdf como un .html y otros tipos de formatos.
 
 # Sobre R y RStudio
 
@@ -301,8 +303,6 @@ quantile(mis_numeros, na.rm=T)
 
 R es un lenguaje de programación y como tal nos ofrece muchas funcionalidades para ejecutar instrucciones muy diversas de manera sistemática. Vamos a ver superficialmente algunas.
 
-## Funciones
-
 Si queremos ejecutar instrucciones parecidas muchas veces, copiar y pegar seguramente es subóptimo. Por ejemplo,
 
 ```{r}
@@ -437,14 +437,136 @@ mi_vector %>%
 
 -   [R for Data Science](https://r4ds.hadley.nz/) (H. Wickham et al)
 -   [Advanced R](https://adv-r.hadley.nz/) (H. Wickham)
--   PONER QUARTO
+-   [Tutorial de Quarto](https://quarto.org/docs/get-started/hello/jupyter.html)
 -   [RMarkdown for Scientists](https://rmd4sci.njtierney.com/) (N. Tierney)
 
-# Sobre la utilización de Git
+# Sobre la utilización de Git por consola
 
-Una vez instalado Git
+Dejo todos los comandos que utilizamos para manipular Git por consola.
+
+Configuración global de Git que se hace una sola vez:
 
 ``` powershell
-git init
+git config --global user.name <usuario>
+git config --global user.email <email>
+```
 
+Moverse al directorio de interés y listar los archivos que contiene (existía previamente a todo lo que hicimos)
+
+``` PowerShell
+cd R_projects/UdeSA/MVD
+dir
+```
+
+Inicializar Git y chequear el estado de archivos
+
+``` PowerShell
+git init
+git status
+```
+
+Agregar un archivo a la vez o varios al *staging.* También podemos usar "." para subir todo lo *untracked* al *staging*
+
+``` powershell
+git add <archivo1> git add <archivo2> <archivo2>
+git add .
+```
+
+Sacamos una instantánea del staging haciendo un commit con un mensaje "-m"
+
+``` powershell
+git commit -m "primer commit"
+```
+
+Una vez creado el repositorio remoto en GitHub podemos vincularlo con el repo local
+
+``` powershell
+git remote add origin https://github/<usuario>/<repo>.git
+git push -u origin master
+```
+
+Para clonar un repositorio de la nube podemos hacerlo con
+
+``` powershell
+git clone https://github/<usuario>/<repo>.git
+```
+
+## Comandos de línea extra
+
+Listar todas las ramas disponibles
+
+``` powershell
+git branch
+```
+
+Crear una rama nueva que diverge de la principal en el momento del tiempo en el cual nos situamos
+
+``` powershell
+git branch n_feature
+```
+
+Para cambiarse de rama
+
+``` powershell
+git checkout n_feature
+```
+
+Después de trabajar en esta rama (hace por lo menos un commit), podemos publicarla dentro del remoto
+
+``` powershell
+git push origin n_feature
+```
+
+Podemos unir la rama alternativa con master
+
+``` powershell
+git checkout master
+git merge n_feature
+```
+
+Si un mismo archivo se modifica en ambas ramas habrá un conflicto porque Git no sabe con cual de las dos versiones queremos quedarnos. Entonces pondrá en pausa el proceso
+
+``` powershell
+git status # nos mostrara qué archivos están en conflicto
+```
+
+Podemos abrir el archivo y resolver línea por línea los conflictos (que Git marca con felchas y símbolos "\>\>\>") ó, de ser inmanejable el número de diferencias, abortar con
+
+``` powershell
+git merger --abort
+```
+
+Si optamos por resolver el conflicto y lo logramos hay que agregar la resolución a la nueva instantánea
+
+``` powershell
+git add <archivoconconflicto> # subimos al stage
+git diff <archivoconconflicto> # Para ver las modificaciones que hicimos si queremos
+git commit -m "solucioné el conflicto de <archivoconconflicto> en el mergre"
+```
+
+Y listo.
+
+Por otro lado, para traer los cambios del remoto sin mergearlos con el local
+
+``` powershell
+git fetch origin
+```
+
+Vemos qué archivos se modificaron
+
+``` powershell
+git diff --stat master origin/master # los nombres
+git diff master origin/master # todas las modificaciones
+```
+
+Mergeamos la remota y la local
+
+``` powershell
+git merge origin/master
+```
+
+El Pull es equivalente a hacer Fetch + Merge (se suele usar mucho más que los dos comandos por separado en la práctica)
+
+``` powershell
+git pull
 ```

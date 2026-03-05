@@ -99,8 +99,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="r-y-rstudio" class="level1">
-<h1>R y RStudio</h1>
+<section id="sobre-quartonotebooks-en-general" class="level1">
+<h1>Sobre Quarto/Notebooks en general</h1>
+<p><strong>Quarto</strong> es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.</p>
+<p>Se vale de una librería (<code>rmarkdown</code>) que viene embebida con la instalación de RStudio, y se carga por defecto en todas las sesiones.</p>
+<p>Con Quarto podemos integrar el código a la comunicación de la información de forma transparente y reproducible. Esto es útil para comunicar resultados, colaborar con otros analistas y documentar los procesos.</p>
+<p>Los componentes de un archivo Quarto son:</p>
+<ul>
+<li><p><strong>Code Cells</strong>: bloques de código</p></li>
+<li><p><strong>Texto Markdown</strong>: usa Pandoc para traducir lo que escribimos a cualquier otro formato (PDF, HTML, Word, etc.)</p></li>
+<li><p><strong>Encabezado YAML</strong>: metadata sobre las características del output</p></li>
+</ul>
+<p>En los archivos .qmd el working directory por defecto es el directorio donde vive el archivo. Es muy útil tener a mano el <a href="https://github.com/rstudio/cheatsheets/blob/master/rmarkdown-2.0.pdf">cheatsheet oficial</a> de markdown.</p>
+</section>
+<section id="sobre-r-y-rstudio" class="level1">
+<h1>Sobre R y RStudio</h1>
 <p>R es un buen lenguaje para introducir un público no programador en la ciencia de datos porque</p>
 <ul>
 <li><p>es una herramienta diseñada específicamente para la ciencia de datos.</p></li>
@@ -133,8 +146,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>De esta manera, podemos trabajar únicamente con rutas relativas y hacemos que nuestros análisis sean reproducibles. Todo lo que necesitamos está en un solo lugar y separado del resto de los proyectos.</p>
 <p>En el panel de Files podemos ir a <code>More --&gt; Show Folder in New Window</code> para gestionar los archivos desde el explorador del OS.</p>
 </section>
-<section id="repaso" class="level1">
-<h1>Repaso</h1>
+<section id="repaso-de-r" class="level1">
+<h1>Repaso de R</h1>
 <p>Veamos algunos fundamentos de R. Podemos ir ejecutando código del editor en la consola con <strong>Ctrl+Enter</strong>.</p>
 <section id="asignación" class="level2">
 <h2 class="anchored" data-anchor-id="asignación">Asignación</h2>
@@ -293,8 +306,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>[1] "character"</code></pre>
 </div>
 </div>
-<section id="valores-faltantes" class="level3">
-<h3 class="anchored" data-anchor-id="valores-faltantes">Valores faltantes</h3>
 <p><strong><code>NA</code></strong> es el valor que se usa para representar <strong>valores no disponibles o faltantes</strong> (<em>Not Available</em>). En general, estos valores requieren ser manipulados de maneras particulares.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="dv">5</span><span class="sc">&gt;=</span> <span class="cn">NA</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -313,7 +324,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
-</section>
 </section>
 <section id="tipos-de-objetos" class="level2">
 <h2 class="anchored" data-anchor-id="tipos-de-objetos">Tipos de objetos</h2>
@@ -539,7 +549,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb138"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">15</span>, <span class="at">replace=</span>T) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1]  8  6  2  4  5  5  4  3  4  9 10  7  6  9 10</code></pre>
+<pre><code> [1] 4 8 4 7 7 4 2 6 7 5 2 3 2 4 2</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb140"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">8</span>,<span class="dv">3</span>,<span class="dv">2</span>)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -583,11 +593,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  0.0  2.5  3.0  5.0  8.0 </code></pre>
 </div>
 </div>
-</section>
-</section>
-<section id="programación-en-r" class="level1">
-<h1>Programación en R</h1>
 <p>R es un lenguaje de programación y como tal nos ofrece muchas funcionalidades para ejecutar instrucciones muy diversas de manera sistemática. Vamos a ver superficialmente algunas.</p>
+</section>
 <section id="funciones-1" class="level2">
 <h2 class="anchored" data-anchor-id="funciones-1">Funciones</h2>
 <p>Si queremos ejecutar instrucciones parecidas muchas veces, copiar y pegar seguramente es subóptimo. Por ejemplo,</p>
@@ -744,40 +751,80 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-<section id="rmarkdown" class="level1">
-<h1>RMarkdown</h1>
-<p><strong>RMarkdown</strong> es un tipo de archivo que combina <em>texto con formato</em> con las funcionalidades de R. Es una librería para R (<code>rmarkdown</code>) que viene directamente con la instalación de RStudio, y se carga por defecto en todas las sesiones. Los archivos usan la terminación <code>.Rmd</code>.</p>
-<p>Con RMarkdown podemos integrar el <strong>código</strong> a la comunicación de la <strong>información</strong> de forma transparente y reproducible. Esto es útil para <strong>comunicar</strong> resultados, <strong>colaborar</strong> con otros analistas y <strong>documentar</strong> los procesos.</p>
-<p>Los componentes de un archivo RMarkdown son:</p>
+<section id="algunos-punteros-útiles" class="level1">
+<h1>Algunos punteros útiles</h1>
 <ul>
-<li><strong>Chunks</strong>: pedazos de código</li>
-<li><strong>Texto Markdown</strong>: más precisamente <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown de Pandoc</a></li>
-<li><strong>Encabezado YAML</strong>: metadata sobre las características del output</li>
-</ul>
-<p>En los archivos <code>.Rmd</code> el <strong>working directory</strong> por defecto es el directorio donde vive el archivo.</p>
-</section>
-<section id="quarto" class="level1">
-<h1>Quarto</h1>
-<p><strong>Quarto</strong> es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia y Observable. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la terminación .qmd.</p>
-<p>Se vale de una para R (<code>rmarkdown</code>) que viene directamente con la instalación de RStudio, y se carga por defecto en todas las sesiones.</p>
-<p>Con Quarto podemos integrar el código a la comunicación de la información de forma transparente y reproducible. Esto es útil para comunicar resultados, colaborar con otros analistas y documentar los procesos.</p>
-<p>Los componentes de un archivo Quarto son:</p>
-<ul>
-<li><p><strong>Code Cells</strong>: bloques de código</p></li>
-<li><p><strong>Texto Markdown</strong>: usa Pandoc para traducir lo que escribimos a cualquier otro formato (PDF, HTML, Word, etc.)</p></li>
-<li><p><strong>Encabezado YAML</strong>: metadata sobre las características del output</p></li>
-</ul>
-<p>En los archivos .qmd el working directory por defecto es el directorio donde vive el archivo.</p>
-<p>Es muy útil tener a mano el <a href="https://github.com/rstudio/cheatsheets/blob/master/rmarkdown-2.0.pdf">cheatsheet oficial</a> de markdown.</p>
-</section>
-<section id="recursos" class="level1">
-<h1>Recursos</h1>
-<ul>
-<li><a href="https://r4ds.hadley.nz/">R for Data Science</a> (H. Wickham et al) [SUPER RECOMENDABLE]</li>
+<li><a href="https://r4ds.hadley.nz/">R for Data Science</a> (H. Wickham et al)</li>
 <li><a href="https://adv-r.hadley.nz/">Advanced R</a> (H. Wickham)</li>
-<li><a href="https://bookdown.org/yihui/rmarkdown/">R Markdown: The Definitive Guide</a> (Yihui Xie, J. J. Allaire y G. Grolemund)</li>
+<li>PONER QUARTO</li>
 <li><a href="https://rmd4sci.njtierney.com/">RMarkdown for Scientists</a> (N. Tierney)</li>
 </ul>
+</section>
+<section id="sobre-la-utilización-de-git-por-consola" class="level1">
+<h1>Sobre la utilización de Git por consola</h1>
+<p>Dejo todos los comandos que utilizamos para manipular Git por consola.</p>
+<p>Configuración global de Git que se hace una sola vez:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb179"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb179-1"><a href="#cb179-1" aria-hidden="true" tabindex="-1"></a>git config <span class="op">--</span>global user<span class="op">.</span><span class="fu">name</span> <span class="op">&lt;</span>usuario<span class="op">&gt;</span></span>
+<span id="cb179-2"><a href="#cb179-2" aria-hidden="true" tabindex="-1"></a>git config <span class="op">--</span>global user<span class="op">.</span><span class="fu">email</span> <span class="op">&lt;</span>email<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Moverse al directorio de interés y listar los archivos que contiene (existía previamente a todo lo que hicimos)</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb180"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb180-1"><a href="#cb180-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cd</span> R_projects<span class="op">/</span>UdeSA<span class="op">/</span>MVD</span>
+<span id="cb180-2"><a href="#cb180-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Inicializar Git y chequear el estado de archivos</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb181"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb181-1"><a href="#cb181-1" aria-hidden="true" tabindex="-1"></a>git init</span>
+<span id="cb181-2"><a href="#cb181-2" aria-hidden="true" tabindex="-1"></a>git status</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Agregar un archivo a la vez o varios al <em>staging.</em> También podemos usar “.” para subir todo lo <em>untracked</em> al <em>staging</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb182"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb182-1"><a href="#cb182-1" aria-hidden="true" tabindex="-1"></a>git add <span class="op">&lt;</span>archivo1<span class="op">&gt;</span> git add <span class="op">&lt;</span>archivo2<span class="op">&gt;</span> <span class="op">&lt;</span>archivo2<span class="op">&gt;</span></span>
+<span id="cb182-2"><a href="#cb182-2" aria-hidden="true" tabindex="-1"></a>git add <span class="op">.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Sacamos una instantánea del staging haciendo un commit con un mensaje “-m”</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb183"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb183-1"><a href="#cb183-1" aria-hidden="true" tabindex="-1"></a>git commit <span class="op">-</span>m <span class="st">"primer commit"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Una vez creado el repositorio remoto en GitHub podemos vincularlo con el repo local</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb184"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb184-1"><a href="#cb184-1" aria-hidden="true" tabindex="-1"></a>git remote add origin https<span class="op">://</span>github<span class="op">/&lt;</span>usuario<span class="op">&gt;/&lt;</span>repo<span class="op">&gt;.</span><span class="fu">git</span></span>
+<span id="cb184-2"><a href="#cb184-2" aria-hidden="true" tabindex="-1"></a>git push <span class="op">-</span>u origin master</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Para clonar un repositorio de la nube podemos hacerlo con</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb185"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb185-1"><a href="#cb185-1" aria-hidden="true" tabindex="-1"></a>git clone https<span class="op">://</span>github<span class="op">/&lt;</span>usuario<span class="op">&gt;/&lt;</span>repo<span class="op">&gt;.</span><span class="fu">git</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="comandos-de-línea-extra" class="level2">
+<h2 class="anchored" data-anchor-id="comandos-de-línea-extra">Comandos de línea extra</h2>
+<p>Listar todas las ramas disponibles</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb186"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb186-1"><a href="#cb186-1" aria-hidden="true" tabindex="-1"></a>git branch</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Crear una rama nueva que diverge de la principal en el momento del tiempo en el cual nos situamos</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb187"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb187-1"><a href="#cb187-1" aria-hidden="true" tabindex="-1"></a>git branch n_feature</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Para cambiarse de rama</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb188"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb188-1"><a href="#cb188-1" aria-hidden="true" tabindex="-1"></a>git checkout n_feature</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Después de trabajar en esta rama (hace por lo menos un commit), podemos publicarla dentro del remoto</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb189"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb189-1"><a href="#cb189-1" aria-hidden="true" tabindex="-1"></a>git push origin n_feature</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Podemos unir la rama alternativa con master</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb190"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb190-1"><a href="#cb190-1" aria-hidden="true" tabindex="-1"></a>git checkout master</span>
+<span id="cb190-2"><a href="#cb190-2" aria-hidden="true" tabindex="-1"></a>git merge n_feature</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Si un mismo archivo se modifica en ambas ramas habrá un conflicto porque Git no sabe con cual de las dos versiones queremos quedarnos. Entonces pondrá en pausa el proceso</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb191"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb191-1"><a href="#cb191-1" aria-hidden="true" tabindex="-1"></a>git status <span class="co"># nos mostrara qué archivos están en conflicto</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Podemos abrir el archivo y resolver línea por línea los conflictos (que Git marca con felchas y símbolos “&gt;&gt;&gt;”) ó, de ser inmanejable el número de diferencias, abortar con</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb192"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb192-1"><a href="#cb192-1" aria-hidden="true" tabindex="-1"></a>git merger <span class="op">--</span>abort</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Si optamos por resolver el conflicto y lo logramos hay que agregar la resolución a la nueva instantánea</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb193"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb193-1"><a href="#cb193-1" aria-hidden="true" tabindex="-1"></a>git add <span class="op">&lt;</span>archivoconconflicto<span class="op">&gt;</span> <span class="co"># subimos al stage</span></span>
+<span id="cb193-2"><a href="#cb193-2" aria-hidden="true" tabindex="-1"></a>git <span class="fu">diff</span> <span class="op">&lt;</span>archivoconconflicto<span class="op">&gt;</span> <span class="co"># Para ver las modificaciones que hicimos si queremos</span></span>
+<span id="cb193-3"><a href="#cb193-3" aria-hidden="true" tabindex="-1"></a>git commit <span class="op">-</span>m <span class="st">"solucioné el conflicto de &lt;archivoconconflicto&gt; en el mergre"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Y listo.</p>
+<p>Por otro lado, para traer los cambios del remoto sin mergearlos con el local</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb194"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb194-1"><a href="#cb194-1" aria-hidden="true" tabindex="-1"></a>git fetch origin</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Vemos qué archivos se modificaron</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb195"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb195-1"><a href="#cb195-1" aria-hidden="true" tabindex="-1"></a>git <span class="fu">diff</span> <span class="op">--</span>stat master origin<span class="op">/</span>master <span class="co"># los nombres</span></span>
+<span id="cb195-2"><a href="#cb195-2" aria-hidden="true" tabindex="-1"></a>git <span class="fu">diff</span> master origin<span class="op">/</span>master <span class="co"># todas las modificaciones</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Mergeamos la remota y la local</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb196"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb196-1"><a href="#cb196-1" aria-hidden="true" tabindex="-1"></a>git merge origin<span class="op">/</span>master</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>El Pull es equivalente a hacer Fetch + Merge (se suele usar mucho más que los dos comandos por separado en la práctica)</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb197"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb197-1"><a href="#cb197-1" aria-hidden="true" tabindex="-1"></a>git pull</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb198"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Traer los cambios del remoto sin mergearlos con el local</p>
+<p>git fetch origin</p>
+<p>Vemos qué archivos se modificaron</p>
+<p>git diff –stat master origin/master</p>
+<p>Y para ver linea por linea</p>
+<p>git diff master origin/master</p>
+<p>Mergeamos la remota y la local</p>
+<p>git merge origin/master</p>
+<p>Pull = Fetch + Merge (se suele usar mucho más que los dos comandos por separado en la práctica)</p>
+<p>git pull</p>
+</section>
 </section>
 
 </main>
