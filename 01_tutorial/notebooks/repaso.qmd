@@ -7,6 +7,8 @@ format: pdf
 
 **Quarto** es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.
 
+Hola,e sta es una modificaciond e prueba
+
 Se vale de una librería (`rmarkdown`) que viene embebida con la instalación de RStudio, y se carga por defecto en todas las sesiones.
 
 Con Quarto podemos integrar el código a la comunicación de la información de forma transparente y reproducible. Esto es útil para comunicar resultados, colaborar con otros analistas y documentar los procesos.
@@ -453,14 +455,14 @@ git config --global user.email <email>
 
 Moverse al directorio de interés y listar los archivos que contiene (existía previamente a todo lo que hicimos)
 
-``` PowerShell
+``` powershell
 cd R_projects/UdeSA/MVD
 dir
 ```
 
 Inicializar Git y chequear el estado de archivos
 
-``` PowerShell
+``` powershell
 git init
 git status
 ```
