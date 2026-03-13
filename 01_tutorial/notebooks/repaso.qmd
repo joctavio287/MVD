@@ -1,6 +1,6 @@
 ---
 title: "Repaso de R"
-format: pdf
+format: html
 ---
 
 # Sobre Quarto/Notebooks en general

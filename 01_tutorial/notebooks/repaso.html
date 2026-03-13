@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>repaso</title>
+<title>Repaso de R</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -82,7 +82,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">repaso</h1>
+<h1 class="title">Repaso de R</h1>
 </div>
 
 
@@ -102,6 +102,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="sobre-quartonotebooks-en-general" class="level1">
 <h1>Sobre Quarto/Notebooks en general</h1>
 <p><strong>Quarto</strong> es un sistema de publicación técnica y científica de código abierto que combina texto con formato con las funcionalidades de R, Python, Julia. Es una herramienta independiente que viene integrada con las versiones recientes de RStudio. Los archivos usan la extensión .qmd, como este archivo.</p>
+<p>Hola,e sta es una modificaciond e prueba</p>
 <p>Se vale de una librería (<code>rmarkdown</code>) que viene embebida con la instalación de RStudio, y se carga por defecto en todas las sesiones.</p>
 <p>Con Quarto podemos integrar el código a la comunicación de la información de forma transparente y reproducible. Esto es útil para comunicar resultados, colaborar con otros analistas y documentar los procesos.</p>
 <p>Los componentes de un archivo Quarto son:</p>
@@ -111,6 +112,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><strong>Encabezado YAML</strong>: metadata sobre las características del output</p></li>
 </ul>
 <p>En los archivos .qmd el working directory por defecto es el directorio donde vive el archivo. Es muy útil tener a mano el <a href="https://github.com/rstudio/cheatsheets/blob/master/rmarkdown-2.0.pdf">cheatsheet oficial</a> de markdown.</p>
+<p>La principal ventaja de este tipo de archivos es que con solo cambiar el <em>format</em> en el encabezado del yaml podemos tener tanto un .pdf como un .html y otros tipos de formatos.</p>
 </section>
 <section id="sobre-r-y-rstudio" class="level1">
 <h1>Sobre R y RStudio</h1>
@@ -549,7 +551,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb138"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">15</span>, <span class="at">replace=</span>T) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] 4 8 4 7 7 4 2 6 7 5 2 3 2 4 2</code></pre>
+<pre><code> [1] 5 1 6 4 4 9 1 7 4 8 1 3 9 9 2</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb140"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">8</span>,<span class="dv">3</span>,<span class="dv">2</span>)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -594,9 +596,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>R es un lenguaje de programación y como tal nos ofrece muchas funcionalidades para ejecutar instrucciones muy diversas de manera sistemática. Vamos a ver superficialmente algunas.</p>
-</section>
-<section id="funciones-1" class="level2">
-<h2 class="anchored" data-anchor-id="funciones-1">Funciones</h2>
 <p>Si queremos ejecutar instrucciones parecidas muchas veces, copiar y pegar seguramente es subóptimo. Por ejemplo,</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb159"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a><span class="co"># queremos generar muchas imágenes aleatorias en blanco y negro </span></span>
@@ -756,7 +755,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><a href="https://r4ds.hadley.nz/">R for Data Science</a> (H. Wickham et al)</li>
 <li><a href="https://adv-r.hadley.nz/">Advanced R</a> (H. Wickham)</li>
-<li>PONER QUARTO</li>
+<li><a href="https://quarto.org/docs/get-started/hello/jupyter.html">Tutorial de Quarto</a></li>
 <li><a href="https://rmd4sci.njtierney.com/">RMarkdown for Scientists</a> (N. Tierney)</li>
 </ul>
 </section>
@@ -813,17 +812,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb196"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb196-1"><a href="#cb196-1" aria-hidden="true" tabindex="-1"></a>git merge origin<span class="op">/</span>master</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El Pull es equivalente a hacer Fetch + Merge (se suele usar mucho más que los dos comandos por separado en la práctica)</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb197"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb197-1"><a href="#cb197-1" aria-hidden="true" tabindex="-1"></a>git pull</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb198"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Traer los cambios del remoto sin mergearlos con el local</p>
-<p>git fetch origin</p>
-<p>Vemos qué archivos se modificaron</p>
-<p>git diff –stat master origin/master</p>
-<p>Y para ver linea por linea</p>
-<p>git diff master origin/master</p>
-<p>Mergeamos la remota y la local</p>
-<p>git merge origin/master</p>
-<p>Pull = Fetch + Merge (se suele usar mucho más que los dos comandos por separado en la práctica)</p>
-<p>git pull</p>
 </section>
 </section>
 
