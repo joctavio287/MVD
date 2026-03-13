@@ -49,7 +49,7 @@ El paquete `nycflights13` contiene datos de todos los vuelos que salieron de Nue
 Veamos la tabla principal: `flights`.
 
 ```{r}
-glimpse(flights) 
+glimpse(flights)
 ```
 
 Notemos el número de filas (**observaciones**) y columnas (**variables**), así como también los nombres y los diferentes formatos en la cual se estructuran:\<int\>, \<dbl\> y \<dtm\>.
@@ -93,8 +93,8 @@ retraso_mensual = vuelos_retrasados_ua |>
     retraso_promedio = mean(dep_delay, na.rm = TRUE),
     cantidad_vuelos = n()
   ) |> 
-  arrange(desc(retraso_promedio))
-  # arrange(desc(cantidad_vuelos))
+  # arrange(desc(retraso_promedio))
+  arrange(desc(cantidad_vuelos))
 
 retraso_mensual
 ```
@@ -107,11 +107,10 @@ La librería también nos provee otra base de datos: `planes`
 glimpse(planes)
 ```
 
-¿Para qué nos puede servir esta base de datos? Por ejemplo, si tuviésemos la hipótesis de que aquellos vuelos que más tardaron en arrancar fueron aquellos cuyos aviones fueron construidos hace más tiempo.
+¿Para qué nos puede servir esta base de datos? Por ejemplo, si tuviésemos la **hipótesis de que aquellos vuelos que más tardaron en arrancar fueron aquellos cuyos aviones fueron construidos hace más tiempo.**
 
 ```{r}
-vuelos_con_aviones = vuelos_retrasados_ua |> 
-  left_join(planes, by = "tailnum") |> 
+vuelos_con_aviones = vuelos_retrasados_ua |> left_join(planes, by = "tailnum")|> 
   # Renombramos para no confundir el año del vuelo con el año del avión
   rename(year_flight = year.x, year_plane = year.y) |> 
   select(year_flight, month, dest, dep_delay, tailnum, year_plane, model)  
@@ -124,14 +123,14 @@ El `left_join` deja inertes los valores de la tabla izquierda (x) y recorta los 
 
 ```{r}
 all(
-  select(vuelos_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
+select(vuelos_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
 )
 ```
 
 ```{r}
-planes |> select(year) |> unique() |> arrange(year) # ERROR esto no nos sirve porque no los mismos aviones que vuelos_retrasadaos_ua
+# var = planes |> select(year) |> unique() |> arrange(year) # ERROR esto no nos sirve porque no los mismos aviones que vuelos_retrasadaos_ua
 
-# vuelos_con_aviones |> select(year_plane) |> unique() |> arrange(year_plane) #ACÁ sí podemos ver el verdadero año en que se construyeron
+vuelos_con_aviones |> select(year_plane) |> unique() |> arrange(year_plane) #ACÁ sí podemos ver el verdadero año en que se construyeron
 ```
 
 Las operaciones de `join` más usuales se sintetizan gráficamente en este diagrama de Venn donde cada circulo representa el conjunto de valores referidos a la columna de interés en cada tabla (x e y)
@@ -181,13 +180,13 @@ tabla_3 = vuelos_retrasados_ua |>
 
 Vamos a trabajar con dos bases de datos reales. El objetivo es cruzar el **PBI** (Valor Agregado Bruto) total del país con el **PBG** (Producto Bruto Geográfico) de la Provincia de Buenos Aires y ver qué proporción representa la PBA frente al país a lo largo de los años.
 
-**Disclaimer**: no soy economista ni aficionado de estos temas, pero sí me parece importante aclarar que cuando uno se enfrenta a un fenómeno que no conoce es importante estudiar un poco de qué se trata para poder entender qué queremos hacer.
+**Disclaimer**: no soy economista ni aficionado de estos temas, pero sí me parece importante aclarar que cuando uno se enfrenta a un fenómeno que no conoce es importante estudiar un poco de qué se trata para poder entender decidir qué vamos a hacer.
 
 Vamos a utilizar la serie a **precios constantes con base 2004** porque funciona como un año de referencia que permite aislar el efecto de la inflación. Al valuar la producción de años posteriores con los precios fijos de 2004, los cambios observados en la variable reflejan exclusivamente el **crecimiento real** o físico de la economía (mayor cantidad de bienes y servicios producidos) y no meras variaciones en el nivel general de precios.
 
 ### Carga de los Datos
 
-Descargamos los datos directamente desde sus URLs oficiales ([PBG](https://catalogo.datos.gba.gob.ar/dataset/pbg) y [Nación](https://www.argentina.gob.ar/economia/politicaeconomica/regionalysectorial/informesproductivos/datasets)).
+Descargamos los datos directamente desde sus URLs oficiales ([PBG](https://catalogo.datos.gba.gob.ar/dataset/pbg) y [Nación](https://www.argentina.gob.ar/economia/politicaeconomica/regionalysectorial/informesproductivos/datasets)). La primera es el desglose de la provincia por actividad (rural, ganadera, etc.) y la segunda el desglose del PBG por provincia.
 
 ```{r}
 # Base 1: Indicadores Provinciales
@@ -220,7 +219,7 @@ La base `nacion` es muy amplia y contiene muchos indicadores. Primero exploramos
 
 ```{r}
 # Inspección rápida (revisar antes de elegir indicador)
-nacion |> distinct(indicador) |> arrange(indicador) |> head()
+nacion |> select(indicador) |> unique()
 ```
 
 Contrastamos contra lo que dice el catálogo en una inspección rápida.
@@ -230,9 +229,15 @@ glimpse(catalogo_nacion)
 catalogo_nacion |> select(field_title, field_description) |> head(20)
 ```
 
-Vamos a hacer una limpieza de PBA. En la página web que está más arriba también vamos a encontrar un catálogo para la base de datos.
+Digeramos el comando que vamos a usar a continuación para **eliminar columnas con datos faltantes** (`na`). En este caso esta operación no hace ningún efecto dado que no hay columnas enteras de datos faltantes.
 
-Digeramos el comando que vamos a usar a continuación para eliminar datos faltantes (`na`): **1)** **`is.na()`** identifica los valores faltantes. **2)** El punto (**`.`**) actúa como un marcador de posición (*placeholder*) que representa a la columna que se está evaluando en cada paso. **3)** Aplicamos la negación (**`!`**) para que los datos reales pasen a ser `TRUE` y los faltantes `FALSE`. **4)** Luego, usamos **`any()`** para verificar si existe al menos un valor verdadero (es decir, un dato útil) en toda la columna. Finalmente, combinamos **`where()`** y la tilde (**`~`**) para aplicar esta función de filtrado a todas las columnas del dataset, conservando solo aquellas que no estén totalmente vacías.
+**1)** **`is.na()`** identifica los valores faltantes.
+
+**2)** El punto (**`.`**) actúa como un marcador de posición (*placeholder*) que representa a la columna que se está evaluando en cada paso.
+
+**3)** Aplicamos la negación (**`!`**) para que los datos reales pasen a ser `TRUE` y los faltantes `FALSE`.
+
+**4)** Luego, usamos **`any()`** para verificar si existe al menos un valor verdadero (es decir, un dato útil) en toda la columna. Finalmente, combinamos **`where()`** y la tilde (**`~`**) para aplicar esta función de filtrado a todas las columnas del dataset, conservando solo aquellas que no estén totalmente vacías.
 
 ```{r}
 pba = pba_raw |> select(
@@ -254,14 +259,7 @@ pba = pba |> rename(
 glimpse(pba)
 ```
 
-Busquemos la variable que nos interesa.
-
-```{r}
-
-nacion |> select(indicador) |> unique()
-
-
-```
+### Continuamos con el análisis exploratorio
 
 ```{r}
 # Vemos cuáles son las fuentes disponibles para los datos que nos interesan
@@ -280,19 +278,19 @@ Seleccionamos aquella fuente que tenga a la provincia de Buenos Aires.
 ```{r}
 
 # Seleccionamos Provincia de Buenos Aires
-pbg_pba = nacion |>
+pbg_pba_NACION = nacion |>
   filter(
     sector_nombre=='Indicadores Provinciales',
     indicador == 'PBG - Base 2004',
-    str_detect(fuente, 'Buenos Aires')
+    str_detect(fuente, 'Buenos Aires'),
+    unidad_de_medida=="miles de pesos a precios de 2004"
   ) |> 
   mutate(
     year = year(indice_tiempo), 
     valor = valor/1000
   ) |> 
   select(year, unidad_de_medida, valor)
-head(pbg_pba)
-
+head(pbg_pba_NACION)
 ```
 
 Y agregamos los datos a nivel nacional (17 provincias aparentemente: CUIDADO --\> más adelante vamos a ver los problemas que conlleva).
@@ -300,60 +298,73 @@ Y agregamos los datos a nivel nacional (17 provincias aparentemente: CUIDADO --\
 ```{r}
 
 # Agregamos los datos (17 provincias) para ver la serie de nación
-pbg_nacion_17 = nacion |> 
+pbi_NACION = nacion |> 
   filter(
     sector_nombre == 'Indicadores Provinciales',
-    indicador == 'PBG - Base 2004'
+    indicador == 'PBG - Base 2004',
+    unidad_de_medida=="miles de pesos a precios de 2004" # ojo acá
   ) |> 
-  mutate(year = year(indice_tiempo), valor = valor/1000) |> 
+  mutate(year = year(indice_tiempo), valor = valor/1000) |> # hacemos la conversión a millones de pesos
   # Agrupamos por año para sumar todas las provincias que aparezcan en ese año
   group_by(year) |> 
   summarise(
-    valor_nacion_17 = sum(valor, na.rm = TRUE),
+    pbi = sum(valor, na.rm = TRUE),
     provincias_contabilizadas = n() # Esto te sirve para chequear si siempre son 17
   )
-head(pbg_nacion_17)
+head(pbi_NACION)
 ```
 
-Agregamos los valores de la base de datos de PBA a valores constantes, igual que en el otro caso.
+Agregamos los valores de la base de datos de PBA a valores constantes, igual que en el otro caso. Estos valores están en millones de pesos, lo podemos revisar si visitamos el catálogo que se encuentra disponible en la página original (revisar más arriba).
 
 ```{r}
 
-pba_agg <- pba  |> 
+pba_agg_PBA <- pba  |> 
   group_by(year)  |> 
   summarize(
     pbg_pba_const = sum(as.numeric(valor_constantes), na.rm = TRUE), 
     .groups = "drop"
   ) |> 
   arrange(year)
-head(pba_agg)
+head(pba_agg_PBA)
+```
+
+Podemos auditar los datos para notar que no todos los años están cargados los datos de todas las provincias
+
+```{r}
+# Veamos cuántas observaciones hay por año
+auditoria_nacion <- pbi_NACION |> 
+  select(year, provincias_contabilizadas) |> 
+  unique() |> 
+  arrange(year)
+
+head(auditoria_nacion, 30)
 ```
 
 Podemos comparar la proporción asignada a nación si comparamos ambas bases
 
 ```{r}
-# pba_agg es el que calculamos con la base de PBA
-proporcion_pgb_ba = pba_agg |> 
-  left_join(pbg_nacion_17, by="year") |> 
-  mutate(proporcion_ba = 100 * (pbg_pba_const / valor_nacion_17)) |> 
-  select(year, proporcion_ba)
+# pba_agg_PBA es el que calculamos con la base de PBA
+proporcion_pbi_PBA = pba_agg_PBA |> 
+  left_join(pbi_NACION, by="year") |> 
+  mutate(proporcion_pba = 100 * (pbg_pba_const / pbi)) |> 
+  select(year, proporcion_pba)
 
-# pbg_pba es el que calculamos con la base de nacion
-proporcion_pgb_ba_por_nacion = pbg_pba |> 
-  left_join(pbg_nacion_17, by="year") |> 
-  mutate(proporcion_ba = 100 * (valor / valor_nacion_17)) |> 
-  select(year, proporcion_ba)
+# pbg_pba_NACION es el que calculamos con la base de nacion
+proporcion_pbi_NACION = pbg_pba_NACION |> 
+  left_join(pbi_NACION, by="year") |> 
+  mutate(proporcion_pba = 100 * (valor / pbi)) |> 
+  select(year, proporcion_pba)
 
-head(proporcion_pgb_ba)
-head(proporcion_pgb_ba_por_nacion, 10)
+head(proporcion_pbi_PBA)
+head(proporcion_pbi_NACION, 10)
 ```
 
 ```{r}
 # Unificamos las dos mediciones para comparar
-comparativa_proporciones <- proporcion_pgb_ba |> 
-  rename(prop_desde_pba_file = proporcion_ba) |> 
-  left_join(proporcion_pgb_ba_por_nacion, by = "year") |> 
-  rename(prop_desde_nacion_file = proporcion_ba) |> 
+comparativa_proporciones <- proporcion_pbi_PBA |> 
+  rename(prop_desde_pba_file = proporcion_pba) |> 
+  left_join(proporcion_pbi_NACION, by = "year") |> 
+  rename(prop_desde_nacion_file = proporcion_pba) |> 
   # Pasamos a formato largo para graficar
   pivot_longer(cols = starts_with("prop"), 
                names_to = "fuente_dato", 
@@ -375,21 +386,21 @@ ggplot(comparativa_proporciones, aes(x = year, y = porcentaje, color = fuente_da
                      labels = c("Datos Nación (PBG)", "Suma Sectores PBA (VAB)"))
 ```
 
-Al contrastar las dos series, observamos inconsistencias y oscilaciones bruscas en la serie de Nación. Esto se debe a un problema de **integridad referencial entre fuentes**: el denominador (Nación) no siempre contiene la misma cantidad de provincias reportadas año a año, lo que genera saltos artificiales en la proporción.
+Al contrastar las dos series, observamos inconsistencias.. Esto se debe a un problema de **integridad referencial entre fuentes**: el denominador (Nación) no siempre contiene la misma cantidad de provincias reportadas año a año, lo que genera saltos artificiales en la proporción.
 
 ```{r}
-head(pbg_nacion_17)
-pbg_nacion_17 |> select(provincias_contabilizadas) |> unique()
+head(pbi_NACION)
+pbi_NACION |> select(provincias_contabilizadas) |> unique()
 
 ```
 
-es esperable que si cambiamos la cantidad de provincias involucradas en el promedio, la proporción asignaba a BA varíe. De hecho, la línea azul decrece constantemente porque el número de provincias involucradas en el promedio aumenta con los años.
+es esperable que si cambiamos la cantidad de provincias involucradas en el promedio, la proporción asignaba a BA varíe. De hecho, una posible razón por la cual las series decaen en el tiempo es que el número de provincias aumenta con el correr de los años.
 
 ```{r}
-pbg_nacion_17 |> select(year, provincias_contabilizadas)
+pbi_NACION |> select(year, provincias_contabilizadas)
 ```
 
-Además, estamos mezclando el PBG (que incluye impuestos) del archivo de Nación con la suma de sectores del archivo provincial que no los incluye.
+La principal diferencia entra las series se debe a que estamos mezclando el PBG (que incluye impuestos) del archivo de Nación con la suma de sectores del archivo provincial que no los incluye.
 
 **¿Qué nos llevamos de acá?** Si queremos hacer un análisis que sea realmente fiable hay que entender las bases de datos con las cuales trabajamos, no basta únicamente con bajarlas y procesarlas bajo la pretensión de que sean tal como creemos.
 
