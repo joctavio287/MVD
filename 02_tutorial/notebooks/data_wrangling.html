@@ -2402,26 +2402,26 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">retraso_promedio =</span> <span class="fu">mean</span>(dep_delay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">cantidad_vuelos =</span> <span class="fu">n</span>()</span>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange(desc(retraso_promedio))</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(cantidad_vuelos))</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(retraso_promedio))</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange(desc(cantidad_vuelos))</span></span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>retraso_mensual</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 12 × 3
    month retraso_promedio cantidad_vuelos
    &lt;int&gt;            &lt;dbl&gt;           &lt;int&gt;
- 1     7             127.             565
- 2     6             126.             563
- 3     4             123.             402
- 4    12             113.             382
- 5     8             115.             342
- 6     3             121.             311
- 7     5             118.             309
- 8     9             137.             210
- 9    10             115.             207
-10     1             119.             194
-11     2             110.             175
-12    11             121.             164</code></pre>
+ 1     9             137.             210
+ 2     7             127.             565
+ 3     6             126.             563
+ 4     4             123.             402
+ 5     3             121.             311
+ 6    11             121.             164
+ 7     1             119.             194
+ 8     5             118.             309
+ 9     8             115.             342
+10    10             115.             207
+11    12             113.             382
+12     2             110.             175</code></pre>
 </div>
 </div>
 <p>Este combo (<code>group_by + summarize</code>) se re contra usa en la práctica porque condensa mucha información que, seguramente, sea difícil de interpretar en los datos crudos.</p>
@@ -2448,7 +2448,8 @@ $ engine       &lt;chr&gt; &quot;Turbo-fan&quot;, &quot;Turbo-fan&quot;, &quot;T
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Renombramos para no confundir el año del vuelo con el año del avión</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">year_flight =</span> year.x, <span class="at">year_plane =</span> year.y) <span class="sc">|&gt;</span> </span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year_flight, month, dest, dep_delay, tailnum, year_plane, model)  </span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>vuelos_con_aviones <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="sc">-</span>dep_delay) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>vuelos_con_aviones <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="sc">-</span>dep_delay) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 7
   year_flight month dest  dep_delay tailnum year_plane model   
@@ -2465,7 +2466,7 @@ $ engine       &lt;chr&gt; &quot;Turbo-fan&quot;, &quot;Turbo-fan&quot;, &quot;T
 <p>El <code>left_join</code> deja inertes los valores de la tabla izquierda (x) y recorta los de la derecha (y) a medida. En consecuencia, si comparamos la variable que indica el número de avión de <code>vuelos_retrasados_ba</code> con la misma variable en <code>vuelos_con_aviones</code> obtenemos exactamente el mismo resultado, es decir, no se perdió nada de la tabla original.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(vuelos_con_aviones, tailnum) <span class="sc">==</span> <span class="fu">select</span>(vuelos_retrasados_ua, tailnum)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(vuelos_con_aviones, tailnum) <span class="sc">==</span> <span class="fu">select</span>(vuelos_retrasados_ua, tailnum)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
@@ -2670,7 +2671,7 @@ $ field_description  &lt;chr&gt; &quot;Identifca el sector&quot;, &quot;Descripc
 <p><strong>4)</strong> Luego, usamos <strong><code>any()</code></strong> para verificar si existe al menos un valor verdadero (es decir, un dato útil) en toda la columna. Finalmente, combinamos <strong><code>where()</code></strong> y la tilde (<strong><code>~</code></strong>) para aplicar esta función de filtrado a todas las columnas del dataset, conservando solo aquellas que no estén totalmente vacías.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>pba <span class="ot">=</span> pba_raw <span class="sc">|&gt;</span> <span class="fu">select</span>(</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">where</span>(<span class="sc">~</span> <span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(.)))</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">where</span>(<span class="sc">~</span><span class="fu">any</span>(<span class="sc">!</span><span class="fu">is.na</span>(.)))</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>En esta celda estandarizamos los nombres. <strong>Atención:</strong> acá los nombres dejan de ser los de la tabla original, es importante que el código sea transparente respecto a estos cambios para tener mayor reproducibilidad.</p>
@@ -2741,21 +2742,22 @@ $ valor_constantes &lt;dbl&gt; 12525.6065, 442.2173, 320.5063, 45880.4126, 2954.
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    unidad_de_medida<span class="sc">==</span><span class="st">&quot;miles de pesos a precios de 2004&quot;</span></span>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(indice_tiempo), </span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">valor =</span> valor<span class="sc">/</span><span class="dv">1000</span></span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, unidad_de_medida, valor)</span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(pbg_pba_NACION)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">unidad_de_medida=</span><span class="st">&quot;millones de pesos a precios de 2004&quot;</span>,</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(indice_tiempo), </span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">valor =</span> valor<span class="sc">/</span><span class="dv">1000</span></span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, unidad_de_medida, valor)</span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(pbg_pba_NACION)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 3
-   year unidad_de_medida                   valor
-  &lt;dbl&gt; &lt;chr&gt;                              &lt;dbl&gt;
-1  2004 miles de pesos a precios de 2004 143130.
-2  2005 miles de pesos a precios de 2004 157804.
-3  2006 miles de pesos a precios de 2004 169924.
-4  2007 miles de pesos a precios de 2004 185503.
-5  2008 miles de pesos a precios de 2004 192070.
-6  2009 miles de pesos a precios de 2004 176417.</code></pre>
+   year unidad_de_medida                      valor
+  &lt;dbl&gt; &lt;chr&gt;                                 &lt;dbl&gt;
+1  2004 millones de pesos a precios de 2004 143130.
+2  2005 millones de pesos a precios de 2004 157804.
+3  2006 millones de pesos a precios de 2004 169924.
+4  2007 millones de pesos a precios de 2004 185503.
+5  2008 millones de pesos a precios de 2004 192070.
+6  2009 millones de pesos a precios de 2004 176417.</code></pre>
 </div>
 </div>
 <p>Y agregamos los datos a nivel nacional (17 provincias aparentemente: CUIDADO –&gt; más adelante vamos a ver los problemas que conlleva).</p>
@@ -2767,7 +2769,7 @@ $ valor_constantes &lt;dbl&gt; 12525.6065, 442.2173, 320.5063, 45880.4126, 2954.
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>    indicador <span class="sc">==</span> <span class="st">&#39;PBG - Base 2004&#39;</span>,</span>
 <span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>    unidad_de_medida<span class="sc">==</span><span class="st">&quot;miles de pesos a precios de 2004&quot;</span> <span class="co"># ojo acá</span></span>
 <span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">year</span>(indice_tiempo), <span class="at">valor =</span> valor<span class="sc">/</span><span class="dv">1000</span>) <span class="sc">|&gt;</span> <span class="co"># hacemos la conversión a millones de pesos</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">unidad_de_medida=</span><span class="st">&quot;millones de pesos a precios de 2004&quot;</span>,<span class="at">year =</span> <span class="fu">year</span>(indice_tiempo), <span class="at">valor =</span> valor<span class="sc">/</span><span class="dv">1000</span>) <span class="sc">|&gt;</span> <span class="co"># hacemos la conversión a millones de pesos</span></span>
 <span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Agrupamos por año para sumar todas las provincias que aparezcan en ese año</span></span>
 <span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span> </span>
 <span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>

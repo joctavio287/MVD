@@ -30,6 +30,7 @@ La idea de esta clase es que puedan ir corriendo y pensando las operaciones que 
 Primero, cargamos los paquetes que vamos a utilizar. Usaremos la colección `tidyverse` para manipular los datos y `nycflights13` para la primera parte.
 
 ```{r}
+#| echo: true
 # Instalamos los paquetes si no los tenemos 
 # install.packages(c("tidyverse", "nycflights13", "skimr", "scales", "ggplot2", "pacman"))
 
@@ -93,8 +94,8 @@ retraso_mensual = vuelos_retrasados_ua |>
     retraso_promedio = mean(dep_delay, na.rm = TRUE),
     cantidad_vuelos = n()
   ) |> 
-  # arrange(desc(retraso_promedio))
-  arrange(desc(cantidad_vuelos))
+  arrange(desc(retraso_promedio))
+  # arrange(desc(cantidad_vuelos))
 
 retraso_mensual
 ```
@@ -114,6 +115,7 @@ vuelos_con_aviones = vuelos_retrasados_ua |> left_join(planes, by = "tailnum")|>
   # Renombramos para no confundir el año del vuelo con el año del avión
   rename(year_flight = year.x, year_plane = year.y) |> 
   select(year_flight, month, dest, dep_delay, tailnum, year_plane, model)  
+
 vuelos_con_aviones |> arrange(-dep_delay) |> head()
 ```
 
@@ -123,7 +125,7 @@ El `left_join` deja inertes los valores de la tabla izquierda (x) y recorta los 
 
 ```{r}
 all(
-select(vuelos_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
+  select(vuelos_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
 )
 ```
 
@@ -241,7 +243,7 @@ Digeramos el comando que vamos a usar a continuación para **eliminar columnas c
 
 ```{r}
 pba = pba_raw |> select(
-      where(~ any(!is.na(.)))
+      where(~any(!is.na(.)))
     )
 ```
 
@@ -286,6 +288,7 @@ pbg_pba_NACION = nacion |>
     unidad_de_medida=="miles de pesos a precios de 2004"
   ) |> 
   mutate(
+    unidad_de_medida="millones de pesos a precios de 2004",
     year = year(indice_tiempo), 
     valor = valor/1000
   ) |> 
@@ -304,7 +307,7 @@ pbi_NACION = nacion |>
     indicador == 'PBG - Base 2004',
     unidad_de_medida=="miles de pesos a precios de 2004" # ojo acá
   ) |> 
-  mutate(year = year(indice_tiempo), valor = valor/1000) |> # hacemos la conversión a millones de pesos
+  mutate(unidad_de_medida="millones de pesos a precios de 2004",year = year(indice_tiempo), valor = valor/1000) |> # hacemos la conversión a millones de pesos
   # Agrupamos por año para sumar todas las provincias que aparezcan en ese año
   group_by(year) |> 
   summarise(
