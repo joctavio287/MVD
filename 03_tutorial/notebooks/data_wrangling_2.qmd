@@ -24,11 +24,11 @@ Hoy vamos a continuar con los temas de la clase pasada, pero vamos a utilizar ot
 
 ## 3. Tercera Parte
 
-Vamos a trabajar con datos del **SINTA (Sistema de Inteligencia Turística Argentina)**, que es el portal de datos abiertos de la Subsecretaría de Turismo. Utilizaremos específicamente dos bases de datos de la **Encuesta de Turismo Internacional (ETI)**: una correspondiente al [**Aeropuerto Internacional de Córdoba**](https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/dae8b7f8-f3dc-431b-887e-3de4b54f09a9) y otra que agrupa el movimiento de [**CABA** a través de los arribos en **Ezeiza y Aeroparque**](https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/32cd65c4-7558-48cf-a8ac-bbb07147b5a1).
+Vamos a trabajar con datos del **SINTA (Sistema de Inteligencia Turística Argentina)**, que es el portal de datos abiertos de la Subsecretaría de Turismo. Utilizaremos específicamente dos bases de datos de la **Encuesta de Turismo Internacional (ETI)**: una correspondiente al [**Aeropuerto Internacional de Córdoba**](https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/dae8b7f8-f3dc-431b-887e-3de4b54f09a9) y otra que agrupa el movimiento de [**CABA** **y PBA** a través de los arribos en **Ezeiza y Aeroparque**](https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/32cd65c4-7558-48cf-a8ac-bbb07147b5a1).
 
 Estas bases nos permiten analizar el volumen de **turistas no residentes**, sus **pernoctes** y la **estadía media** según su país de residencia, lo que nos servirá de insumo para practicar técnicas de limpieza, normalización y transformación de datos.
 
-[En este caso no vamos a trabajar sobre una hipótesis particular porque guíe el análisis para que se puedan realizar las operaciones que nos faltan revisar.]{.underline}
+[En este caso no vamos a trabajar sobre una hipótesis particular porque armé el análisis para que se puedan realizar las operaciones que nos faltan revisar.]{.underline}
 
 ### Librerías y los datos
 
@@ -60,7 +60,7 @@ head(estadias_co)
 Armamos una función que, dado un dataframe, realice ambas operaciones
 
 ```{r}
-normalize_dataframe = function(dataframe, clean = TRUE, which = "cols") {
+normalize_dataframe = function(dataframe, clean = TRUE, which_remove = "cols") {
   # Normalizacion
   if (clean) {
     data_clean = janitor::clean_names(dataframe)
@@ -69,27 +69,28 @@ normalize_dataframe = function(dataframe, clean = TRUE, which = "cols") {
   }
   
   # Eliminacion de datos faltantes
-  if (which == "both") {
+  if (which_remove == "both") {
     data_clean = data_clean |> 
       janitor::remove_empty(which = 'cols') |> 
       janitor::remove_empty(which = 'rows')
   } else {
-    data_clean = janitor::remove_empty(data_clean, which = which)
+    data_clean = janitor::remove_empty(data_clean, which = which_remove)
   }
   
   return(data_clean)
 }
+# normalize_dataframe(estadias_co,which='rows')
 ```
 
-Esta función recibe como input un dataframe, normaliza las nombres de las variables (columnas) y, luego, remueve las observaciones (`rows`) o variables (`cols`) que tengan [todos]{.underline} sus valores faltantes (`NA`).
+Esta función recibe como input un dataframe, normaliza los nombres de las variables (columnas) y, luego, remueve las observaciones (`rows`) o variables (`cols`) que tengan [todos]{.underline} sus valores faltantes (`NA`).
 
 Para llamar una función que está definida en dos librerías diferentes con el mismo nombre, podemos escribir primero la librería creadora para desambiguar el conflicto —`janitor::clean_names()`. En este ejemplo especificar la librería padre está de más porque `clean_names` no se define en otras librerías.
 
 En caso de querer desambiguar una función *built-in* (pre definida en R), podemos hacerlo así: `base::una_funcion()`.
 
 ```{r}
-estadias_co_clean = normalize_dataframe(estadias_co, which='both')
-estadias_ba_clean = normalize_dataframe(estadias_ba, which="both")
+estadias_co_clean = normalize_dataframe(estadias_co, which_remove = 'both')
+estadias_ba_clean = normalize_dataframe(estadias_ba, which_remove = "both")
 cat(
   c('Estadías Córdoba antes:', nrow(estadias_co), 'y después:', nrow(estadias_co_clean))
 )
@@ -108,7 +109,7 @@ estadias_ba_clean |> select(pais_de_residencia) |> unique()
 estadias_co_clean |> select(pais_de_residencia) |> unique()
 ```
 
-Pero hay que tener cuidado ya que hay países que significan lo mismo, pero tienen nombres diferentes. Por ejemplo, "Resto de América" y "Resto América". En este caso, podemos ver las categorías en detalle dado que son pocas.
+Pero hay que tener cuidado ya que hay países que significan lo mismo, pero tienen nombres diferentes. Por ejemplo, "Resto de América" y "Resto América". En este caso, podemos revisar las categorías a mano dado que son pocas, de todos modos hagamos un tratamiento general.
 
 ```{r}
 estadias_ba_clean = estadias_ba_clean |> 
@@ -188,7 +189,7 @@ estadias_totales = estadias_ba_clean |>
   inner_join(
     estadias_co_clean,
     by=c("pais_de_residencia","indice_tiempo"),
-    suffix = c("_BA", "_CO")
+    suffix = c("_BA", "_CO") # el sufijo asignado a las tablas izq y derecha (reemplaza el valor defecto que es .x y .y)
   ) |> 
   select(!starts_with('obs'))
 

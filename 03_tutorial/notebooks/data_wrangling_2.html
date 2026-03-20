@@ -2248,19 +2248,19 @@ vertical-align: -.125em;
 
 <section id="de-qué-trata-la-clase-de-hoy" class="level2">
 <h2 class="anchored" data-anchor-id="de-qué-trata-la-clase-de-hoy">De qué trata la clase de hoy</h2>
-<p>Hoy vamos a continuar con los temas de la clase pasada, pero vamos a utilizar otro paquete que nos va a facilitar muchas de las tareas que veníamos haciendo.</p>
+<p>Hoy vamos a continuar con los temas de la clase pasada, pero vamos a utilizar otras herramientas que nos van a facilitar muchas de las tareas que veníamos haciendo.</p>
 <ol type="1">
 <li><p><strong>Primera parte</strong>: vamos a ver las consignas del TP.</p></li>
-<li><p><strong>Segunda parte</strong>: vamos a rever el final de la clase anterior, que quedó inconcluso y tenía algunos bugs.</p></li>
-<li><p><strong>Tercera parte</strong>: vamos a ver otra base de datos. La idea en este caso es volver a hacer algunas de las operaciones que hicimos antes valiéndonos de <code>janitor</code> y <code>stringi</code>, que son librerías que sintetizan operaciones de limpieza que resultan engorrosas de escribir a mano. La idea es que este <em>notebook</em> les sirva de machete para que puedan hacer más tranquilos/as el TP individual. Vamos a ver, además, cómo ordenar variables en forma jerárquica.</p></li>
-<li><p><strong>Cuarta parte</strong>: seguramente la clase que viene, veremos cómo organizar <em>scripts</em> dentro de un proyecto grande, para que cada realice una tarea en particular y algo de formatos (.rds, .json, etc.)</p></li>
+<li><p><strong>Segunda parte</strong>: vamos a revisar el final de la clase anterior, que quedó inconcluso y tenía algunos bugs.</p></li>
+<li><p><strong>Tercera parte</strong>: vamos a ver otra base de datos. La idea en este caso es volver a hacer algunas de las operaciones que hicimos antes valiéndonos de <code>janitor</code> y <code>stringi</code>, que son librerías que sintetizan operaciones de limpieza que resultan engorrosas de escribir a mano. La idea es que este <em>notebook y</em> el anterior les sirva de machete para que puedan hacer más tranquilos/as el TP individual. Vamos a ver, además, cómo ordenar variables en forma jerárquica.</p></li>
+<li><p><strong>Cuarta parte</strong>: seguramente la clase que viene veremos cómo organizar <em>scripts</em> dentro de un proyecto grande para que cada archivo realice una tarea en particular.</p></li>
 </ol>
 </section>
 <section id="tercera-parte" class="level2">
 <h2 class="anchored" data-anchor-id="tercera-parte">3. Tercera Parte</h2>
-<p>Vamos a trabajar con datos del <strong>SINTA (Sistema de Inteligencia Turística Argentina)</strong>, que es el portal de datos abiertos de la Subsecretaría de Turismo. Utilizaremos específicamente dos bases de datos de la <strong>Encuesta de Turismo Internacional (ETI)</strong>: una correspondiente al <a href="https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/dae8b7f8-f3dc-431b-887e-3de4b54f09a9"><strong>Aeropuerto Internacional de Córdoba</strong></a> y otra que agrupa el movimiento de <a href="https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/32cd65c4-7558-48cf-a8ac-bbb07147b5a1"><strong>CABA</strong> a través de los arribos en <strong>Ezeiza y Aeroparque</strong></a>.</p>
+<p>Vamos a trabajar con datos del <strong>SINTA (Sistema de Inteligencia Turística Argentina)</strong>, que es el portal de datos abiertos de la Subsecretaría de Turismo. Utilizaremos específicamente dos bases de datos de la <strong>Encuesta de Turismo Internacional (ETI)</strong>: una correspondiente al <a href="https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/dae8b7f8-f3dc-431b-887e-3de4b54f09a9"><strong>Aeropuerto Internacional de Córdoba</strong></a> y otra que agrupa el movimiento de <a href="https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/32cd65c4-7558-48cf-a8ac-bbb07147b5a1"><strong>CABA</strong> <strong>y PBA</strong> a través de los arribos en <strong>Ezeiza y Aeroparque</strong></a>.</p>
 <p>Estas bases nos permiten analizar el volumen de <strong>turistas no residentes</strong>, sus <strong>pernoctes</strong> y la <strong>estadía media</strong> según su país de residencia, lo que nos servirá de insumo para practicar técnicas de limpieza, normalización y transformación de datos.</p>
-<p><u>En este caso no vamos a trabajar sobre una hipótesis particular porque guíe el análisis para que se puedan realizar las operaciones que nos faltan revisar.</u></p>
+<p><u>En este caso no vamos a trabajar sobre una hipótesis particular porque armé el análisis para que se puedan realizar las operaciones que nos faltan revisar.</u></p>
 <section id="librerías-y-los-datos" class="level3">
 <h3 class="anchored" data-anchor-id="librerías-y-los-datos">Librerías y los datos</h3>
 <div class="cell">
@@ -2355,7 +2355,7 @@ date (1): indice_tiempo
 <h3 class="anchored" data-anchor-id="normalización-de-variables-y-remoción-de-datos-faltantes">Normalización de variables y remoción de datos faltantes</h3>
 <p>Armamos una función que, dado un dataframe, realice ambas operaciones</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>normalize_dataframe <span class="ot">=</span> <span class="cf">function</span>(dataframe, <span class="at">clean =</span> <span class="cn">TRUE</span>, <span class="at">which =</span> <span class="st">&quot;cols&quot;</span>) {</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>normalize_dataframe <span class="ot">=</span> <span class="cf">function</span>(dataframe, <span class="at">clean =</span> <span class="cn">TRUE</span>, <span class="at">which_remove =</span> <span class="st">&quot;cols&quot;</span>) {</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Normalizacion</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (clean) {</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    data_clean <span class="ot">=</span> janitor<span class="sc">::</span><span class="fu">clean_names</span>(dataframe)</span>
@@ -2364,23 +2364,24 @@ date (1): indice_tiempo
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Eliminacion de datos faltantes</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (which <span class="sc">==</span> <span class="st">&quot;both&quot;</span>) {</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (which_remove <span class="sc">==</span> <span class="st">&quot;both&quot;</span>) {</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    data_clean <span class="ot">=</span> data_clean <span class="sc">|&gt;</span> </span>
 <span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>      janitor<span class="sc">::</span><span class="fu">remove_empty</span>(<span class="at">which =</span> <span class="st">&#39;cols&#39;</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>      janitor<span class="sc">::</span><span class="fu">remove_empty</span>(<span class="at">which =</span> <span class="st">&#39;rows&#39;</span>)</span>
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    data_clean <span class="ot">=</span> janitor<span class="sc">::</span><span class="fu">remove_empty</span>(data_clean, <span class="at">which =</span> which)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    data_clean <span class="ot">=</span> janitor<span class="sc">::</span><span class="fu">remove_empty</span>(data_clean, <span class="at">which =</span> which_remove)</span>
 <span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data_clean)</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># normalize_dataframe(estadias_co,which=&#39;rows&#39;)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Esta función recibe como input un dataframe, normaliza las nombres de las variables (columnas) y, luego, remueve las observaciones (<code>rows</code>) o variables (<code>cols</code>) que tengan <u>todos</u> sus valores faltantes (<code>NA</code>).</p>
+<p>Esta función recibe como input un dataframe, normaliza los nombres de las variables (columnas) y, luego, remueve las observaciones (<code>rows</code>) o variables (<code>cols</code>) que tengan <u>todos</u> sus valores faltantes (<code>NA</code>).</p>
 <p>Para llamar una función que está definida en dos librerías diferentes con el mismo nombre, podemos escribir primero la librería creadora para desambiguar el conflicto —<code>janitor::clean_names()</code>. En este ejemplo especificar la librería padre está de más porque <code>clean_names</code> no se define en otras librerías.</p>
 <p>En caso de querer desambiguar una función <em>built-in</em> (pre definida en R), podemos hacerlo así: <code>base::una_funcion()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>estadias_co_clean <span class="ot">=</span> <span class="fu">normalize_dataframe</span>(estadias_co, <span class="at">which=</span><span class="st">&#39;both&#39;</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>estadias_ba_clean <span class="ot">=</span> <span class="fu">normalize_dataframe</span>(estadias_ba, <span class="at">which=</span><span class="st">&quot;both&quot;</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>estadias_co_clean <span class="ot">=</span> <span class="fu">normalize_dataframe</span>(estadias_co, <span class="at">which_remove =</span> <span class="st">&#39;both&#39;</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>estadias_ba_clean <span class="ot">=</span> <span class="fu">normalize_dataframe</span>(estadias_ba, <span class="at">which_remove =</span> <span class="st">&quot;both&quot;</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&#39;Estadías Córdoba antes:&#39;</span>, <span class="fu">nrow</span>(estadias_co), <span class="st">&#39;y después:&#39;</span>, <span class="fu">nrow</span>(estadias_co_clean))</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2424,7 +2425,7 @@ Estadías CABA antes: 432 y después: 430</code></pre>
 5 Europa y resto del mundo</code></pre>
 </div>
 </div>
-<p>Pero hay que tener cuidado ya que hay países que significan lo mismo, pero tienen nombres diferentes. Por ejemplo, “Resto de América” y “Resto América”. En este caso, podemos ver las categorías en detalle dado que son pocas.</p>
+<p>Pero hay que tener cuidado ya que hay países que significan lo mismo, pero tienen nombres diferentes. Por ejemplo, “Resto de América” y “Resto América”. En este caso, podemos revisar las categorías a mano dado que son pocas, de todos modos hagamos un tratamiento general.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>estadias_ba_clean <span class="ot">=</span> estadias_ba_clean <span class="sc">|&gt;</span> </span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
@@ -2530,7 +2531,7 @@ Estadías CABA antes: 432 y después: 430</code></pre>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    estadias_co_clean,</span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by=</span><span class="fu">c</span>(<span class="st">&quot;pais_de_residencia&quot;</span>,<span class="st">&quot;indice_tiempo&quot;</span>),</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">&quot;_BA&quot;</span>, <span class="st">&quot;_CO&quot;</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">&quot;_BA&quot;</span>, <span class="st">&quot;_CO&quot;</span>) <span class="co"># el sufijo asignado a las tablas izq y derecha (reemplaza el valor defecto que es .x y .y)</span></span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!</span><span class="fu">starts_with</span>(<span class="st">&#39;obs&#39;</span>))</span>
 <span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
