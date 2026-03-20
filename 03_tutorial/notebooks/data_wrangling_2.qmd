@@ -12,15 +12,15 @@ format:
 
 ## De qué trata la clase de hoy
 
-Hoy vamos a continuar con los temas de la clase pasada, pero vamos a utilizar otro paquete que nos va a facilitar muchas de las tareas que veníamos haciendo.
+Hoy vamos a continuar con los temas de la clase pasada, pero vamos a utilizar otras herramientas que nos van a facilitar muchas de las tareas que veníamos haciendo.
 
 1.  **Primera parte**: vamos a ver las consignas del TP.
 
-2.  **Segunda parte**: vamos a rever el final de la clase anterior, que quedó inconcluso y tenía algunos bugs.
+2.  **Segunda parte**: vamos a revisar el final de la clase anterior, que quedó inconcluso y tenía algunos bugs.
 
-3.  **Tercera parte**: vamos a ver otra base de datos. La idea en este caso es volver a hacer algunas de las operaciones que hicimos antes valiéndonos de `janitor` y `stringi`, que son librerías que sintetizan operaciones de limpieza que resultan engorrosas de escribir a mano. La idea es que este *notebook* les sirva de machete para que puedan hacer más tranquilos/as el TP individual. Vamos a ver, además, cómo ordenar variables en forma jerárquica.
+3.  **Tercera parte**: vamos a ver otra base de datos. La idea en este caso es volver a hacer algunas de las operaciones que hicimos antes valiéndonos de `janitor` y `stringi`, que son librerías que sintetizan operaciones de limpieza que resultan engorrosas de escribir a mano. La idea es que este *notebook y* el anterior les sirva de machete para que puedan hacer más tranquilos/as el TP individual. Vamos a ver, además, cómo ordenar variables en forma jerárquica.
 
-4.  **Cuarta parte**: seguramente la clase que viene, veremos cómo organizar *scripts* dentro de un proyecto grande, para que cada realice una tarea en particular y algo de formatos (.rds, .json, etc.)
+4.  **Cuarta parte**: seguramente la clase que viene veremos cómo organizar *scripts* dentro de un proyecto grande para que cada archivo realice una tarea en particular.
 
 ## 3. Tercera Parte
 

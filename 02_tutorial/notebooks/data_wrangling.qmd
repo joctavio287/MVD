@@ -59,7 +59,7 @@ Notemos el número de filas (**observaciones**) y columnas (**variables**), así
 
 ```{r}
 cat(
-  cat("\n\nNombres de las columnas procesadas:\n\n", names(flights), sep ="\n")
+  cat("\n\nNombres de las columnas procesadas:\n", names(flights), sep ="\n")
 )
 ```
 
@@ -83,7 +83,9 @@ vuelos_retrasados_ua = flights |>
 head(vuelos_retrasados_ua)
 ```
 
-Utilizamos el verbo `filter` para filtrar la tabla por la columna `carrier` (aerolínea) y `dep_delay` (retraso en la salida). Notar que usamos ",", pero que el comando funciona también si usamos "&". Después, seleccionamos aquellas únicamente aquellas variables que nos interesan para identificar el vuelo. El comando `head`, tanto como el `glimpse`, nos sirven para darnos una idea del contenido de la tabla.
+Utilizamos el verbo `filter` para filtrar la tabla por la columna `carrier` (aerolínea) y `dep_delay` (retraso en la salida). Notar que usamos ",", pero que el comando funciona también si usamos "&".
+
+Después, seleccionamos únicamente aquellas variables que nos interesan para identificar el vuelo. El comando `head`, así como el `glimpse`, nos sirve para darnos una idea del contenido de la tabla.
 
 Si nos interesa, por ejemplo, tener una noción de en qué momento del año el retraso en el despegue fue mayor, podríamos agregar los datos por mes y tomar valores promedio.
 
@@ -95,7 +97,7 @@ retraso_mensual = vuelos_retrasados_ua |>
     cantidad_vuelos = n(),
     .groups = "drop" # Si después modificamos algo, no lo va a hacer sobre cada grupo, sino sobre el resultado del summarize
   ) |> 
-  # ungroup() |> #igual a pasar .groupd = "drop
+  # ungroup() |> #igual a pasar .groupd = "drop"
   # arrange(desc(retraso_promedio))
   arrange(desc(cantidad_vuelos))
 
@@ -104,13 +106,13 @@ retraso_mensual
 
 Este combo (`group_by + summarize`) se re contra usa en la práctica porque condensa mucha información que, seguramente, sea difícil de interpretar en los datos crudos.
 
+### Unión de tablas
+
 La librería también nos provee otra base de datos: `planes`
 
 ```{r}
 glimpse(planes)
 ```
-
-### Unión de tablas
 
 ¿Para qué nos puede servir esta base de datos? Por ejemplo, si tuviésemos la **hipótesis de que**
 
@@ -119,27 +121,27 @@ glimpse(planes)
 Para empezar a ordenar la información podemos, primero, ver aquellos vuelos con aviones identificados en la tabla de `planes`.
 
 ```{r}
-vuelos_con_aviones = vuelos_retrasados_ua |> 
+vuelos_retrasados_ua_con_aviones = vuelos_retrasados_ua |> 
   left_join(planes, by = "tailnum")|> 
-  # Renombramos para no confundir el año del vuelo con el año del avión
+  # Renombramos para no confundir el año del vuelo con el año de creación del avión
   rename(year_flight = year.x, year_plane = year.y) |> 
   select(year_flight, month, dest, dep_delay, tailnum, year_plane, model)  
 
-vuelos_con_aviones |> arrange(-dep_delay) |> head(10)
+vuelos_retrasados_ua_con_aviones |> arrange(-dep_delay) |> head(10)
 ```
 
 ![](images/clipboard-1106352299.png){width="301"}
 
-El `left_join` deja inertes los valores de la tabla izquierda (x) y recorta los de la derecha (y) a medida. En consecuencia, si comparamos la variable que indica el número de avión de `vuelos_retrasados_ba` con la misma variable en `vuelos_con_aviones` obtenemos exactamente el mismo resultado, es decir, no se perdió nada de la tabla original.
+El `left_join` deja inertes los valores de la tabla izquierda (x) y recorta los de la derecha (y) a medida. En consecuencia, si comparamos la variable que indica el número de avión de `vuelos_retrasados_ua` con la misma variable en `vuelos_retrasados_ua_con_aviones` obtenemos exactamente el mismo resultado, es decir, no se perdió nada de la tabla original.
 
 ```{r}
 all(
-  select(vuelos_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
+  select(vuelos_retrasados_ua_con_aviones, tailnum) == select(vuelos_retrasados_ua, tailnum)
 )
 ```
 
 ```{r}
-vuelos_con_aviones |> 
+vuelos_retrasados_ua_con_aviones |> 
   select(year_plane) |> 
   unique() |> # Sirve para eliminar repeticiones (1,1,2,3,4,4) ->(1,2,3,4)
   arrange(desc(year_plane)) 
@@ -153,7 +155,7 @@ Las operaciones de `join` más usuales se sintetizan gráficamente en este diagr
 
 En base a estas operaciones se pueden construir otras más complejas que pueden ser de gran utilidad, por ejemplo, el `anti_join` mantiene las observaciones de x que no tienen una coincidencia en y. En el diagrama de Venn esto corresponde al área sombreada que queda si al `left_join` le sacamos `inner_join`.
 
-En el caso que estamos viendo esto nos puede servir para encontrar los valores que se pasaron por alto cuando hicimos el `left_join`.
+En el caso que estamos viendo esta operación nos puede servir para encontrar los valores que se pasaron por alto cuando hicimos el `left_join`.
 
 ```{r}
 vuelos_huerfanos <- vuelos_retrasados_ua |> 
@@ -191,23 +193,11 @@ tabla_3 <- vuelos_retrasados_ua |>
     retraso_promedio_vintage = mean(dep_delay, na.rm = TRUE),
     cantidad_vuelos = n()
   )
-# tabla_4 = vuelos_retrasados_ua |> # ESTO ESTABA ANTES
-#   mutate(twenty_yo=year-20) |> 
-#   left_join(
-#     planes, 
-#     join_by(
-#       tailnum == tailnum,          
-#       twenty_yo >= year
-#     )
-#   ) |> 
-#   filter(!is.na(year.y)) |> 
-#   arrange(-dep_delay)
-# tabla_4
 ```
 
-**tabla_1** (`inner_join`): es similar a la anterior, pero con una diferencia clave: sí agrega todas las columnas de la tabla `planes` (como el fabricante, modelo, motores, etc.). Si un vuelo fue realizado por un avión que no figura en la lista de planes, ese vuelo desaparece de esta tabla. Es la intersección pura entre ambas bases.
+**tabla_1** (`inner_join`): esta tabla contiene los vuelos de `vuelos_retrasados_ua` realizados sólo por aviones que existen en ambas bases. Es la intersección pura entre ambas bases.
 
-**tabla_2** (`semi_join`): esta tabla contiene los vuelos de `vuelos_retrasados_ua` realizados sólo por aviones que existen en ambas bases. Es conceptualmente similar al `inner_join`, pero no agrega columnas nuevas (las que estaban en la tabla de `planes`), sólo filtra las filas de `vuelos_retrasados_ua`.
+**tabla_2** (`semi_join`): es conceptualmente similar al `inner_join`, pero no agrega columnas nuevas (las que estaban en la tabla de `planes`), sólo filtra las filas de `vuelos_retrasados_ua`.
 
 **tabla_3** (`left_join` con condición lógica): acá se complica porque buscamos un subconjunto muy específico. Estamos intentando unir la información de ambas tablas, sólo si ese avión tenía más de 20 años de antigüedad al momento del vuelo. Luego resumimos el resultado con un promedio.
 
@@ -271,7 +261,7 @@ Desarmemos un poco el comando de arriba.
 
 1.  `is.na()` identifica los valores faltantes.
 2.  El punto (`.`) actúa como un marcador de posición (*placeholder*) que va a representa a todas las columna en las cuales se va a ejecutar la función `is.na()`.
-3.  aplicamos la negación (`!`) para que los datos reales pasen a ser `TRUE` y los faltantes `FALSE`.
+3.  Aplicamos la negación (`!`) para que los datos reales pasen a ser `TRUE` y los faltantes `FALSE`.
 4.  Luego, usamos `any()` para verificar si existe al menos un valor verdadero (es decir, un dato útil) en toda la columna.
 5.  Finalmente, combinamos `where()` y la tilde (`~`) para aplicar la función de filtrado a todas las columnas del dataset, conservando solo aquellas que no estén totalmente vacías.
 
@@ -326,7 +316,7 @@ nacion |>
   unique()
 ```
 
-Vemos que **hay 17 provincias de 24 (si contamos CABA)**, lo cual lleva a preguntarnos, ¿faltan datos? Seguimos adelante como si no pasara nada, pero esto teniendo en cuenta que si quisiéramos hacer un anáslisis cuantitativo real de los datos esto es un problema.
+Vemos que **hay 17 provincias de 24 (si contamos CABA)**, lo cual lleva a preguntarnos, ¿faltan datos? Seguimos adelante como si no pasara nada, pero teniendo en cuenta que si quisiéramos hacer un anáslisis cuantitativo real de los datos esto es un problema.
 
 Seleccionamos aquella fuente que tenga a la provincia de Buenos Aires para calcular el PBG, según nación (`_NACION`). Luego, cambiamos la unidad de medida para que sea comparable con aquella que utiliza la otra base de datos (millones de pesos).
 
@@ -392,7 +382,7 @@ pba_agg_PBA <- pba  |>
 head(pba_agg_PBA)
 ```
 
-Podemos comparar la proporción que representa el PBG de PBA respecto al PBI del país, año a año, bajo la salvedad de que este resultado estará ma
+Podemos comparar la proporción que representa el PBG de PBA respecto al PBI del país, año a año, bajo la salvedad de que este resultado estará mal.
 
 ```{r}
 # pba_agg_PBA es el que calculamos con la base de PBA
