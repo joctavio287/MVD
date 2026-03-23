@@ -63,7 +63,7 @@ Armamos una función que, dado un dataframe, realice ambas operaciones
 normalize_dataframe = function(dataframe, clean = TRUE, which_remove = "cols") {
   # Normalizacion
   if (clean) {
-    data_clean = janitor::clean_names(dataframe)
+    data_clean = clean_names(dataframe)
   } else {
     data_clean = dataframe
   }
@@ -79,7 +79,7 @@ normalize_dataframe = function(dataframe, clean = TRUE, which_remove = "cols") {
   
   return(data_clean)
 }
-# normalize_dataframe(estadias_co,which='rows')
+# normalize_dataframe(estadias_co, clean = FALSE, which_remove = 'both')
 ```
 
 Esta función recibe como input un dataframe, normaliza los nombres de las variables (columnas) y, luego, remueve las observaciones (`rows`) o variables (`cols`) que tengan [todos]{.underline} sus valores faltantes (`NA`).
@@ -179,7 +179,7 @@ estadias_co_clean = estadias_co_clean |>
       estadia_media_no_residentes = mean(estadia_media_no_residentes, na.rm = TRUE),
       .groups = "drop" # Para que el DF deje de estar agrupado tras el cálculo
     )
-estadias_co_clean
+estadias_co_clean |> filter(pais_de_residencia=='nolimitrofe')
 ```
 
 Ahora sí, teniendo todo ordenado podemos unir las dos tablas y ver, como anticipábamos, que sólo tienen en común Brasil, Chile y no limítrofes.
@@ -326,20 +326,8 @@ datos_histograma = datos_consolidados |>
     cols = c(turistas_no_residentes_BA, turistas_no_residentes_CO), # qué columnas colapsar
     names_to = "provincia", # el nombre de la nueva columna que contendrá los antiguos nombres de las columnas 
     values_to = "total_turistas" # el nombre de la nueva columna que contendrá los valores numéricos que estaban en esas celdas
-  ) |> 
-  mutate(
-    # Limpiamos el texto sobrante de los nombres de las columnas
-    provincia = str_remove(provincia, "turistas_no_residentes_"),
-    # fct_recode cambia manualmente las etiquetas para el gráfico 
-    provincia = fct_recode(provincia, "EZE/AEP" = "BA", "COR" = "CO"),
-    # fct_reorder ordena los países según quién trae más turistas en total
-    pais = fct_reorder(
-      pais, # los labels
-      total_turistas, # los niveles
-      .fun = sum, # la función agregadora para asignar el orden de total_turistas (por defecto usa la mediana)
-      .desc = TRUE
-    )
-  ) 
+  )
+
 ```
 
 Notar que al utilizar las funciones de la librería `forcats` (`fct_recode` y `fct_reorder`) dentro del `mutate`, transformamos esas columnas de texto plano (`character`) a **factores** (`factor`), es decir, que le decimos a R que conserve un orden jerárquico acorde a un criterio.

@@ -400,8 +400,8 @@ porcentaje_pbi_NACION = pbg_pba_NACION |>
 porcentajes = porcentaje_pbi_NACION |> 
   inner_join(porcentaje_pbi_PBA, by='year') |> 
   rename(
-    porcentaje_pba_segun_PBA=porcentaje_pba.x,
-    porcentaje_pba_segun_NACION=porcentaje_pba.y
+    porcentaje_pba_segun_NACION=porcentaje_pba.x,
+    porcentaje_pba_segun_PBA=porcentaje_pba.y
     )
 head(porcentajes)
 ```
