@@ -1,0 +1,184 @@
+---
+title: "Scripting en R"
+date: "`r Sys.Date()`"
+lang: es
+format:
+  html:
+    toc: true
+    toc-location: left
+    embed-resources: true
+    theme: cosmo
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+        }
+        </style>
+---
+
+------------------------------------------------------------------------
+
+## De qué trata la clase de hoy
+
+El objetivo de hoy es mostrar cómo estructurar un proyecto en R para que sea reproducible y use ***scripts*** **modulares**, bases de datos (en este caso ligeras) y formatos eficientes de salida (RDS/parquet). Además, vamos a ver buenas prácticas para ejecutar y documentar el flujo.
+
+**Estructura recomendada para un proyecto simple**
+
+-   `data/` : datos crudos (originales).
+-   `scripts/` : scripts R que realizan cada etapa del *pipeline* (descarga, limpieza, análisis y figuras).
+-   `notebooks/` : documentación y reportes (este archivo), aunque a veces se destina a análisis exploratorio que sirve como plantilla para ejecutar luego un análisis profundo.
+-   `output/` : resultados procesados (.rds, .parquet, .csv, etc.).
+-   `figures/` : gráficos exportados.
+-   `.gitignore`: para ignorar archivos no desados.
+-   `README.md`: un archivo breve que describa y documente el proyecto.
+
+En este proyecto concreto los *scripts* que vamos a ver son:
+
+-   `04_tutorial/scripts/download_data.R` — descarga robusta de los CSV originales.
+-   `04_tutorial/scripts/wrangling_data.R` — limpieza, transformaciones y exportación a la carpeta `output` en formatos `.rds` y `.parquet`.
+-   `04_tutorial/scripts/make_figures.R` — genera y guarda figuras en `figures/`.
+
+### ¿Por qué modularizar?
+
+Separar tareas en *scripts* claros facilita la reproducibilidad dado que el código **se vuelve transparente y las responsabilidades se distribuyen**. Cada archivo tiene una única tarea: descarga, transformación, análisis, visualización. Esto facilita pruebas unitarias y reutilización; por ejemplo, si actualizan la web de donde descargamos los datos únicamente tenemos que modificar un módulo.
+
+En este sentido, para que la estructura resulte orgánica, es conveniente, escribir pequeños chequeos que priven efectos adversos o duplicados. Por ejemplo, si el archivo de salida ya existe y tiene *timestamp* reciente, saltar la descarga.
+
+------------------------------------------------------------------------
+
+## Cómo ejecutar *scripts* de R
+
+### Desde la consola de R
+
+Esto es especialmente útil en una sesión interactiva. Por ejemplo, si estamos elaborando un informe en un *notebook* y deseamos ejecutar una operación que puede ser demasiado compleja para una celda de código, pero necesaria para poder ejecutar las celdas que siguen. En ese caso, podríamos cargar los datos en la carpeta `/data` con un script que hace todo un proceso de *scrapping* que no es el punto central del informe.
+
+```{r}
+library(here) # Más abajo veremos para que se utiliza esta librería
+# Ejecutar cada etapa en orden
+source(here("04_tutorial/scripts/download_data.R"))
+
+```
+
+Entonces, en las celdas que siguen podremos directamente leer los archivos desde `04_tutorial/data` sin tener que meter todas las celdas que trajeron la base de datos.
+
+También podemos concatenar la corrida de muchos *scripts*.
+
+``` r
+# Ejecutar cada etapa en orden
+source(here("04_tutorial/scripts/download_data.R"))
+source(here("04_tutorial/scripts/wrangling_data.R"))
+source(here("04_tutorial/scripts/make_figures.R"))
+```
+
+### Desde la terminal
+
+Esto es útil si queremos trabajar por fuera de RStudio, por ejemplo, si estamos realizando una automatización o trabajando con servidores.
+
+``` powershell
+Rscript 04_tutorial/scripts/download_data.R
+Rscript 04_tutorial/scripts/wrangling_data.R
+Rscript 04_tutorial/scripts/make_figures.R
+```
+
+En este caso es **muy importante ejecutar el código desde la raíz del proyecto para que las rutas relativas funcionen correctamente**.
+
+Podemos usar rutas robustas con `here::here()` en los *scripts.* Esto buscará el `.RProject` más cercano en la estructura de carpetas (hacia arriba) y computará las rutas relativas a este nivel.
+
+```{r}
+# En lugar de: read_csv("../data/turismo_ba.csv") usamos
+library(tidyverse)
+library(here)
+pba_raw <- read_csv(file.path(here("04_tutorial/data"), "turismo_ba.csv"))
+```
+
+### Trabajos en segundo plano
+
+También se puede utilizar el panel de ***Background Jobs*** para ejecutar código en segundo plano, útil si queremos ejecutar un código que puede llegar a tardar mucho tiempo.
+
+------------------------------------------------------------------------
+
+## Buenas prácticas sobre reproducibilidad
+
+-   **Rutas y contexto**: documentar desde dónde se ejecutan los *scripts*; preferentemente utilizar `here::here()`.
+
+-   **Automatización**: añadir un pequeño archivo `scripts/run_pipeline.sh`/`run_pipeline.ps1` que ejecute el *pipeline* en etapas ordenadas, de forma tal que se garantice la consecución de las entradas y salidas.
+
+-   `.gitignore`
+
+    -   `04_tutorial/data/` en caso de no querer publicar datos crudos que puedan llegar a ser muy pesados o no legibles.
+    -   `04_tutorial/output/*.parquet` puede ser útil si no queremos subir archivos que sean ilegibles (binarios por ejemplo).
+    -   `.Rhistory`, `.RData` metadatos personales y que no nos interesa que descargue un usuario cualquiera.
+
+-   **Metadatos y trazabilidad en los archivos de salida:** guardar metadatos ayuda a entender cuándo y cómo se generó un archivo. Será útil, por ejemplo, guardar en los metadatos una dirección web de donde descargamos los arhivos si son actualizados regularmente. Algunas formas de hacer esto son definir rutas con `timestamps`, como `turismo_limpio_3_26_2026.csv`. O utilizar formatos nativos.
+
+    ``` r
+    attr(turismo, "created_at") <- Sys.time() 
+    attr(turismo, "source_url") <- "https://datos.gob.ar/dataset/turismo-receptivo-cantidades-por-mes-y-pais-de-origen/ ...." 
+    saveRDS(turismo, file = here("04_tutorial/output/turismo_limpio.rds"))
+    ```
+
+    O guardar un pequeño archivo con datos que pueden ser de interés, por ejemplo, `metadata_26_3_2026_10_29.csv` con columnas `file, created_at, source_url`.
+
+-   **Mensajes informativos:** es útil intercalar mensajes cortos e informativos con `message()` para registrar pasos importantes dentro del *script*.
+
+-   **README.md:** un documento que explica de forma breve y práctica qué hace un proyecto, cómo usarlo y cómo contribuir; sirve como la primera referencia para quien lo abra. Se escribe en MarkDown.
+
+-   **Formatos de salida**: `.rds` vs `.parquet`
+
+    `.rds`: formato nativo de R, preserva factores y atributos. Es ideal para que el archivo se lea tal cual lo vemos en el environment dentro de R. También es útil para guardar información respecto a la versión de los archivos (fecha de ejecución).
+
+    `.parquet`: formato de columnas, eficiente para almacenamiento y lectura. La gran desventaja es que es binario (como lee la computadora), lo cual hace que no sea legible por nosotros, sino que necesitemos abrirlo con algún programa. Aún así, la gran ventaja respecto a `.rds` es que es interoperable con otros lenguajes, por ejemplo, Python.
+
+    Usar ambos formatos es una práctica aconsejable: `.rds` para trabajo en R, .`csv` para comunicar y compartir y `.parquet` para interoperabilidad.
+
+### Un checklist útil antes de hacer un commit con cambios
+
+-   [ ] Un *commit* debe responder al avance en una tarea específica, no simboliza una jornada de trabajo.
+-   [ ] Ejecutar el *pipeline* completo de cada *script* y verificar que el output se actualiza y es el que esperamos.
+
+------------------------------------------------------------------------
+
+## Algunos comentarios sobre bases de datos: `duckdb` y `dbplyr`
+
+Cuando se trabaja con transformaciones complejas, usar un motor SQL en memoria (DuckDB) permite procesar datos más grandes que la memoria RAM de R con buen rendimiento.
+
+Además, `dbplyr` traduce las llamadas de `dplyr` a SQL, permitiendo escribir código R legible mientras se ejecuta en la DB.
+
+Los pasos más sencillos para lograr esto son
+
+1.  **Armar la conexión a la base de datos en memoria**
+
+    ``` r
+    db_conection <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
+    ```
+
+    Si la base de datos es pesada, alternativamente, podemos usa usar una instancia en el disco rígido (`dbdir = 'output/ddbb/datos.duckdb`).
+
+2.  **Cargar un *dataframe* como una tabla SQL llamada "tabla" dentro de DuckDB.**
+
+    ``` r
+    bWriteTable(db_conection, "tabla", df)
+    ```
+
+3.  **Manipular el puntero a la tabla (veremos más detalles en el script).** Esto permite escribir código dplyr que se traduce a SQL y se ejecuta eficientemente en DuckDB.
+
+4.  Finalmente, usar `collect(`) cuando deseemos **traer el resultado a memoria en R y realizar operaciones que no convengan traducir a SQL porque se volverían tediosas.**
+
+5.  **Cerrar la conexión para liberar recursos.**
+
+    ``` r
+    DBI::dbDisconnect(db_conection, shutdown = TRUE)
+    ```
+
+En general, es conveniente evitar traer tablas completas si no es necesario; filtrar y seleccionar en la DB y, recién entonces, traer a R lo necesario para el análisis o la visualización.
+
+Otros comandos que pueden resultar útiles son
+
+-   **dbGetQuery()**: envía una sentencia SQL (como un SELECT) y trae el resultado a R como un dataframe.
+
+-   **dbExecute()**: ejecuta comandos SQL que no devuelven datos, como crear o borrar tablas.
+
+-   **dbQuoteIdentifier() / dbQuoteLiteral()**: herramientas de **seguridad**. Sirven para evitar "SQL Injection", asegurándose de que los nombres de tablas o archivos sean tratados como texto plano y no como código malicioso.
+
+-   **dbListTables() / dbListFields()**: funciones de inspección para ver qué tablas hay y qué columnas tiene cada una.
