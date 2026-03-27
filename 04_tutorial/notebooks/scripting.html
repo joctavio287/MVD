@@ -2325,7 +2325,7 @@ text-align: justify;
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>Rscript 04_tutorial<span class="op">/</span>scripts<span class="op">/</span>wrangling_data<span class="op">.</span><span class="fu">R</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>Rscript 04_tutorial<span class="op">/</span>scripts<span class="op">/</span>make_figures<span class="op">.</span><span class="fu">R</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>En este caso es <strong>muy importante ejecutar el código desde la raíz del proyecto para que las rutas relativas funcionen correctamente</strong>.</p>
-<p>Podemos usar rutas robustas con <code>here::here()</code> en los <em>scripts.</em> Esto buscará el <code>.RProject</code> más cercano en la estructura de carpetas (hacia arriba) y computará las rutas relativas a este nivel.</p>
+<p>Podemos usar rutas robustas con <code>here::here()</code> en los <em>scripts.</em> Esto buscará el <code>.RProject</code> más cercano en la estructura de carpetas (hacia arriba) y computará las rutas relativas a este nivel. También se puede crear un archivo de texto vacío con el nombre <code>.here</code> que funciona como el directorio de búsqueda, en vez de un <code>.RProject</code></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># En lugar de: read_csv(&quot;../data/turismo_ba.csv&quot;) usamos</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2366,7 +2366,7 @@ date (1): indice_tiempo
 <h2 class="anchored" data-anchor-id="buenas-prácticas-sobre-reproducibilidad">Buenas prácticas sobre reproducibilidad</h2>
 <ul>
 <li><p><strong>Rutas y contexto</strong>: documentar desde dónde se ejecutan los <em>scripts</em>; preferentemente utilizar <code>here::here()</code>.</p></li>
-<li><p><strong>Automatización</strong>: añadir un <code>Makefile</code> o un pequeño <code>scripts/run_pipeline.sh</code>/<code>run_pipeline.ps1</code> que ejecute el <em>pipeline</em> en etapas ordenadas, de forma tal que se garantice la consecución de las entradas y salidas.</p></li>
+<li><p><strong>Automatización</strong>: añadir un pequeño archivo <code>scripts/run_pipeline.sh</code>/<code>run_pipeline.ps1</code> que ejecute el <em>pipeline</em> en etapas ordenadas, de forma tal que se garantice la consecución de las entradas y salidas.</p></li>
 <li><p><code>.gitignore</code></p>
 <ul>
 <li><code>04_tutorial/data/</code> en caso de no querer publicar datos crudos que puedan llegar a ser muy pesados o no legibles.</li>
@@ -2379,6 +2379,7 @@ date (1): indice_tiempo
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(turismo, <span class="at">file =</span> <span class="fu">here</span>(<span class="st">&quot;04_tutorial/output/turismo_limpio.rds&quot;</span>))</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>O guardar un pequeño archivo con datos que pueden ser de interés, por ejemplo, <code>metadata_26_3_2026_10_29.csv</code> con columnas <code>file, created_at, source_url</code>.</p></li>
 <li><p><strong>Mensajes informativos:</strong> es útil intercalar mensajes cortos e informativos con <code>message()</code> para registrar pasos importantes dentro del <em>script</em>.</p></li>
+<li><p><strong>README.md:</strong> un documento que explica de forma breve y práctica qué hace un proyecto, cómo usarlo y cómo contribuir; sirve como la primera referencia para quien lo abra. Se escribe en MarkDown.</p></li>
 <li><p><strong>Formatos de salida</strong>: <code>.rds</code> vs <code>.parquet</code></p>
 <p><code>.rds</code>: formato nativo de R, preserva factores y atributos. Es ideal para que el archivo se lea tal cual lo vemos en el environment dentro de R. También es útil para guardar información respecto a la versión de los archivos (fecha de ejecución).</p>
 <p><code>.parquet</code>: formato de columnas, eficiente para almacenamiento y lectura. La gran desventaja es que es binario (como lee la computadora), lo cual hace que no sea legible por nosotros, sino que necesitemos abrirlo con algún programa. Aún así, la gran ventaja respecto a <code>.rds</code> es que es interoperable con otros lenguajes, por ejemplo, Python.</p>
