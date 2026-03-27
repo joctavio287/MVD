@@ -17,6 +17,7 @@ Breve guía para ejecutar el pipeline de ejemplo contenido en esta carpeta.
 -   `output/` : resultados procesados (.rds, .parquet).
 
     -   `figures/` : gráficos exportados.
+-   `figures/` : gráficos exportados.
 
 **Requisitos**
 
