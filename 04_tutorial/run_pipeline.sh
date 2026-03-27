@@ -16,10 +16,8 @@ echo "Iniciando Pipeline desde: $(pwd)"
 
 # Ejecutamos los scripts usando rutas relativas desde la raíz
 # Esto evita que R se confunda de 'home' si el usuario tiene un perfil de terminal ruidoso
-try {
-  Rscript "04_tutorial/scripts/download_data.R"
-  Rscript "04_tutorial/scripts/wrangling_data.R"
-  Rscript "04_tutorial/scripts/make_figures.R"
-}
+Rscript "04_tutorial/scripts/download_data.R"
+Rscript "04_tutorial/scripts/wrangling_data.R"
+Rscript "04_tutorial/scripts/make_figures.R"
 
 echo "Pipeline finalizado con éxito en $(pwd)"
