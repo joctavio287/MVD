@@ -83,7 +83,7 @@ Rscript 04_tutorial/scripts/make_figures.R
 
 En este caso es **muy importante ejecutar el código desde la raíz del proyecto para que las rutas relativas funcionen correctamente**.
 
-Podemos usar rutas robustas con `here::here()` en los *scripts.* Esto buscará el `.RProject` más cercano en la estructura de carpetas (hacia arriba) y computará las rutas relativas a este nivel.
+Podemos usar rutas robustas con `here::here()` en los *scripts.* Esto buscará el `.RProject` más cercano en la estructura de carpetas (hacia arriba) y computará las rutas relativas a este nivel. También se puede crear un archivo de texto vacío con el nombre `.here` que funciona como el directorio de búsqueda, en vez de un `.RProject`
 
 ```{r}
 # En lugar de: read_csv("../data/turismo_ba.csv") usamos
