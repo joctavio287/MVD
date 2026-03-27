@@ -19,7 +19,7 @@ format:
 
 ------------------------------------------------------------------------
 
-## De qué trata la clase de hoy
+## ¿De qué trata la clase de hoy?
 
 El objetivo de hoy es mostrar cómo estructurar un proyecto en R para que sea reproducible y use ***scripts*** **modulares**, bases de datos (en este caso ligeras) y formatos eficientes de salida (RDS/parquet). Además, vamos a ver buenas prácticas para ejecutar y documentar el flujo.
 
@@ -41,9 +41,11 @@ En este proyecto concreto los *scripts* que vamos a ver son:
 
 ### ¿Por qué modularizar?
 
-Separar tareas en *scripts* claros facilita la reproducibilidad dado que el código **se vuelve transparente y las responsabilidades se distribuyen**. Cada archivo tiene una única tarea: descarga, transformación, análisis, visualización. Esto facilita pruebas unitarias y reutilización; por ejemplo, si actualizan la web de donde descargamos los datos únicamente tenemos que modificar un módulo.
+Separar tareas en *scripts* específicos facilita la reproducibilidad dado que el código **se vuelve transparente y las responsabilidades se distribuyen**.
 
-En este sentido, para que la estructura resulte orgánica, es conveniente, escribir pequeños chequeos que priven efectos adversos o duplicados. Por ejemplo, si el archivo de salida ya existe y tiene *timestamp* reciente, saltar la descarga.
+Cada archivo tiene una única tarea: descarga, transformación, análisis, visualización. Esto facilita pruebas unitarias y reutilización; por ejemplo, si actualizan la web de donde descargamos los datos únicamente tenemos que modificar un módulo.
+
+En este sentido, para que la **estructura resulte orgánica es conveniente escribir pequeños chequeos que priven efectos adversos o duplicados.** Por ejemplo, si el archivo de salida ya existe y tiene *timestamp* reciente, saltar la descarga.
 
 ------------------------------------------------------------------------
 
@@ -57,7 +59,6 @@ Esto es especialmente útil en una sesión interactiva. Por ejemplo, si estamos 
 library(here) # Más abajo veremos para que se utiliza esta librería
 # Ejecutar cada etapa en orden
 source(here("04_tutorial/scripts/download_data.R"))
-
 ```
 
 Entonces, en las celdas que siguen podremos directamente leer los archivos desde `04_tutorial/data` sin tener que meter todas las celdas que trajeron la base de datos.
@@ -107,7 +108,7 @@ También se puede utilizar el panel de ***Background Jobs*** para ejecutar códi
 -   `.gitignore`
 
     -   `04_tutorial/data/` en caso de no querer publicar datos crudos que puedan llegar a ser muy pesados o no legibles.
-    -   `04_tutorial/output/*.parquet` puede ser útil si no queremos subir archivos que sean ilegibles (binarios por ejemplo).
+    -   `04_tutorial/output/*.parquet` pueestructura resulte orgánica es conveniente escribir pequeños chequeos que priven efectos adversos o duplicados.de ser útil si no queremos subir archivos que sean ilegibles (binarios por ejemplo).
     -   `.Rhistory`, `.RData` metadatos personales y que no nos interesa que descargue un usuario cualquiera.
 
 -   **Metadatos y trazabilidad en los archivos de salida:** guardar metadatos ayuda a entender cuándo y cómo se generó un archivo. Será útil, por ejemplo, guardar en los metadatos una dirección web de donde descargamos los arhivos si son actualizados regularmente. Algunas formas de hacer esto son definir rutas con `timestamps`, como `turismo_limpio_3_26_2026.csv`. O utilizar formatos nativos.
@@ -122,7 +123,7 @@ También se puede utilizar el panel de ***Background Jobs*** para ejecutar códi
 
 -   **Mensajes informativos:** es útil intercalar mensajes cortos e informativos con `message()` para registrar pasos importantes dentro del *script*.
 
--   **README.md:** un documento que explica de forma breve y práctica qué hace un proyecto, cómo usarlo y cómo contribuir; sirve como la primera referencia para quien lo abra. Se escribe en MarkDown.
+-   **README.md:** un documento que explica de forma concisa y práctica qué hace un proyecto, cómo usarlo y cómo contribuir; sirve como la primera referencia para quien lo abra. Se escribe en MarkDown.
 
 -   **Formatos de salida**: `.rds` vs `.parquet`
 
@@ -141,7 +142,7 @@ También se puede utilizar el panel de ***Background Jobs*** para ejecutar códi
 
 ## Algunos comentarios sobre bases de datos: `duckdb` y `dbplyr`
 
-Cuando se trabaja con transformaciones complejas, usar un motor SQL en memoria (DuckDB) permite procesar datos más grandes que la memoria RAM de R con buen rendimiento.
+Cuando se trabaja con transformaciones complejas, usar un motor SQL en memoria (DuckDB) permite procesar datos más grandes que la memoria RAM de R cno puede con buen rendimiento.
 
 Además, `dbplyr` traduce las llamadas de `dplyr` a SQL, permitiendo escribir código R legible mientras se ejecuta en la DB.
 
