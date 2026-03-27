@@ -3,7 +3,7 @@ title: "Data Wrangling en R 2"
 date: "`r Sys.Date()`"
 lang: es
 format:
-  html:
+  pdf:
     toc: true
     toc-location: left
     embed-resources: true
