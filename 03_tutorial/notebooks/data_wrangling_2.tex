@@ -1,0 +1,956 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  spanish,
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\ifLuaTeX
+  \usepackage{luacolor}
+  \usepackage[soul]{lua-ul}
+\else
+  \usepackage{soul}
+\fi
+
+
+\ifLuaTeX
+\usepackage[bidi=basic,shorthands=off]{babel}
+\else
+\usepackage[bidi=default,shorthands=off]{babel}
+\fi
+\ifLuaTeX
+  \usepackage{selnolig} % disable illegal ligatures
+\fi
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+<style>
+body {
+  text-align: justify;
+}
+</style>
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Tabla de contenidos}
+\else
+  \newcommand\contentsname{Tabla de contenidos}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{Listado de Figuras}
+\else
+  \newcommand\listfigurename{Listado de Figuras}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{Listado de Tablas}
+\else
+  \newcommand\listtablename{Listado de Tablas}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figura}
+\else
+  \newcommand\figurename{Figura}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Tabla}
+\else
+  \newcommand\tablename{Tabla}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listado}
+\newcommand*\listoflistings{\listof{codelisting}{Listado de Listados}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Data Wrangling en R 2},
+  pdflang={es},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Data Wrangling en R 2}
+\author{}
+\date{2026-04-07}
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Tabla de contenidos}
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+
+\subsection{De qué trata la clase de
+hoy}\label{de-quuxe9-trata-la-clase-de-hoy}
+
+Hoy vamos a continuar con los temas de la clase pasada, pero vamos a
+utilizar otras herramientas que nos van a facilitar muchas de las tareas
+que veníamos haciendo.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Primera parte}: vamos a ver las consignas del TP.
+\item
+  \textbf{Segunda parte}: vamos a revisar el final de la clase anterior,
+  que quedó inconcluso y tenía algunos bugs.
+\item
+  \textbf{Tercera parte}: vamos a ver otra base de datos. La idea en
+  este caso es volver a hacer algunas de las operaciones que hicimos
+  antes valiéndonos de \texttt{janitor} y \texttt{stringi}, que son
+  librerías que sintetizan operaciones de limpieza que resultan
+  engorrosas de escribir a mano. La idea es que este \emph{notebook y}
+  el anterior les sirva de machete para que puedan hacer más
+  tranquilos/as el TP individual. Vamos a ver, además, cómo ordenar
+  variables en forma jerárquica.
+\item
+  \textbf{Cuarta parte}: seguramente la clase que viene veremos cómo
+  organizar \emph{scripts} dentro de un proyecto grande para que cada
+  archivo realice una tarea en particular.
+\end{enumerate}
+
+\subsection{3. Tercera Parte}\label{tercera-parte}
+
+Vamos a trabajar con datos del \textbf{SINTA (Sistema de Inteligencia
+Turística Argentina)}, que es el portal de datos abiertos de la
+Subsecretaría de Turismo. Utilizaremos específicamente dos bases de
+datos de la \textbf{Encuesta de Turismo Internacional (ETI)}: una
+correspondiente al
+\href{https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/dae8b7f8-f3dc-431b-887e-3de4b54f09a9}{\textbf{Aeropuerto
+Internacional de Córdoba}} y otra que agrupa el movimiento de
+\href{https://datos.yvera.gob.ar/dataset/encuesta-turismo-internacional/archivo/32cd65c4-7558-48cf-a8ac-bbb07147b5a1}{\textbf{CABA}
+\textbf{y PBA} a través de los arribos en \textbf{Ezeiza y Aeroparque}}.
+
+Estas bases nos permiten analizar el volumen de \textbf{turistas no
+residentes}, sus \textbf{pernoctes} y la \textbf{estadía media} según su
+país de residencia, lo que nos servirá de insumo para practicar técnicas
+de limpieza, normalización y transformación de datos.
+
+\ul{En este caso no vamos a trabajar sobre una hipótesis particular
+porque armé el análisis para que se puedan realizar las operaciones que
+nos faltan revisar.}
+
+\subsubsection{Librerías y los datos}\label{libreruxedas-y-los-datos}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# install.packages(c("tidyverse", "janitor"))}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning: package 'tidyverse' was built under R version 4.5.3
+\end{verbatim}
+
+\begin{verbatim}
+-- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+v dplyr     1.1.4     v readr     2.1.6
+v forcats   1.0.1     v stringr   1.6.0
+v ggplot2   4.0.1     v tibble    3.3.0
+v lubridate 1.9.4     v tidyr     1.3.2
+v purrr     1.2.0     
+-- Conflicts ------------------------------------------ tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()
+i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(janitor)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning: package 'janitor' was built under R version 4.5.3
+\end{verbatim}
+
+\begin{verbatim}
+
+Attaching package: 'janitor'
+
+The following objects are masked from 'package:stats':
+
+    chisq.test, fisher.test
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(stringi)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{path\_ba }\OtherTok{=} \StringTok{"../data/estadias\_pba\_caba.csv"}
+\NormalTok{estadias\_ba }\OtherTok{=} \FunctionTok{read\_csv}\NormalTok{(}
+\NormalTok{  path\_ba, }
+  \CommentTok{\# skip=0 si tiene comentarios en las primeras antes de la tabla, este parámetro  indica la cantidad de lineas que ocupan, para saltarlas}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Rows: 432 Columns: 6
+-- Column specification --------------------------------------------------------
+Delimiter: ","
+chr  (2): país de residencia, observaciones
+dbl  (3): turistas_no_residentes, pernoctes_no_residentes, estadia_media_no_...
+date (1): indice_tiempo
+
+i Use `spec()` to retrieve the full column specification for this data.
+i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(estadias\_ba)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 6 x 6
+  indice_tiempo `país de residencia` turistas_no_residentes
+  <date>        <chr>                                 <dbl>
+1 2014-01-01    Bolivia                               17181
+2 2014-01-01    Brasil                               149582
+3 2014-01-01    Chile                                 48953
+4 2014-01-01    Paraguay                              17316
+5 2014-01-01    Uruguay                               11429
+6 2014-01-01    EE.UU y Canadá                        82090
+# i 3 more variables: pernoctes_no_residentes <dbl>,
+#   estadia_media_no_residentes <dbl>, observaciones <chr>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{path\_co }\OtherTok{=} \StringTok{"../data/estadias\_cordoba.csv"}
+\NormalTok{estadias\_co }\OtherTok{=} \FunctionTok{read\_csv}\NormalTok{(path\_co)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Rows: 240 Columns: 6
+-- Column specification --------------------------------------------------------
+Delimiter: ","
+chr  (2): país de residencia, observaciones
+dbl  (3): turistas_no_residentes, pernoctes_no_residentes, estadia_media_no_...
+date (1): indice_tiempo
+
+i Use `spec()` to retrieve the full column specification for this data.
+i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(estadias\_co)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 6 x 6
+  indice_tiempo `país de residencia`     turistas_no_residentes
+  <date>        <chr>                                     <dbl>
+1 2014-01-01    Brasil                                     1964
+2 2014-01-01    Chile                                      3138
+3 2014-01-01    EE.UU, Canadá y México                     3635
+4 2014-01-01    Resto de América                           2290
+5 2014-01-01    Europa y resto del mundo                   2159
+6 2014-04-01    Brasil                                     2049
+# i 3 more variables: pernoctes_no_residentes <dbl>,
+#   estadia_media_no_residentes <dbl>, observaciones <chr>
+\end{verbatim}
+
+\subsubsection{Normalización de variables y remoción de datos
+faltantes}\label{normalizaciuxf3n-de-variables-y-remociuxf3n-de-datos-faltantes}
+
+Armamos una función que, dado un dataframe, realice ambas operaciones
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{normalize\_dataframe }\OtherTok{=} \ControlFlowTok{function}\NormalTok{(dataframe, }\AttributeTok{clean =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{which\_remove =} \StringTok{"cols"}\NormalTok{) \{}
+  \CommentTok{\# Normalizacion}
+  \ControlFlowTok{if}\NormalTok{ (clean) \{}
+\NormalTok{    data\_clean }\OtherTok{=} \FunctionTok{clean\_names}\NormalTok{(dataframe)}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    data\_clean }\OtherTok{=}\NormalTok{ dataframe}
+\NormalTok{  \}}
+  
+  \CommentTok{\# Eliminacion de datos faltantes}
+  \ControlFlowTok{if}\NormalTok{ (which\_remove }\SpecialCharTok{==} \StringTok{"both"}\NormalTok{) \{}
+\NormalTok{    data\_clean }\OtherTok{=}\NormalTok{ data\_clean }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{      janitor}\SpecialCharTok{::}\FunctionTok{remove\_empty}\NormalTok{(}\AttributeTok{which =} \StringTok{\textquotesingle{}cols\textquotesingle{}}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{      janitor}\SpecialCharTok{::}\FunctionTok{remove\_empty}\NormalTok{(}\AttributeTok{which =} \StringTok{\textquotesingle{}rows\textquotesingle{}}\NormalTok{)}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    data\_clean }\OtherTok{=}\NormalTok{ janitor}\SpecialCharTok{::}\FunctionTok{remove\_empty}\NormalTok{(data\_clean, }\AttributeTok{which =}\NormalTok{ which\_remove)}
+\NormalTok{  \}}
+  
+  \FunctionTok{return}\NormalTok{(data\_clean)}
+\NormalTok{\}}
+\CommentTok{\# normalize\_dataframe(estadias\_co, clean = FALSE, which\_remove = \textquotesingle{}both\textquotesingle{})}
+\end{Highlighting}
+\end{Shaded}
+
+Esta función recibe como input un dataframe, normaliza los nombres de
+las variables (columnas) y, luego, remueve las observaciones
+(\texttt{rows}) o variables (\texttt{cols}) que tengan \ul{todos} sus
+valores faltantes (\texttt{NA}).
+
+Para llamar una función que está definida en dos librerías diferentes
+con el mismo nombre, podemos escribir primero la librería creadora para
+desambiguar el conflicto ---\texttt{janitor::clean\_names()}. En este
+ejemplo especificar la librería padre está de más porque
+\texttt{clean\_names} no se define en otras librerías.
+
+En caso de querer desambiguar una función \emph{built-in} (pre definida
+en R), podemos hacerlo así: \texttt{base::una\_funcion()}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_co\_clean }\OtherTok{=} \FunctionTok{normalize\_dataframe}\NormalTok{(estadias\_co, }\AttributeTok{which\_remove =} \StringTok{\textquotesingle{}both\textquotesingle{}}\NormalTok{)}
+\NormalTok{estadias\_ba\_clean }\OtherTok{=} \FunctionTok{normalize\_dataframe}\NormalTok{(estadias\_ba, }\AttributeTok{which\_remove =} \StringTok{"both"}\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}
+  \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Estadías Córdoba antes:\textquotesingle{}}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(estadias\_co), }\StringTok{\textquotesingle{}y después:\textquotesingle{}}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(estadias\_co\_clean))}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Estadías Córdoba antes: 240 y después: 239
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}
+  \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}}\SpecialCharTok{\textbackslash{}n}\StringTok{Estadías CABA antes:\textquotesingle{}}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(estadias\_ba), }\StringTok{\textquotesingle{}y después:\textquotesingle{}}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(estadias\_ba\_clean))}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Estadías CABA antes: 432 y después: 430
+\end{verbatim}
+
+Notemos que hay países que no comparten las provincias, entonces es
+conveniente hacer un \texttt{inner\_join}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_ba\_clean }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(pais\_de\_residencia) }\SpecialCharTok{|\textgreater{}} \FunctionTok{unique}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 9 x 1
+  pais_de_residencia
+  <chr>             
+1 Bolivia           
+2 Brasil            
+3 Chile             
+4 Paraguay          
+5 Uruguay           
+6 EE.UU y Canadá    
+7 Resto América     
+8 Europa            
+9 Resto del Mundo   
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_co\_clean }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(pais\_de\_residencia) }\SpecialCharTok{|\textgreater{}} \FunctionTok{unique}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 5 x 1
+  pais_de_residencia      
+  <chr>                   
+1 Brasil                  
+2 Chile                   
+3 EE.UU, Canadá y México  
+4 Resto de América        
+5 Europa y resto del mundo
+\end{verbatim}
+
+Pero hay que tener cuidado ya que hay países que significan lo mismo,
+pero tienen nombres diferentes. Por ejemplo, ``Resto de América'' y
+``Resto América''. En este caso, podemos revisar las categorías a mano
+dado que son pocas, de todos modos hagamos un tratamiento general.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_ba\_clean }\OtherTok{=}\NormalTok{ estadias\_ba\_clean }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{pais\_de\_residencia =}\NormalTok{ pais\_de\_residencia }\SpecialCharTok{|\textgreater{}} 
+           \FunctionTok{str\_to\_lower}\NormalTok{() }\SpecialCharTok{|\textgreater{}}          \CommentTok{\# todo a minúsculas}
+           \FunctionTok{stri\_trans\_general}\NormalTok{(}\StringTok{"Latin{-}ASCII"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# quita tildes }
+           \FunctionTok{str\_replace\_all}\NormalTok{(}\StringTok{" "}\NormalTok{, }\StringTok{"\_"}\NormalTok{) }\SpecialCharTok{|\textgreater{}}     \CommentTok{\# espacios por guiones}
+           \FunctionTok{str\_remove\_all}\NormalTok{(}\StringTok{"[[:punct:]]"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# quita puntos y signos restantes}
+           \FunctionTok{str\_trim}\NormalTok{() }\CommentTok{\# elimina espacios no detectados}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{pais\_de\_residencia =} \FunctionTok{case\_when}\NormalTok{(}
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"eeuu"}\NormalTok{) }\SpecialCharTok{|} 
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"euro"}\NormalTok{) }\SpecialCharTok{|} 
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"resto"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"nolimitrofe"}\NormalTok{, }\CommentTok{\# la tilde se usa para separar la condición del resultado}
+      \AttributeTok{.default =}\NormalTok{ pais\_de\_residencia }\CommentTok{\# mantiene el nombre original si no es \textquotesingle{}otros\textquotesingle{}}
+\NormalTok{    )}
+\NormalTok{  )}
+\NormalTok{estadias\_co\_clean }\OtherTok{=}\NormalTok{ estadias\_co\_clean }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{pais\_de\_residencia =}\NormalTok{ pais\_de\_residencia }\SpecialCharTok{|\textgreater{}} 
+           \FunctionTok{str\_to\_lower}\NormalTok{() }\SpecialCharTok{|\textgreater{}}          \CommentTok{\# todo a minúsculas}
+           \FunctionTok{stri\_trans\_general}\NormalTok{(}\StringTok{"Latin{-}ASCII"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# quita tildes }
+           \FunctionTok{str\_replace\_all}\NormalTok{(}\StringTok{" "}\NormalTok{, }\StringTok{"\_"}\NormalTok{) }\SpecialCharTok{|\textgreater{}}     \CommentTok{\# espacios por guiones}
+           \FunctionTok{str\_remove\_all}\NormalTok{(}\StringTok{"[[:punct:]]"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# quita puntos y signos restantes}
+           \FunctionTok{str\_trim}\NormalTok{() }\CommentTok{\# elimina espacios no detectados}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{pais\_de\_residencia =} \FunctionTok{case\_when}\NormalTok{(}
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"eeuu"}\NormalTok{) }\SpecialCharTok{|} 
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"euro"}\NormalTok{) }\SpecialCharTok{|} 
+      \FunctionTok{str\_starts}\NormalTok{(pais\_de\_residencia, }\StringTok{"resto"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"nolimitrofe"}\NormalTok{,}
+      \AttributeTok{.default =}\NormalTok{ pais\_de\_residencia }\CommentTok{\# mantiene el nombre original si no es \textquotesingle{}otros\textquotesingle{}}
+\NormalTok{    )}
+\NormalTok{  )}
+\NormalTok{estadias\_ba\_clean }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(pais\_de\_residencia) }\SpecialCharTok{|\textgreater{}} \FunctionTok{unique}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 6 x 1
+  pais_de_residencia
+  <chr>             
+1 bolivia           
+2 brasil            
+3 chile             
+4 paraguay          
+5 uruguay           
+6 nolimitrofe       
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_co\_clean }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(pais\_de\_residencia) }\SpecialCharTok{|\textgreater{}} \FunctionTok{unique}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 3 x 1
+  pais_de_residencia
+  <chr>             
+1 brasil            
+2 chile             
+3 nolimitrofe       
+\end{verbatim}
+
+Ahora sí, notamos que Córdoba registra ingresos por avión de brasileros,
+chilenos y países no limítrofes, mientras que BA tiene ingresos más
+diversos.
+
+\ul{\textbf{Atención}:} esto no significa que Córdoba no tenga ingresos
+de otros países, puede que vuelos no directos no se registren de la
+misma forma (y por eso, no aparezcan en la tabla), o que sea conveniente
+aterrizar en BA e ir en otro medio de transporte (micro por ej.)
+
+Otro detalle a tener en cuenta es que como agrupamos categorías en
+\texttt{pais\_de\_residencia} ahora habrá indices de tiempo repetidos
+para un mismo país, lo cual puede conllevar a errores más adelante.
+
+EEUU, Mexico 2022/01/01 --\textgreater{} nolimitrofe 2022/01/01
+
+Mexico 2022/01/01 --\textgreater{} nolimitrofe 2022/01/01
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_ba\_clean }\OtherTok{=}\NormalTok{ estadias\_ba\_clean }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{group\_by}\NormalTok{(pais\_de\_residencia, indice\_tiempo) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# agrupamos}
+    \FunctionTok{summarise}\NormalTok{( }\CommentTok{\# tomamos valores medios /sumas según el indicador}
+      \AttributeTok{turistas\_no\_residentes =} \FunctionTok{sum}\NormalTok{(turistas\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{pernoctes\_no\_residentes =} \FunctionTok{sum}\NormalTok{(pernoctes\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{estadia\_media\_no\_residentes =} \FunctionTok{mean}\NormalTok{(estadia\_media\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{.groups =} \StringTok{"drop"} \CommentTok{\# Para que el DF deje de estar agrupado tras el cálculo}
+\NormalTok{    )}
+\NormalTok{estadias\_co\_clean }\OtherTok{=}\NormalTok{ estadias\_co\_clean }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{group\_by}\NormalTok{(pais\_de\_residencia, indice\_tiempo) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# agrupamos}
+    \FunctionTok{summarise}\NormalTok{( }\CommentTok{\# tomamos valores medios /sumas según el indicador}
+      \AttributeTok{turistas\_no\_residentes =} \FunctionTok{sum}\NormalTok{(turistas\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{pernoctes\_no\_residentes =} \FunctionTok{sum}\NormalTok{(pernoctes\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{estadia\_media\_no\_residentes =} \FunctionTok{mean}\NormalTok{(estadia\_media\_no\_residentes, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+      \AttributeTok{.groups =} \StringTok{"drop"} \CommentTok{\# Para que el DF deje de estar agrupado tras el cálculo}
+\NormalTok{    )}
+\NormalTok{estadias\_co\_clean }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(pais\_de\_residencia}\SpecialCharTok{==}\StringTok{\textquotesingle{}nolimitrofe\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 48 x 5
+   pais_de_residencia indice_tiempo turistas_no_residentes
+   <chr>              <date>                         <dbl>
+ 1 nolimitrofe        2014-01-01                      8084
+ 2 nolimitrofe        2014-04-01                      4163
+ 3 nolimitrofe        2014-07-01                      7086
+ 4 nolimitrofe        2014-10-01                      6325
+ 5 nolimitrofe        2015-01-01                      6239
+ 6 nolimitrofe        2015-04-01                      5812
+ 7 nolimitrofe        2015-07-01                      6798
+ 8 nolimitrofe        2015-10-01                      7808
+ 9 nolimitrofe        2016-01-01                      8374
+10 nolimitrofe        2016-04-01                      5766
+# i 38 more rows
+# i 2 more variables: pernoctes_no_residentes <dbl>,
+#   estadia_media_no_residentes <dbl>
+\end{verbatim}
+
+Ahora sí, teniendo todo ordenado podemos unir las dos tablas y ver, como
+anticipábamos, que sólo tienen en común Brasil, Chile y no limítrofes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_totales }\OtherTok{=}\NormalTok{ estadias\_ba\_clean }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{inner\_join}\NormalTok{(}
+\NormalTok{    estadias\_co\_clean,}
+    \AttributeTok{by=}\FunctionTok{c}\NormalTok{(}\StringTok{"pais\_de\_residencia"}\NormalTok{,}\StringTok{"indice\_tiempo"}\NormalTok{),}
+    \AttributeTok{suffix =} \FunctionTok{c}\NormalTok{(}\StringTok{"\_BA"}\NormalTok{, }\StringTok{"\_CO"}\NormalTok{) }\CommentTok{\# el sufijo asignado a las tablas izq y derecha (reemplaza el valor defecto que es .x y .y)}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{select}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{starts\_with}\NormalTok{(}\StringTok{\textquotesingle{}obs\textquotesingle{}}\NormalTok{))}
+
+\NormalTok{estadias\_totales }\SpecialCharTok{|\textgreater{}} \FunctionTok{head}\NormalTok{(}\DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 15 x 8
+   pais_de_residencia indice_tiempo turistas_no_residentes_BA
+   <chr>              <date>                            <dbl>
+ 1 brasil             2014-01-01                       149582
+ 2 brasil             2014-04-01                       175018
+ 3 brasil             2014-07-01                       224259
+ 4 brasil             2014-10-01                       180361
+ 5 brasil             2015-01-01                       145922
+ 6 brasil             2015-04-01                       147540
+ 7 brasil             2015-07-01                       182629
+ 8 brasil             2015-10-01                       116157
+ 9 brasil             2016-01-01                        83492
+10 brasil             2016-04-01                       127142
+11 brasil             2016-07-01                       183799
+12 brasil             2016-10-01                       145472
+13 brasil             2017-01-01                       108533
+14 brasil             2017-04-01                       146959
+15 brasil             2017-07-01                       204501
+# i 5 more variables: pernoctes_no_residentes_BA <dbl>,
+#   estadia_media_no_residentes_BA <dbl>, turistas_no_residentes_CO <dbl>,
+#   pernoctes_no_residentes_CO <dbl>, estadia_media_no_residentes_CO <dbl>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(estadias\_totales }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(pais\_de\_residencia) }\SpecialCharTok{|\textgreater{}} \FunctionTok{unique}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 3 x 1
+  pais_de_residencia
+  <chr>             
+1 brasil            
+2 chile             
+3 nolimitrofe       
+\end{verbatim}
+
+Si observamos el \texttt{indice\_tiempo} las fechas parecieran repetirse
+cada 3 meses, esto es porque los datos se actualizan trimestralmente, lo
+cual podríamos haber anticipado si leíamos la página de donde
+descargamos los datos.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estadias\_totales\_cuatrimestrales }\OtherTok{=}\NormalTok{ estadias\_totales }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{anio=}\FunctionTok{year}\NormalTok{(indice\_tiempo),}
+    \AttributeTok{trimestre=}\FunctionTok{case\_when}\NormalTok{(}
+      \FunctionTok{month}\NormalTok{(indice\_tiempo) }\SpecialCharTok{==} \DecValTok{1}  \SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{,}
+      \FunctionTok{month}\NormalTok{(indice\_tiempo) }\SpecialCharTok{==} \DecValTok{4}  \SpecialCharTok{\textasciitilde{}} \DecValTok{2}\NormalTok{,}
+      \FunctionTok{month}\NormalTok{(indice\_tiempo) }\SpecialCharTok{==} \DecValTok{7}  \SpecialCharTok{\textasciitilde{}} \DecValTok{3}\NormalTok{,}
+      \FunctionTok{month}\NormalTok{(indice\_tiempo) }\SpecialCharTok{==} \DecValTok{10} \SpecialCharTok{\textasciitilde{}} \DecValTok{4}\NormalTok{,}
+      \AttributeTok{.default =} \ConstantTok{NA} \CommentTok{\# Opcional: para manejar meses que no coincidan}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{!}\NormalTok{indice\_tiempo)}
+
+\CommentTok{\# Versión tidy}
+\NormalTok{estadias\_totales\_cuatrimestrales }\OtherTok{=}\NormalTok{ estadias\_totales }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{anio=}\FunctionTok{year}\NormalTok{(indice\_tiempo),}
+    \AttributeTok{trimestre=}\FunctionTok{quarter}\NormalTok{(indice\_tiempo)}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(}\SpecialCharTok{!}\NormalTok{indice\_tiempo)}
+\end{Highlighting}
+\end{Shaded}
+
+El objetivo de este bloque final es integrar herramientas de
+programación, pensando en cómo sintetizar operaciones en un
+\emph{script}.
+
+\begin{itemize}
+\item
+  \textbf{Automatización mediante loops}: el uso de un bucle
+  \texttt{for} permite escalar el análisis de forma eficiente. En lugar
+  de repetir el código para cada mercado, generamos reportes
+  estandarizados para Brasil, Chile y países No limítrofes con un solo
+  bloque de ejecución.
+\item
+  \textbf{Jerarquía y factores}: la conversión de la columna
+  \texttt{trimestre} a \textbf{factor} (\texttt{fct}) no es estética; es
+  técnica. Garantiza que el orden cronológico (1 al 4) se preserve en
+  cualquier análisis o gráfico posterior, evitando el ordenamiento
+  alfabético por defecto.
+\item
+  \textbf{Persistencia de datos (.csv vs .rds)}: se guardan los datos en
+  dos formatos distintos. El \texttt{.csv} permite la interoperabilidad
+  con otras herramientas (como Excel), mientras que el \texttt{.rds} es
+  muy útil en R porque es el único formato que guarda los
+  \textbf{metadatos}, como los niveles de los factores que acabamos de
+  configurar.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{jerarquia }\OtherTok{=} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"trimestre"}\NormalTok{, }
+  \StringTok{"porcentaje\_CO"}\NormalTok{,}
+  \StringTok{"turistas\_no\_residentes\_BA"}\NormalTok{, }
+  \StringTok{"turistas\_no\_residentes\_CO"}
+\NormalTok{)}
+\NormalTok{lista\_bases }\OtherTok{=} \FunctionTok{list}\NormalTok{(}
+  \StringTok{"Brasil"} \OtherTok{=} \StringTok{\textquotesingle{}brasil\textquotesingle{}}\NormalTok{, }
+  \StringTok{"Chile"} \OtherTok{=} \StringTok{\textquotesingle{}chile\textquotesingle{}}\NormalTok{, }
+  \StringTok{"No limítrofes"}\OtherTok{=} \StringTok{\textquotesingle{}nolimitrofe\textquotesingle{}}
+\NormalTok{ )}
+\ControlFlowTok{for}\NormalTok{ (nombre }\ControlFlowTok{in} \FunctionTok{names}\NormalTok{(lista\_bases)) \{}
+  \CommentTok{\# Nos quedamos con una tabla para cada categoría}
+\NormalTok{  codigo\_pais\_residente }\OtherTok{=}\NormalTok{ lista\_bases[[nombre]]}
+  
+\NormalTok{  resumen }\OtherTok{=}\NormalTok{ estadias\_totales\_cuatrimestrales }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(}
+\NormalTok{      pais\_de\_residencia }\SpecialCharTok{==}\NormalTok{ codigo\_pais\_residente,}
+\NormalTok{      anio}\SpecialCharTok{\textgreater{}=}\DecValTok{2015}\NormalTok{,}
+      \DecValTok{2025}\SpecialCharTok{\textgreater{}=}\NormalTok{anio}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{c}\NormalTok{(pais\_de\_residencia, anio)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{group\_by}\NormalTok{(}
+\NormalTok{      trimestre}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarize}\NormalTok{(}
+      \AttributeTok{turistas\_no\_residentes\_BA =} \FunctionTok{sum}\NormalTok{(}
+\NormalTok{        turistas\_no\_residentes\_BA, }\AttributeTok{na.rm=}\ConstantTok{TRUE}
+\NormalTok{      ),}
+      \AttributeTok{turistas\_no\_residentes\_CO =} \FunctionTok{sum}\NormalTok{(}
+\NormalTok{        turistas\_no\_residentes\_CO, }\AttributeTok{na.rm=}\ConstantTok{TRUE}
+\NormalTok{      ),}
+      \AttributeTok{.groups =} \StringTok{"drop"}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{mutate}\NormalTok{(}
+      \AttributeTok{porcentaje\_CO =} \DecValTok{100}\SpecialCharTok{*}\NormalTok{turistas\_no\_residentes\_CO}\SpecialCharTok{/}\NormalTok{(turistas\_no\_residentes\_BA }\SpecialCharTok{+}\NormalTok{turistas\_no\_residentes\_CO)}
+\NormalTok{    )}
+  
+  \CommentTok{\# Ordenamos las columnas jerárquicamente las columnas (esto NO es un factor)}
+\NormalTok{  resumen }\OtherTok{=}\NormalTok{ resumen }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(}\FunctionTok{all\_of}\NormalTok{(jerarquia))}
+  
+  \CommentTok{\# Convertimos \textquotesingle{}trimestre\textquotesingle{} en factor para asegurar orden cronológico (esto SÍ)}
+\NormalTok{  resumen}\SpecialCharTok{$}\NormalTok{trimestre }\OtherTok{=} \FunctionTok{factor}\NormalTok{(resumen}\SpecialCharTok{$}\NormalTok{trimestre, }\AttributeTok{levels =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)}
+  
+  \FunctionTok{print}\NormalTok{(}
+    \FunctionTok{paste}\NormalTok{(}\StringTok{"Procesando:"}\NormalTok{, nombre)}
+\NormalTok{  )}
+  \FunctionTok{print}\NormalTok{(resumen)}
+  
+  \CommentTok{\# Definimos la ruta de salida}
+  \FunctionTok{dir.create}\NormalTok{(}\StringTok{"../output"}\NormalTok{, }\AttributeTok{showWarnings =} \ConstantTok{FALSE}\NormalTok{) }\CommentTok{\# Crea la carpeta si no existe}
+  
+  \CommentTok{\# Creamos un nombre de archivo normalizado (ej: resumen\_brasil.csv)}
+\NormalTok{  file\_name }\OtherTok{=} \FunctionTok{file.path}\NormalTok{(}\StringTok{"../output"}\NormalTok{, }\FunctionTok{paste0}\NormalTok{(}\StringTok{"resumen\_"}\NormalTok{, codigo\_pais\_residente))}
+  
+  \CommentTok{\# Exportación a CSV (Formato abierto)}
+  \FunctionTok{write\_csv}\NormalTok{(resumen, }\FunctionTok{paste0}\NormalTok{(file\_name, }\StringTok{".csv"}\NormalTok{))}
+  
+  \CommentTok{\# Exportación a RDS (Formato nativo de R: preserva factores y tipos de datos)}
+  \FunctionTok{saveRDS}\NormalTok{(resumen, }\FunctionTok{paste0}\NormalTok{(file\_name, }\StringTok{".rds"}\NormalTok{))}
+
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "Procesando: Brasil"
+# A tibble: 4 x 4
+  trimestre porcentaje_CO turistas_no_residentes_BA turistas_no_residentes_CO
+  <fct>             <dbl>                     <dbl>                     <dbl>
+1 1                  1.65                   1169674                     19646
+2 2                  1.24                   1286842                     16186
+3 3                  1.56                   1763087                     27974
+4 4                  1.78                   1400661                     25412
+[1] "Procesando: Chile"
+# A tibble: 4 x 4
+  trimestre porcentaje_CO turistas_no_residentes_BA turistas_no_residentes_CO
+  <fct>             <dbl>                     <dbl>                     <dbl>
+1 1                  4.83                    548407                     27843
+2 2                  4.88                    496884                     25516
+3 3                  5.49                    564384                     32780
+4 4                  5.80                    600177                     36921
+[1] "Procesando: No limítrofes"
+# A tibble: 4 x 4
+  trimestre porcentaje_CO turistas_no_residentes_BA turistas_no_residentes_CO
+  <fct>             <dbl>                     <dbl>                     <dbl>
+1 1                  2.76                   3995161                    113447
+2 2                  3.02                   2425453                     75476
+3 3                  3.36                   2347456                     81620
+4 4                  2.88                   3507778                    103963
+\end{verbatim}
+
+Veamos cómo podemos cargar los datos y organizarlos juntos de forma
+conveniente. La función \texttt{map\_df} de la librería \texttt{purrr}
+(parte del \texttt{tidyverse}) automatiza la carga de múltiples
+archivos:
+
+\begin{itemize}
+\item
+  \textbf{\texttt{paises}}: es el vector con los nombres de los archivos
+  a cargar (``brasil'', ``chile'', ``nolimitrofe'').
+\item
+  \textbf{\texttt{readRDS(...)}}: carga cada archivo en formato nativo
+  de R desde la carpeta \texttt{../output}.
+\item
+  \textbf{\texttt{mutate(pais\ =\ .x)}}: agrega una columna nueva para
+  identificar de qué archivo provienen los datos antes de unirlos.
+\end{itemize}
+
+Al terminar, \texttt{map\_df} une automáticamente todas las tablas en un
+único dataframe consolidado.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Cargamos y unimos los datos de la carpeta output}
+\NormalTok{paises }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"brasil"}\NormalTok{, }\StringTok{"chile"}\NormalTok{, }\StringTok{"nolimitrofe"}\NormalTok{)}
+\NormalTok{datos\_consolidados }\OtherTok{=} \FunctionTok{map\_df}\NormalTok{(}
+\NormalTok{  paises, }
+  \SpecialCharTok{\textasciitilde{}} \FunctionTok{readRDS}\NormalTok{(}\FunctionTok{file.path}\NormalTok{(}\StringTok{"../output"}\NormalTok{, }\FunctionTok{paste0}\NormalTok{(}\StringTok{"resumen\_"}\NormalTok{, .x, }\StringTok{".rds"}\NormalTok{))) }\SpecialCharTok{|\textgreater{}}  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{pais =}\NormalTok{ .x) }\CommentTok{\# en este caso la tilde se usa para definir una formula que actua sobre .x (que, cuando itere paises, va a tomar el valor de cada país)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+Lo que sigue es necesario para hacer un gráfico, que no va a ser un
+requisito del TP, es sólo para tener una idea de lo que anduvimos
+haciendo.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Transformamos a formato LONG para separar por Provincia}
+\NormalTok{datos\_histograma }\OtherTok{=}\NormalTok{ datos\_consolidados }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{pivot\_longer}\NormalTok{(}
+    \AttributeTok{cols =} \FunctionTok{c}\NormalTok{(turistas\_no\_residentes\_BA, turistas\_no\_residentes\_CO), }\CommentTok{\# qué columnas colapsar}
+    \AttributeTok{names\_to =} \StringTok{"provincia"}\NormalTok{, }\CommentTok{\# el nombre de la nueva columna que contendrá los antiguos nombres de las columnas }
+    \AttributeTok{values\_to =} \StringTok{"total\_turistas"} \CommentTok{\# el nombre de la nueva columna que contendrá los valores numéricos que estaban en esas celdas}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+Notar que al utilizar las funciones de la librería \texttt{forcats}
+(\texttt{fct\_recode} y \texttt{fct\_reorder}) dentro del
+\texttt{mutate}, transformamos esas columnas de texto plano
+(\texttt{character}) a \textbf{factores} (\texttt{factor}), es decir,
+que le decimos a R que conserve un orden jerárquico acorde a un
+criterio.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{ggplot}\NormalTok{(datos\_histograma, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ trimestre, }\AttributeTok{y =}\NormalTok{ total\_turistas, }\AttributeTok{fill =}\NormalTok{ pais)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ provincia, }\AttributeTok{scales =} \StringTok{"free\_y"}\NormalTok{) }\SpecialCharTok{+} \CommentTok{\# Crea un gráfico por provincia con su propia escala}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Distribución de Turistas por Orígen y Aeropuerto"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Comparativa trimestral entre Buenos Aires y Córdoba (2015{-}2025)"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Trimestre"}\NormalTok{, }\CommentTok{\# el orden garantizado por que es factors}
+    \AttributeTok{y =} \StringTok{"Cantidad Total de Turistas"}\NormalTok{,}
+    \AttributeTok{fill =} \StringTok{"Origen"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_brewer}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{data_wrangling_2_files/figure-pdf/unnamed-chunk-14-1.pdf}}
+
+\subsection{4. Correr scripts en segundo
+plano}\label{correr-scripts-en-segundo-plano}
+
+Correr un script como \textbf{Background Job} en RStudio permite que R
+ejecute el código en una sesión separada, dejándote la consola libre
+para seguir analizando datos o probando funciones en la consola actual.
+Para correr un script de esta forma hay que guardar el archivo e ir a
+\texttt{Background\ jobs\ –\textgreater{}\ Start\ Background\ Jobround\ jobs\ –\textgreater{}\ Start\ Background\ Job}.
+Seleccionamos el .R y el \textbf{directorio desde donde se corre.} De
+esta forma, si estamos procesando un análisis exploratorio (como este),
+pero en simultaneo queremos correr un archivo que puede tomar mucho
+tiempo podemos ponerlo a correr en segundo plano.
+
+
+
+
+\end{document}

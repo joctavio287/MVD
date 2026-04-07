@@ -3,11 +3,18 @@ title: "Data Wrangling en R"
 date: "`r Sys.Date()`"
 lang: es
 format:
-  pdf:
+  html:
     toc: true
     toc-location: left
     embed-resources: true
     theme: cosmo
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+        }
+        </style>    
 ---
 
 ## De qué trata la clase de hoy
@@ -443,6 +450,8 @@ head(pbi_NACION)
 
 Este error afecta ambas series por igual, dado que ambos porcentajes se calculan tomando la división con el PBI de nación. Sin embargo, hay otra diferencia no menor que hay que tener en cuenta qye es la mezcla del PBG (que incluye impuestos) del archivo de Nación con la suma de la actividad de los sectores del archivo provincial, que no los incluye. Por esta razón, ambas series tienen la misma tendencia, salvo una diferencia cercana de 10 puntos porcentuales.
 
-**¿Qué nos llevamos de acá?** Si queremos hacer un análisis que sea realmente fiable hay que entender las bases de datos con las cuales trabajamos, no basta únicamente con bajarlas y procesarlas bajo la pretensión de que sean tal como creemos.
+**¿Qué nos llevamos de acá?**
+
+Si queremos hacer un análisis que sea realmente fiable hay que entender las bases de datos con las cuales trabajamos, no basta únicamente con bajarlas y procesarlas bajo la pretensión de que sean tal como creemos.
 
 Para obtener una respuesta válida a nuestra pregunta inicial, deberíamos normalizar el denominador asegurándonos de que comparamos el dato de Buenos Aires contra un total nacional consistente y proveniente de la misma fuente técnica. Además, habría que incluir los impuestos nacionales que se agregan al PBG de PBA.

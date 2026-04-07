@@ -3,11 +3,18 @@ title: "Data Wrangling en R 2"
 date: "`r Sys.Date()`"
 lang: es
 format:
-  pdf:
+  html:
     toc: true
     toc-location: left
     embed-resources: true
     theme: cosmo
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+        }
+        </style>
 ---
 
 ## De qué trata la clase de hoy

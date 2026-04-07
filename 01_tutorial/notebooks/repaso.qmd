@@ -1,11 +1,18 @@
 ---
 title: "Repaso de R"
 format:
-  pdf:
+  html:
     toc: true
     toc-location: left
     embed-resources: true
     theme: cosmo
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+        }
+        </style>
 ---
 
 # Sobre Quarto/Notebooks en general
