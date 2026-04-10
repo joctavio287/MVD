@@ -23,14 +23,10 @@ format:
 
 Hoy vamos a integrar dos técnicas fundamentales para el análisis de datos: *web scraping y Natural Language Processing* *(NLP)*. La idea es que puedan extraer información de la web de forma automatizada y luego analizarla para descubrir patrones y temas relevantes.
 
-1.  **Primera parte**: vamos a aprender a hacer scraping de noticias de ~~la ONU sobre Paz y Seguridad~~ utilizando `rvest` y `httr2`.
+1.  **Primera parte**: vamos a aprender a hacer scraping de noticias de ~~la ONU sobre Paz y Seguridad~~ Global Voices (un sitio de noticias) utilizando `rvest` y `httr2`.
 2.  **Segunda parte**: vamos a usar las herramientas que aprendimos en las clases previas para limpiar y transformar los datos extraídos usando herramientas del `tidyverse`.
-3.  **Tercera parte**: aplicaremos técnicas de **NLP** (tokenización, eliminación de *stop words* y cálculo de TF-IDF) para identificar los términos más relevantes en las noticias.
-4.  **Cuarta parte**: visualizaremos los resultados con `ggplot2` para interpretar los hallazgos.
-
-Para hacer este estudio nos vamos a guiar por la siguiente pregunta de investigación:
-
-> *¿Cuáles son los términos más distintivos que caracterizan las noticias sobre paz y seguridad de la ONU?*
+3.  **Tercera parte**: aplicaremos técnicas de **NLP** (tokenización, eliminación de *stop words* y cálculo de $TF-IDF$) para identificar los términos más relevantes en las noticias.
+4.  **Cuarta parte**: visualizaremos los resultados con `ggplot2` para interpretar los hallazgos. Esto lo vamos a usar únicamente para interpretar los resultados, no lo vamos a ver en detalle. Sin embargo, más adelante van a poder volver sobre esta clase para ver en detalle cómo podemos generar visualizaciones.
 
 ------------------------------------------------------------------------
 
@@ -57,13 +53,13 @@ library(xml2)       # Manejo de HTML (guardar la página completa x ej)
 
 ### ¿Por qué scrapear?
 
-Muchas veces los datos que necesitamos no están disponibles en formatos descargables como CSV o Excel, como venimos haciendo hasta ahora, sino que se encuentran en páginas web. El web *scraping* nos permite automatizar la extracción de esta información.
+Muchas veces los datos que necesitamos no están disponibles en formatos descargables como CSV o Excel, como veníamos trabajando hasta ahora, sino que se encuentran en páginas web. El web *scraping* nos permite automatizar la extracción de esta información.
 
-Antes de hacer *scraping*, **siempre** debemos:
+Antes de hacer *scraping*, **siempre** debemos tener en cuenta:
 
--   Revisar el archivo `robots.txt` del sitio
--   Respetar los Términos de Servicio
--   No sobrecargar los servidores (usar pausas entre *requests*)
+-   El archivo `robots.txt` del sitio.
+-   Los Términos de Servicio.
+-   Que podemos sobrecargar los servidores (usar pausas entre *requests*)
 
 ### Verificando permisos de scraping
 
@@ -79,14 +75,20 @@ cat(
   "Permiso para scrapear:", allowed, "\n"
 )
 
-# paths = "https://news.un.org/es/news/topic/peace-and-security", --> FALSE, una pena
+# paths = "https://news.un.org/es/news/topic/peace-and-security", --> FALSE, una pena, era la idea original de la clase
 ```
 
 Si el resultado es `TRUE`, podemos proceder. Si es `FALSE`, deberíamos buscar otra fuente o contactar al administrador del sitio.
 
+### Sobre la fuente
+
+Según el sitio oficial [GlobalVoices](https://es.globalvoices.org/about/) se trata de una **comunidad internacional** y una organización sin fines de lucro que opera a nivel global. Se trata de una red multilingüe de blogueros, traductores y activistas de todo el mundo que informan sobre temas que suelen ser ignorados por los medios tradicionales.
+
+[**Importante**]{.underline}: es importante conocer un poco de dónde sacamos los datos para entender y/o prevenir sesgos. En este caso particular, seleccioné este medio porque permite *scrapear* los datos libremente y la estructura *html* tiene la complejidad justa para la clase.
+
 ### Explorando la estructura HTML
 
-Primero, vamos a cargar la página principal de noticias sobre Argentina en un diario español. Para eso, vamos a usar la librería `rvest` que es el estándar de R para hacer *scraping*. Algunos comandos útiles son
+Primero, vamos a cargar la página principal de noticias sobre migraciones e inmigraciones en lenguaje español. Para eso, vamos a usar la librería `rvest` que es el estándar de R para hacer *scraping*. Algunos comandos útiles son
 
 -   `read_html(url)`: descargar y parsea una página.
 -   `html_elements(node, css)`: selecciona múltiples *tags* coincidentes.
@@ -137,7 +139,7 @@ Es importante recordar que el *html* tiene **una estructura anidada y la idea es
 -   Los tags con `class='x'` se seleccionan con: `.x`
 -   Para seleccionar un tag `y` adentro de otro tag `x` en cualquier nivel de profundidad (*descendant*), se usa: `x y`
 -   Para seleccionar un tag `y` adentro de otro tag `x` en primer nivel de profundidad (*child*), se usa: `x > y`
--   Para seleccionar un tag `y` que sigue inmediatamente a otro tag `x`, se usa: `x+ y`
+-   Para seleccionar un tag `y` que sigue inmediatamente a otro tag `x`, se usa: `x + y`
 -   Para seleccionar un tag `x` que sea el n-ésimo *hijo* de su *padre*, se usa: `x:nth-child(n)`
 -   Para seleccionar tags con determinado atributo y/o valor, se usa: `[attribute]`, `tag[attribute]` o `[attribute = "value"]`.
 -   Se pueden sumar selectores usando la coma "`,`": `x , y , z`, por ejemplo.
@@ -180,7 +182,7 @@ cat("Resúmenes extraídos:", length(resumenes), "\n")
 cat("Fechas extraídas:", length(fechas), "\n")
 ```
 
-Cuando estamos haciendo un análisis exploratorio, ir y venir al navegador **es buena práctica para entender cómo se estructura visualmente la información**. Fíjense que aparecen más fechas urls y títulos (29) que resúmenes, esto se debe a que las cuatro primeras noticias aparecen únicamente como títulos.
+Cuando estamos haciendo un análisis exploratorio ir y venir al navegador **es buena práctica para entender cómo se estructura visualmente la información**. Fíjense que aparecen más fechas urls y títulos (29) que resúmenes (25), esto se debe a que las cuatro primeras noticias aparecen únicamente como títulos.
 
 Los selectores CSS (`".post-title"`, `".post-tagline"`, etc.) [pueden cambiar con el tiempo si el sitio web modifica su estructura]{.underline}. Si los selectores no funcionan, hay que inspeccionar el HTML actual del sitio para encontrar los correctos.
 
@@ -192,12 +194,12 @@ Combinamos toda la información en un `data.frame` que condense lo que tenemos h
 # Aseguramos que todos los vectores tengan la misma longitud, para el dataframe
 n_noticias <- min(length(titulos), length(urls), length(resumenes), length(fechas))
 
-# Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete)
+# Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete, las primeras 4 en este caso)
 noticias_gv <- tibble(
-  titulo = titulos[1:n_noticias],
-  url = urls[1:n_noticias],
-  resumen = resumenes[1:n_noticias],
-  fecha_raw = fechas[1:n_noticias] # raw porque es un character, por ahora
+  titulo = titulos[(length(titulos)-n_noticias):n_noticias],
+  url = urls[(length(urls)-n_noticias):n_noticias],
+  resumen = resumenes[(length(urls)-n_noticias):n_noticias],
+  fecha_raw = fechas[(length(urls)-n_noticias):n_noticias] # raw porque es un character, por ahora
 )
 
 # Mostramos las primeras noticias
@@ -213,7 +215,7 @@ Podemos sintetizar lo que estuvimos haciendo en una función que *scrapee* la p�
 #| echo: true
 
 # Función para scrapear una página de noticias
-scrapear_gv <- function(url) {
+scrapear_gv <- function(url, first_page=FALSE) {
   
   # Pausa para no sobrecargar el servidor
   Sys.sleep(2)
@@ -242,24 +244,35 @@ scrapear_gv <- function(url) {
     html_text2() |>
     str_trim()
   
-  # Retornamos un tibble
+  # Si es la primera primera página, sabemos que las primeras 4 noticias no tien
+  # en resumen
   n <- min(length(titulos), length(urls), length(resumenes), length(fechas))
   
+  
+  # Retornamos un tibble
+  if (first_page){
   return(
+    tibble(
+      titulo = titulos[(length(titulos)-n):n],
+      url = urls[(length(urls)-n):n],
+      resumen = resumenes[(length(urls)-n):n],
+      fecha_raw = fechas[(length(urls)-n):n]
+    )
+  )} else {
     tibble(
       titulo = titulos[1:n],
       url = urls[1:n],
       resumen = resumenes[1:n],
       fecha_raw = fechas[1:n]
     )
-  )
+  }
 }
 
 ```
 
 ```{r}
 # Veamos que funciona para la página que ya usamos antes
-scrapear_gv("https://es.globalvoices.org/category/topics/migration-immigration/")
+scrapear_gv("https://es.globalvoices.org/category/topics/migration-immigration/", first_page=TRUE)
 
 # Y también para otra arbitraria de la misma web
 # scrapear_gv(paste0("https://es.globalvoices.org/category/topics/migration-immigration/page/", 8))
@@ -275,8 +288,13 @@ Armamos una función que permita realizar lo que hicimos sobre las primeras `n` 
 scrapear_n_gv <- function(n) {
 
   # Armamos el tibble de la primera página
-  noticias_pagina <- scrapear_gv("https://es.globalvoices.org/category/topics/migration-immigration/")
+  noticias_pagina <- scrapear_gv("https://es.globalvoices.org/category/topics/migration-immigration/", first_page = TRUE)
   
+  # Mandamos un mensaje que informe que corrió bien
+  mensaje <- paste("\nPágina", 1, "de", n, "scrapeada correctamente. Total noticias hasta ahora:", nrow(noticias_pagina))
+  message(mensaje)
+
+
   # Salteamos la primera página que tiene una url distinta e iteramos sobre las siguientes
   for (i in 2:n) {
     
@@ -289,7 +307,7 @@ scrapear_n_gv <- function(n) {
     noticias_pagina <- bind_rows(noticias_pagina, noticias_pagina_i)
     
     # Mandamos un mensaje que informe que corrió bien
-    mensaje <- paste("\nPágina", i, "scrapeada correctamente. Total noticias hasta ahora:", nrow(noticias_pagina), "de", n -1)
+    mensaje <- paste("\nPágina", i, "de", n, "scrapeada correctamente. Total noticias hasta ahora:", nrow(noticias_pagina))
     
     message(mensaje)
   }
@@ -318,7 +336,7 @@ write_rds(noticias_gv, file.path(data_dir, "noticias_gv.rds"))
 
 ### Función que permita extraer el cuerpo del noticia
 
-Genial, ahora sería utila, para cada noticia, extraer el texto asociado. Esto va a enriquecer nuestra base de datos
+Genial, ahora sería útil, para cada noticia, extraer el cuerpo asociado. Esto va a enriquecer nuestra base de datos
 
 ```{r}
 # Definimos una función que extrae el texto de cada noticia haciendo request al url
@@ -356,16 +374,14 @@ extraer_cuerpo_noticia(
 
 Ahora aplicamos esta función a cada noticia de nuestro *dataset* para obtener una **nueva BD que contenga los cuerpos de las noticias.**
 
-[**ATENCIÓN**]{.underline}**:** si el `n` anterior era muy grande vamos a estar ejecutando la función por cada una de las `n*#de noticias en cada página`. Esto no significa que el archivo sea especialmente pesado, pero sí que el tiempo de ejecución va a ser largo.
-
-Por ejemplo, para `n=3` y teniendo en cuenta que en cada página hay 75 noticias, vamos a leer el texto de 225 notas. Esto tardará \~4 minutos, dado que por cada noticia tenemos un `Sys.sleep(1).`
+[**ATENCIÓN**]{.underline}**:** si el `n` anterior era muy grande vamos a estar ejecutando la función por cada una de las `n*#de noticias en cada página`. Esto no significa que el archivo sea especialmente pesado, pero sí que el tiempo de ejecución va a ser largo. Por ejemplo, para `n=3` y teniendo en cuenta que en cada página hay 75 noticias, vamos a leer el texto de 225 notas. Esto tardará \~4 minutos, dado que por cada noticia tenemos un `Sys.sleep(1).`
 
 ```{r}
 # Creamos otra base de datos para almacenar los cuerpos
 cuerpos_noticias_gv <- noticias_gv |>
   select(id, url) |> # mismo ID que el dataset original para hacer un join más tarde
   mutate(cuerpo = map_chr(url, extraer_cuerpo_noticia)) |> 
-  select(-url)
+  select(-url) # tiene id y cuerpo nada más
 
 # Guardamos esta tabla por separado para ahorrar memoria y no tener que volver a hacer scraping cada vez que queramos analizar el texto
 
@@ -378,7 +394,7 @@ cuerpos_noticias_gv |> write_rds(
 )
 ```
 
-Ahora sí, metemos todo en la misma tabla, por simplicidad.
+Ahora sí, metemos todo en la misma tabla, porque en este análisis es relevante la identificación.
 
 ```{r}
 noticias_gv <- noticias_gv |> left_join(cuerpos_noticias_gv, by="id")
@@ -390,7 +406,7 @@ noticias_gv <- noticias_gv |> left_join(cuerpos_noticias_gv, by="id")
 
 ### Limpieza de fechas
 
-Las fechas extraídas están en formato de texto. Vamos a convertirlas a un formato que pueda interpretar el `tidyverse`
+Las fechas extraídas están en formato de texto. Vamos a convertirlas a un formato que pueda interpretar el `tidyverse.`
 
 ```{r}
 # Dependiendo del formato real este código lo tendriamos que ajustar
@@ -412,6 +428,7 @@ noticias_limpio <- noticias_gv |>
 
 # La función del tidyverse que usamos en el primer caso se define en el orden que se presentan los datos --> dmy (day, month, year); ymd(year, month, day)
 # Esta función es lo suficientemente inteligente como para no tener que detectar patrones. Sólo fue una excusa para usar regex
+
 # Podríamos haberla llamado fecha = lubridate::dmy(fecha_raw, locale="es_ES.UTF-8")
 
 # Verificamos
@@ -461,7 +478,9 @@ noticias_limpio |>
     cols=everything(),
     names_to="Métricas", 
     values_to="Valores"
-  )
+  ) |> 
+  # Transformamos la columna final a entero
+  mutate(Valores = as.integer(Valores))
 ```
 
 ------------------------------------------------------------------------
@@ -491,7 +510,7 @@ noticias_tokens <- noticias_limpio |>
   ) 
 
 # La función unnest_tokens() del paquete tidytext hace todo el trabajo de tokenización, limpieza básica y normalización (pone todo en minúscula, elimina puntuación, etc.). 
-# Notar que conviertre el tibble a formato long, donde cada fila es un token (palabra) de una noticia específica.
+# Notar que transforma el tibble original a formato long, donde cada fila es un token (palabra) de una noticia específica.
 
 # Veamos el resultado
 head(noticias_tokens, 10)
@@ -503,7 +522,13 @@ head(noticias_tokens, 10)
 noticias_tokens |>
   summarise(
     total_palabras = n(),
-    palabras_unicas = n_distinct(palabra)
+    palabras_unicas = n_distinct(palabra),
+    porcentaje_unicas = 100*(palabras_unicas/total_palabras)
+  ) |> 
+  pivot_longer(
+    cols=everything(),
+    names_to="Métricas", 
+    values_to="Valores"
   )
 ```
 
@@ -516,6 +541,7 @@ Las *stop words* son palabras muy comunes que aparecen en casi todos los textos 
 data("stopwords", package = "stopwords")
 
 stop_es <- stopwords::stopwords("es")
+
 # Ponemos también palabras en inglés, porque hay citas que están en ese idioma
 stop_en <- stopwords::stopwords("en")
 
@@ -523,9 +549,10 @@ stop_words <- tibble(palabra = c(stop_es, stop_en))
 
 # Verificamos algunas stop words
 head(stop_words, 20)
+tail(stop_words, 20)
 ```
 
-Hacemos un `antijoin` entre la BD y las `stop_word_es`. El objetivo es quedarnos únicamente con las palabras que no estén en `stop_word_es`.
+Hacemos un `antijoin` entre la BD y las `stop_word_es`. El objetivo es quedarnos únicamente con las palabras que no estén en `stop_words`.
 
 ```{r}
 # Contamos las palabras antes
@@ -579,26 +606,28 @@ Sus fórmulas son:
 
 $$
 TF(t, d) = N_{d}(t) / (\sum_{t}N_{d}(t)),
-$$es decir, el número de veces que aparece el término $t$ en el documento $d$ ($N(t,d)$), dividido las apariciones totales de todos los términos en el documento $d$ ($sum_t N(t,d)$). El resultado se puede interpretar como una frecuencia normalizada (probabilidad).
+$$donde $N_{d}(t)$ es el número de veces que aparece el término $t$ en el documento $d$ dividido por $\sum_t N(t,d)$, las apariciones totales de todos los términos en el documento $d$. El resultado se puede interpretar como una frecuencia normalizada (probabilidad).
 
 $$
 IDF(t) = log_{10}(\frac{D}{D_t}),
 $$donde $D$ es el número total de documentos y $D_{t}$ el número total de documentos que contienen el término t.
 
-En este sentido, notemos que cuando $D = D_{t}$ tenemos que el $IDF(t)=0$ lo cual tiene sentido porque se trata de un término que aparece en todos los documentos, puede ser redundante. Ahora, si $D_t<<D$ el logaritmo se hace mucho más grande que 1. Por ejemplo, si una palabra $\bar{t}$ está muy repetida en 1 solo documento sobre un total de 1000 documentos, tendremos que $IDF(\bar{t})=3)$.
+En este sentido, notemos que cuando $D = D_{t}$ tenemos que el $IDF(t)=0$, lo cual tiene sentido porque se trata de un término que aparece en todos los documentos, osea que puede ser redundante. Ahora, si $D_t<<D$ el logaritmo se hace mucho más grande que 1.
+
+Por ejemplo, si una palabra $\bar{t}$ está muy repetida en 1 solo documento sobre un total de 1000 documentos, tendremos que $IDF(\bar{t})=3$.
 
 ![Logaritmo base diez cerca de uno.](log10.png){fig-align="center" width="313"}
 
-Por lo tanto, la idea es darle más peso a palabras que:
+Por lo tanto, según cada métrica, la idea es darle más peso a palabras que
 
--   Aparecen **muchas veces** en un documento específico (TF alto)
--   Aparecen en **pocos documentos** del total (IDF alto)
+-   aparecen **muchas veces** en un documento específico ($TF$ alto),
+-   aparecen en **pocos documentos** del total ($IDF$ alto).
 
 ```{r}
 # Calculamos TF-IDF usando tidytext
 noticias_tfidf <- noticias_tokens |>
   count(id, titulo, palabra) |>  # Contamos palabras por documento
-  bind_tf_idf(palabra, id, n)     # Calculamos TF-IDF
+  bind_tf_idf(palabra, id, n)    # Calculamos TF-IDF
 
 # Veamos el resultado
 head(noticias_tfidf |> arrange(desc(tf_idf)), 10)
@@ -606,7 +635,9 @@ head(noticias_tfidf |> arrange(desc(tf_idf)), 10)
 
 ### Interpretando TF-IDF
 
-Los valores de *TF-IDF* nos dicen qué palabras son más "distintivas" de cada noticia. Su fórmula es el producto de las dos métricas. Es importante notar que esta métrica es función de $t$ y $d$, ya que combina una métrica global con otra local.
+Los valores de *TF-IDF* nos dicen qué palabras son más "distintivas" de cada noticia. Su fórmula es el producto de las dos métricas.
+
+Es importante notar que esta métrica es función de $t$ y $d$, ya que combina una métrica global ($IDF(t)$) con otra local $TF(t,d)$.
 
 $$
 (TF-IDF) (t, d) = TF(t,d)\times IDF(t)
@@ -620,10 +651,8 @@ top_palabras_por_noticia <- noticias_tfidf |>
   ungroup() |>
   arrange(id, desc(tf_idf))
 
-# Veamos las primeras 3 noticias
 top_palabras_por_noticia |>
-  select(id, titulo, palabra, tf_idf) |> 
-  arrange(id, desc(tf_idf))
+  select(id, palabra, tf_idf) 
   # arrange(desc(tf_idf))
 ```
 
@@ -636,9 +665,9 @@ terminos_distintivos <- noticias_tfidf |>
   group_by(palabra) |>
   summarise(
     tfidf_promedio = mean(tf_idf),
+    n_documentos = n(),
     mean_tf = mean(tf),
     mean_idf = mean(idf),
-    n_documentos = n(),
     frecuencia_total = sum(n)
   ) |>
   arrange(desc(tfidf_promedio)) |>
@@ -650,15 +679,15 @@ head(terminos_distintivos, 20)
 
 [**Importante**]{.underline}: noten cómo varían los resultados cuando cambiamos `n_docs`.
 
-Si dejamos un valor bajo, los términos que aparecerán más arriba tendrán pocos documentos, ya que esto les dará un IDF más alto. Esto puede ser útil, pero no representar al corpus completo. Podría ser que hubo una noticia muy especifica sobre un tema que nunca más se volvió a hablar.
+Si dejamos `n_docs` **en un valor bajo**, los términos que aparecerán más arriba tendrán pocos documentos, ya que esto les dará un IDF más alto. Esto podría suceder si hubo una noticia muy especifica sobre un tema que nunca más se volvió a hablar.
 
-En cambio, si tomamos una valor moderado (en relación al total de documentos) los valores que obtendremos serán más representativos del corpus completo, pero perderán IDF.
+En cambio, si tomamos `n_docs` **moderado** (en relación al total de documentos) los valores que obtendremos serán más representativos del corpus completo, pero perderán IDF.
 
-En el extremo, si tomamos valores muy grandes, el IDF se volverá muy bajo y pasaremos a tener *stopwords* o términos que tienen poca importancia porque se pierde la relevancia del documento.
+En el extremo, si tomamos **valores muy grandes de** `n_docs`, el IDF se volverá muy bajo y pasaremos a tener *stopwords* o términos que tienen poca importancia porque se pierde la relevancia del documento.
 
 **¿Qué hacemos?**
 
-A veces no se trata sencillamente de obtener el TF-IDF más alto y ya, hay que interpretar los resultados entendiendo qué cuantifican las métricas y cómo se reflejan en nuestro corpus.
+A veces no se trata sencillamente de obtener el TF-IDF más alto y ya: hay que interpretar los resultados entendiendo qué cuantifican las métricas y cómo se reflejan en nuestro corpus.
 
 Para eso, [**primero tenemos que tener noción del volumen del corpus y qué queremos mostrar, antes de hacer un análisis.**]{.underline}
 
@@ -672,7 +701,7 @@ Para eso, [**primero tenemos que tener noción del volumen del corpus y qué que
 
 ## 4. Visualización de Resultados
 
-### Top términos por TF-IDF
+### Top términos por $TF-IDF$
 
 Visualizamos los términos más distintivos del corpus. Para esto optamos por el enfoque intermedio (`n_docs=10`), es decir, queremos encontrar tópicos relevantes.
 
@@ -693,7 +722,7 @@ ggplot(top_terminos, aes(x = tfidf_promedio,
     subtitle = "Noticias de Paz y Seguridad - ONU",
     x = "TF-IDF Promedio",
     y = NULL,
-    caption = "Fuente: news.un.org | Análisis con tidytext"
+    caption = "Fuente: es.globalvoices.org."
   ) +
   theme_minimal(base_size = 12) +
   theme(
@@ -704,7 +733,7 @@ ggplot(top_terminos, aes(x = tfidf_promedio,
   )
 ```
 
-Nos enteramos que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan "China", "India", "refugiados", etc.
+Este gráfico muestra que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan "China", "India", "refugiados", etc.
 
 ### Palabras por frecuencias
 
@@ -738,9 +767,11 @@ ggplot(top_frecuentes, aes(x = n, y = reorder(palabra, n))) +
   )
 ```
 
+Acá vemos como salta un conjunto distinto de palabras, que no pondera el $IDF$.
+
 ### Comparación de métricas: Frecuencia vs TF-IDF
 
-Es interesante comparar qué términos son más frecuentes vs. cuáles tienen mayor TF-IDF.
+Es interesante comparar qué términos son más frecuentes vs. cuáles tienen mayor $TF-IDF$.
 
 ```{r}
 #| fig-width: 12
@@ -778,11 +809,13 @@ ggplot(comparacion, aes(x = n, y = tfidf_promedio)) +
 
 [**Interpretación**]{.underline}: este gráfico es muy útil porque nos ayuda a interpretar las métricas.
 
-En términos de extremos, tendremos que valores muy a la derecha y abajo serán, generalmente, palabras asociadas al lenguaje (suelen saltar *stopwords* que no filtramos correctamente). Mientras que valores muy a la izquierda y arriba serán palabras que aparecen poco en el corpus total, pero igual destacan.
+En términos de extremos, tendremos que valores muy a la derecha y abajo serán, generalmente, palabras asociadas al lenguaje (suelen saltar *stopwords* que no filtramos correctamente).
+
+Mientras que para valores muy a la izquierda y arriba habrá palabras que aparecen en menor medida en el corpus total, pero igual destacan.
 
 ### Términos distintivos por noticia individual
 
-Finalmente, podemos visualizar los términos más distintivos de algunas noticias seleccionadas:
+Finalmente, podemos visualizar los términos más distintivos de algunas noticias seleccionadas, por ejemplo, las cuatro primeras.
 
 ```{r}
 #| fig-width: 12
@@ -790,12 +823,12 @@ Finalmente, podemos visualizar los términos más distintivos de algunas noticia
 
 # Seleccionamos las primeras 4 noticias como ejemplo
 noticias_seleccionadas <- top_palabras_por_noticia |>
-  filter(id <= 4) |>
-  group_by(id) |>
-  slice_max(tf_idf, n = 8) |>
-  ungroup() |>
+  filter(id <= 4) |> # filtramos las 4 primeras
+  group_by(id) |> # las agrupamos
+  slice_max(tf_idf, n = 8) |> # tomamos las 8 palabras más distintivas de cada noticia 
+  ungroup() |> # desagrupamos para seguir trabajando
   mutate(
-    titulo_corto = str_trunc(titulo, width = 50)
+    titulo_corto = str_trunc(titulo, width = 25) # creamos una versión corta del título para mostrar en el gráfico
   )
 
 ggplot(noticias_seleccionadas, 

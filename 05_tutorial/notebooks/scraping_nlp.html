@@ -2359,6 +2359,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#por-qué-scrapear" id="toc-por-qué-scrapear" class="nav-link" data-scroll-target="#por-qué-scrapear">¿Por qué scrapear?</a></li>
   <li><a href="#verificando-permisos-de-scraping" id="toc-verificando-permisos-de-scraping" class="nav-link" data-scroll-target="#verificando-permisos-de-scraping">Verificando permisos de scraping</a></li>
+  <li><a href="#sobre-la-fuente" id="toc-sobre-la-fuente" class="nav-link" data-scroll-target="#sobre-la-fuente">Sobre la fuente</a></li>
   <li><a href="#explorando-la-estructura-html" id="toc-explorando-la-estructura-html" class="nav-link" data-scroll-target="#explorando-la-estructura-html">Explorando la estructura HTML</a></li>
   <li><a href="#extrayendo-títulos-y-resúmenes" id="toc-extrayendo-títulos-y-resúmenes" class="nav-link" data-scroll-target="#extrayendo-títulos-y-resúmenes">Extrayendo títulos y resúmenes</a></li>
   <li><a href="#creando-el-dataset" id="toc-creando-el-dataset" class="nav-link" data-scroll-target="#creando-el-dataset">Creando el dataset</a></li>
@@ -2384,7 +2385,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#visualización-de-resultados" id="toc-visualización-de-resultados" class="nav-link" data-scroll-target="#visualización-de-resultados">4. Visualización de Resultados</a>
   <ul class="collapse">
-  <li><a href="#top-términos-por-tf-idf" id="toc-top-términos-por-tf-idf" class="nav-link" data-scroll-target="#top-términos-por-tf-idf">Top términos por TF-IDF</a></li>
+  <li><a href="#top-términos-por-tf-idf" id="toc-top-términos-por-tf-idf" class="nav-link" data-scroll-target="#top-términos-por-tf-idf">Top términos por <span class="math inline">\(TF-IDF\)</span></a></li>
   <li><a href="#palabras-por-frecuencias" id="toc-palabras-por-frecuencias" class="nav-link" data-scroll-target="#palabras-por-frecuencias">Palabras por frecuencias</a></li>
   <li><a href="#comparación-de-métricas-frecuencia-vs-tf-idf" id="toc-comparación-de-métricas-frecuencia-vs-tf-idf" class="nav-link" data-scroll-target="#comparación-de-métricas-frecuencia-vs-tf-idf">Comparación de métricas: Frecuencia vs TF-IDF</a></li>
   <li><a href="#términos-distintivos-por-noticia-individual" id="toc-términos-distintivos-por-noticia-individual" class="nav-link" data-scroll-target="#términos-distintivos-por-noticia-individual">Términos distintivos por noticia individual</a></li>
@@ -2425,15 +2426,11 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="de-qué-trata-la-clase-de-hoy">¿De qué trata la clase de hoy?</h2>
 <p>Hoy vamos a integrar dos técnicas fundamentales para el análisis de datos: <em>web scraping y Natural Language Processing</em> <em>(NLP)</em>. La idea es que puedan extraer información de la web de forma automatizada y luego analizarla para descubrir patrones y temas relevantes.</p>
 <ol type="1">
-<li><strong>Primera parte</strong>: vamos a aprender a hacer scraping de noticias de <del>la ONU sobre Paz y Seguridad</del> utilizando <code>rvest</code> y <code>httr2</code>.</li>
+<li><strong>Primera parte</strong>: vamos a aprender a hacer scraping de noticias de <del>la ONU sobre Paz y Seguridad</del> Global Voices (un sitio de noticias) utilizando <code>rvest</code> y <code>httr2</code>.</li>
 <li><strong>Segunda parte</strong>: vamos a usar las herramientas que aprendimos en las clases previas para limpiar y transformar los datos extraídos usando herramientas del <code>tidyverse</code>.</li>
-<li><strong>Tercera parte</strong>: aplicaremos técnicas de <strong>NLP</strong> (tokenización, eliminación de <em>stop words</em> y cálculo de TF-IDF) para identificar los términos más relevantes en las noticias.</li>
-<li><strong>Cuarta parte</strong>: visualizaremos los resultados con <code>ggplot2</code> para interpretar los hallazgos.</li>
+<li><strong>Tercera parte</strong>: aplicaremos técnicas de <strong>NLP</strong> (tokenización, eliminación de <em>stop words</em> y cálculo de <span class="math inline">\(TF-IDF\)</span>) para identificar los términos más relevantes en las noticias.</li>
+<li><strong>Cuarta parte</strong>: visualizaremos los resultados con <code>ggplot2</code> para interpretar los hallazgos. Esto lo vamos a usar únicamente para interpretar los resultados, no lo vamos a ver en detalle. Sin embargo, más adelante van a poder volver sobre esta clase para ver en detalle cómo podemos generar visualizaciones.</li>
 </ol>
-<p>Para hacer este estudio nos vamos a guiar por la siguiente pregunta de investigación:</p>
-<blockquote class="blockquote">
-<p><em>¿Cuáles son los términos más distintivos que caracterizan las noticias sobre paz y seguridad de la ONU?</em></p>
-</blockquote>
 <hr>
 <section id="librerías-necesarias" class="level3">
 <h3 class="anchored" data-anchor-id="librerías-necesarias">Librerías necesarias</h3>
@@ -2455,12 +2452,12 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="web-scraping-de-noticias-de-la-onu">1. Web scraping de noticias de la ONU</h2>
 <section id="por-qué-scrapear" class="level3">
 <h3 class="anchored" data-anchor-id="por-qué-scrapear">¿Por qué scrapear?</h3>
-<p>Muchas veces los datos que necesitamos no están disponibles en formatos descargables como CSV o Excel, como venimos haciendo hasta ahora, sino que se encuentran en páginas web. El web <em>scraping</em> nos permite automatizar la extracción de esta información.</p>
-<p>Antes de hacer <em>scraping</em>, <strong>siempre</strong> debemos:</p>
+<p>Muchas veces los datos que necesitamos no están disponibles en formatos descargables como CSV o Excel, como veníamos trabajando hasta ahora, sino que se encuentran en páginas web. El web <em>scraping</em> nos permite automatizar la extracción de esta información.</p>
+<p>Antes de hacer <em>scraping</em>, <strong>siempre</strong> debemos tener en cuenta:</p>
 <ul>
-<li>Revisar el archivo <code>robots.txt</code> del sitio</li>
-<li>Respetar los Términos de Servicio</li>
-<li>No sobrecargar los servidores (usar pausas entre <em>requests</em>)</li>
+<li>El archivo <code>robots.txt</code> del sitio.</li>
+<li>Los Términos de Servicio.</li>
+<li>Que podemos sobrecargar los servidores (usar pausas entre <em>requests</em>)</li>
 </ul>
 </section>
 <section id="verificando-permisos-de-scraping" class="level3">
@@ -2476,13 +2473,18 @@ window.Quarto = {
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Permiso para scrapear:&quot;</span>, allowed, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># paths = &quot;https://news.un.org/es/news/topic/peace-and-security&quot;, --&gt; FALSE, una pena</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># paths = &quot;https://news.un.org/es/news/topic/peace-and-security&quot;, --&gt; FALSE, una pena, era la idea original de la clase</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Si el resultado es <code>TRUE</code>, podemos proceder. Si es <code>FALSE</code>, deberíamos buscar otra fuente o contactar al administrador del sitio.</p>
 </section>
+<section id="sobre-la-fuente" class="level3">
+<h3 class="anchored" data-anchor-id="sobre-la-fuente">Sobre la fuente</h3>
+<p>Según el sitio oficial <a href="https://es.globalvoices.org/about/">GlobalVoices</a> se trata de una <strong>comunidad internacional</strong> y una organización sin fines de lucro que opera a nivel global. Se trata de una red multilingüe de blogueros, traductores y activistas de todo el mundo que informan sobre temas que suelen ser ignorados por los medios tradicionales.</p>
+<p><u><strong>Importante</strong></u>: es importante conocer un poco de dónde sacamos los datos para entender y/o prevenir sesgos. En este caso particular, seleccioné este medio porque permite <em>scrapear</em> los datos libremente y la estructura <em>html</em> tiene la complejidad justa para la clase.</p>
+</section>
 <section id="explorando-la-estructura-html" class="level3">
 <h3 class="anchored" data-anchor-id="explorando-la-estructura-html">Explorando la estructura HTML</h3>
-<p>Primero, vamos a cargar la página principal de noticias sobre Argentina en un diario español. Para eso, vamos a usar la librería <code>rvest</code> que es el estándar de R para hacer <em>scraping</em>. Algunos comandos útiles son</p>
+<p>Primero, vamos a cargar la página principal de noticias sobre migraciones e inmigraciones en lenguaje español. Para eso, vamos a usar la librería <code>rvest</code> que es el estándar de R para hacer <em>scraping</em>. Algunos comandos útiles son</p>
 <ul>
 <li><code>read_html(url)</code>: descargar y parsea una página.</li>
 <li><code>html_elements(node, css)</code>: selecciona múltiples <em>tags</em> coincidentes.</li>
@@ -2530,7 +2532,7 @@ window.Quarto = {
 <li>Los tags con <code>class=&#39;x&#39;</code> se seleccionan con: <code>.x</code></li>
 <li>Para seleccionar un tag <code>y</code> adentro de otro tag <code>x</code> en cualquier nivel de profundidad (<em>descendant</em>), se usa: <code>x y</code></li>
 <li>Para seleccionar un tag <code>y</code> adentro de otro tag <code>x</code> en primer nivel de profundidad (<em>child</em>), se usa: <code>x &gt; y</code></li>
-<li>Para seleccionar un tag <code>y</code> que sigue inmediatamente a otro tag <code>x</code>, se usa: <code>x+ y</code></li>
+<li>Para seleccionar un tag <code>y</code> que sigue inmediatamente a otro tag <code>x</code>, se usa: <code>x + y</code></li>
 <li>Para seleccionar un tag <code>x</code> que sea el n-ésimo <em>hijo</em> de su <em>padre</em>, se usa: <code>x:nth-child(n)</code></li>
 <li>Para seleccionar tags con determinado atributo y/o valor, se usa: <code>[attribute]</code>, <code>tag[attribute]</code> o <code>[attribute = &quot;value&quot;]</code>.</li>
 <li>Se pueden sumar selectores usando la coma “<code>,</code>”: <code>x , y , z</code>, por ejemplo.</li>
@@ -2572,7 +2574,7 @@ window.Quarto = {
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Resúmenes extraídos:&quot;</span>, <span class="fu">length</span>(resumenes), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Fechas extraídas:&quot;</span>, <span class="fu">length</span>(fechas), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Cuando estamos haciendo un análisis exploratorio, ir y venir al navegador <strong>es buena práctica para entender cómo se estructura visualmente la información</strong>. Fíjense que aparecen más fechas urls y títulos (29) que resúmenes, esto se debe a que las cuatro primeras noticias aparecen únicamente como títulos.</p>
+<p>Cuando estamos haciendo un análisis exploratorio ir y venir al navegador <strong>es buena práctica para entender cómo se estructura visualmente la información</strong>. Fíjense que aparecen más fechas urls y títulos (29) que resúmenes (25), esto se debe a que las cuatro primeras noticias aparecen únicamente como títulos.</p>
 <p>Los selectores CSS (<code>&quot;.post-title&quot;</code>, <code>&quot;.post-tagline&quot;</code>, etc.) <u>pueden cambiar con el tiempo si el sitio web modifica su estructura</u>. Si los selectores no funcionan, hay que inspeccionar el HTML actual del sitio para encontrar los correctos.</p>
 </section>
 <section id="creando-el-dataset" class="level3">
@@ -2582,12 +2584,12 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aseguramos que todos los vectores tengan la misma longitud, para el dataframe</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n_noticias <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">length</span>(titulos), <span class="fu">length</span>(urls), <span class="fu">length</span>(resumenes), <span class="fu">length</span>(fechas))</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete, las primeras 4 en este caso)</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>noticias_gv <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">titulo =</span> titulos[<span class="dv">1</span><span class="sc">:</span>n_noticias],</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> urls[<span class="dv">1</span><span class="sc">:</span>n_noticias],</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>n_noticias],</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">fecha_raw =</span> fechas[<span class="dv">1</span><span class="sc">:</span>n_noticias] <span class="co"># raw porque es un character, por ahora</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">titulo =</span> titulos[(<span class="fu">length</span>(titulos)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> urls[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">resumen =</span> resumenes[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">fecha_raw =</span> fechas[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias] <span class="co"># raw porque es un character, por ahora</span></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostramos las primeras noticias</span></span>
@@ -2599,7 +2601,7 @@ window.Quarto = {
 <p>Podemos sintetizar lo que estuvimos haciendo en una función que <em>scrapee</em> la página y obtenga los <strong>títulos, resúmenes, fechas y urls de las noticias</strong> en forma sistemática<strong>.</strong></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Función para scrapear una página de noticias</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>scrapear_gv <span class="ot">&lt;-</span> <span class="cf">function</span>(url) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>scrapear_gv <span class="ot">&lt;-</span> <span class="cf">function</span>(url, <span class="at">first_page=</span><span class="cn">FALSE</span>) {</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Pausa para no sobrecargar el servidor</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
@@ -2628,22 +2630,33 @@ window.Quarto = {
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">html_text2</span>() <span class="sc">|&gt;</span></span>
 <span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">str_trim</span>()</span>
 <span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retornamos un tibble</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">length</span>(titulos), <span class="fu">length</span>(urls), <span class="fu">length</span>(resumenes), <span class="fu">length</span>(fechas))</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[<span class="dv">1</span><span class="sc">:</span>n]</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Si es la primera primera página, sabemos que las primeras 4 noticias no tien</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># en resumen</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">length</span>(titulos), <span class="fu">length</span>(urls), <span class="fu">length</span>(resumenes), <span class="fu">length</span>(fechas))</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retornamos un tibble</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (first_page){</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[(<span class="fu">length</span>(titulos)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n]</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  )} <span class="cf">else</span> {</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[<span class="dv">1</span><span class="sc">:</span>n],</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[<span class="dv">1</span><span class="sc">:</span>n],</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>n],</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[<span class="dv">1</span><span class="sc">:</span>n]</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Veamos que funciona para la página que ya usamos antes</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">scrapear_gv</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">scrapear_gv</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/&quot;</span>, <span class="at">first_page=</span><span class="cn">TRUE</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Y también para otra arbitraria de la misma web</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># scrapear_gv(paste0(&quot;https://es.globalvoices.org/category/topics/migration-immigration/page/&quot;, 8))</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2656,32 +2669,37 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>scrapear_n_gv <span class="ot">&lt;-</span> <span class="cf">function</span>(n) {</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Armamos el tibble de la primera página</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  noticias_pagina <span class="ot">&lt;-</span> <span class="fu">scrapear_gv</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/&quot;</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  noticias_pagina <span class="ot">&lt;-</span> <span class="fu">scrapear_gv</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/&quot;</span>, <span class="at">first_page =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Salteamos la primera página que tiene una url distinta e iteramos sobre las siguientes</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Pausa para no sobrecargar el servidor (ya tiene una la función, pero por las dudas)</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Sys.sleep</span>(<span class="dv">1</span>)  </span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/page/&quot;</span>, i)</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    noticias_pagina_i <span class="ot">&lt;-</span> <span class="fu">scrapear_gv</span>(url)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Mandamos un mensaje que informe que corrió bien</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  mensaje <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Página&quot;</span>, <span class="dv">1</span>, <span class="st">&quot;de&quot;</span>, n, <span class="st">&quot;scrapeada correctamente. Total noticias hasta ahora:&quot;</span>, <span class="fu">nrow</span>(noticias_pagina))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(mensaje)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Salteamos la primera página que tiene una url distinta e iteramos sobre las siguientes</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Concatenamos los resultados</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    noticias_pagina <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(noticias_pagina, noticias_pagina_i)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mandamos un mensaje que informe que corrió bien</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    mensaje <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Página&quot;</span>, i, <span class="st">&quot;scrapeada correctamente. Total noticias hasta ahora:&quot;</span>, <span class="fu">nrow</span>(noticias_pagina), <span class="st">&quot;de&quot;</span>, n <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(mensaje)</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Agregamos una columna de id&#39;s que nos permita identificar unívocamente cada noticia</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  noticias_pagina <span class="ot">&lt;-</span> noticias_pagina <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>())</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Devolvemos el tibble completo</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(noticias_pagina)</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Pausa para no sobrecargar el servidor (ya tiene una la función, pero por las dudas)</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Sys.sleep</span>(<span class="dv">1</span>)  </span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;https://es.globalvoices.org/category/topics/migration-immigration/page/&quot;</span>, i)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    noticias_pagina_i <span class="ot">&lt;-</span> <span class="fu">scrapear_gv</span>(url)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Concatenamos los resultados</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    noticias_pagina <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(noticias_pagina, noticias_pagina_i)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mandamos un mensaje que informe que corrió bien</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    mensaje <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Página&quot;</span>, i, <span class="st">&quot;de&quot;</span>, n, <span class="st">&quot;scrapeada correctamente. Total noticias hasta ahora:&quot;</span>, <span class="fu">nrow</span>(noticias_pagina))</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(mensaje)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Agregamos una columna de id&#39;s que nos permita identificar unívocamente cada noticia</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  noticias_pagina <span class="ot">&lt;-</span> noticias_pagina <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>())</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Devolvemos el tibble completo</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(noticias_pagina)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Podríamos trabajar con más de <code>n=3</code>, pero ya estaríamos usando muchos recursos. La idea es que este código funcione como machete.</p>
 <div class="cell">
@@ -2695,7 +2713,7 @@ window.Quarto = {
 </section>
 <section id="función-que-permita-extraer-el-cuerpo-del-noticia" class="level3">
 <h3 class="anchored" data-anchor-id="función-que-permita-extraer-el-cuerpo-del-noticia">Función que permita extraer el cuerpo del noticia</h3>
-<p>Genial, ahora sería utila, para cada noticia, extraer el texto asociado. Esto va a enriquecer nuestra base de datos</p>
+<p>Genial, ahora sería útil, para cada noticia, extraer el cuerpo asociado. Esto va a enriquecer nuestra base de datos</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Definimos una función que extrae el texto de cada noticia haciendo request al url</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>extraer_cuerpo_noticia <span class="ot">=</span> <span class="cf">function</span>(url) {</span>
@@ -2730,14 +2748,13 @@ window.Quarto = {
 <span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Ahora aplicamos esta función a cada noticia de nuestro <em>dataset</em> para obtener una <strong>nueva BD que contenga los cuerpos de las noticias.</strong></p>
-<p><u><strong>ATENCIÓN</strong></u><strong>:</strong> si el <code>n</code> anterior era muy grande vamos a estar ejecutando la función por cada una de las <code>n*#de noticias en cada página</code>. Esto no significa que el archivo sea especialmente pesado, pero sí que el tiempo de ejecución va a ser largo.</p>
-<p>Por ejemplo, para <code>n=3</code> y teniendo en cuenta que en cada página hay 75 noticias, vamos a leer el texto de 225 notas. Esto tardará ~4 minutos, dado que por cada noticia tenemos un <code>Sys.sleep(1).</code></p>
+<p><u><strong>ATENCIÓN</strong></u><strong>:</strong> si el <code>n</code> anterior era muy grande vamos a estar ejecutando la función por cada una de las <code>n*#de noticias en cada página</code>. Esto no significa que el archivo sea especialmente pesado, pero sí que el tiempo de ejecución va a ser largo. Por ejemplo, para <code>n=3</code> y teniendo en cuenta que en cada página hay 75 noticias, vamos a leer el texto de 225 notas. Esto tardará ~4 minutos, dado que por cada noticia tenemos un <code>Sys.sleep(1).</code></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Creamos otra base de datos para almacenar los cuerpos</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>cuerpos_noticias_gv <span class="ot">&lt;-</span> noticias_gv <span class="sc">|&gt;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, url) <span class="sc">|&gt;</span> <span class="co"># mismo ID que el dataset original para hacer un join más tarde</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cuerpo =</span> <span class="fu">map_chr</span>(url, extraer_cuerpo_noticia)) <span class="sc">|&gt;</span> </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>url)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>url) <span class="co"># tiene id y cuerpo nada más</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Guardamos esta tabla por separado para ahorrar memoria y no tener que volver a hacer scraping cada vez que queramos analizar el texto</span></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
@@ -2749,7 +2766,7 @@ window.Quarto = {
 <span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.path</span>(data_dir, <span class="st">&quot;cuerpos_noticias_gv&quot;</span>)</span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Ahora sí, metemos todo en la misma tabla, por simplicidad.</p>
+<p>Ahora sí, metemos todo en la misma tabla, porque en este análisis es relevante la identificación.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>noticias_gv <span class="ot">&lt;-</span> noticias_gv <span class="sc">|&gt;</span> <span class="fu">left_join</span>(cuerpos_noticias_gv, <span class="at">by=</span><span class="st">&quot;id&quot;</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -2760,7 +2777,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="limpieza-y-transformación-de-datos">2. Limpieza y Transformación de Datos</h2>
 <section id="limpieza-de-fechas" class="level3">
 <h3 class="anchored" data-anchor-id="limpieza-de-fechas">Limpieza de fechas</h3>
-<p>Las fechas extraídas están en formato de texto. Vamos a convertirlas a un formato que pueda interpretar el <code>tidyverse</code></p>
+<p>Las fechas extraídas están en formato de texto. Vamos a convertirlas a un formato que pueda interpretar el <code>tidyverse.</code></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dependiendo del formato real este código lo tendriamos que ajustar</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>noticias_limpio <span class="ot">&lt;-</span> noticias_gv <span class="sc">|&gt;</span></span>
@@ -2781,11 +2798,12 @@ window.Quarto = {
 <span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co"># La función del tidyverse que usamos en el primer caso se define en el orden que se presentan los datos --&gt; dmy (day, month, year); ymd(year, month, day)</span></span>
 <span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Esta función es lo suficientemente inteligente como para no tener que detectar patrones. Sólo fue una excusa para usar regex</span></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Podríamos haberla llamado fecha = lubridate::dmy(fecha_raw, locale=&quot;es_ES.UTF-8&quot;)</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificamos</span></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>noticias_limpio <span class="sc">|&gt;</span> <span class="fu">select</span>(fecha_raw) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>noticias_limpio <span class="sc">|&gt;</span> <span class="fu">select</span>(fecha) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Podríamos haberla llamado fecha = lubridate::dmy(fecha_raw, locale=&quot;es_ES.UTF-8&quot;)</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificamos</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>noticias_limpio <span class="sc">|&gt;</span> <span class="fu">select</span>(fecha_raw) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>noticias_limpio <span class="sc">|&gt;</span> <span class="fu">select</span>(fecha) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="combinando-título-y-cuerpo" class="level3">
@@ -2829,7 +2847,9 @@ window.Quarto = {
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols=</span><span class="fu">everything</span>(),</span>
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to=</span><span class="st">&quot;Métricas&quot;</span>, </span>
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to=</span><span class="st">&quot;Valores&quot;</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Transformamos la columna final a entero</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Valores =</span> <span class="fu">as.integer</span>(Valores))</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
@@ -2859,7 +2879,7 @@ window.Quarto = {
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  ) </span>
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># La función unnest_tokens() del paquete tidytext hace todo el trabajo de tokenización, limpieza básica y normalización (pone todo en minúscula, elimina puntuación, etc.). </span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Notar que conviertre el tibble a formato long, donde cada fila es un token (palabra) de una noticia específica.</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Notar que transforma el tibble original a formato long, donde cada fila es un token (palabra) de una noticia específica.</span></span>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Veamos el resultado</span></span>
 <span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(noticias_tokens, <span class="dv">10</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2869,8 +2889,14 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>noticias_tokens <span class="sc">|&gt;</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_palabras =</span> <span class="fu">n</span>(),</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">palabras_unicas =</span> <span class="fu">n_distinct</span>(palabra)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">palabras_unicas =</span> <span class="fu">n_distinct</span>(palabra),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">porcentaje_unicas =</span> <span class="dv">100</span><span class="sc">*</span>(palabras_unicas<span class="sc">/</span>total_palabras)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols=</span><span class="fu">everything</span>(),</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to=</span><span class="st">&quot;Métricas&quot;</span>, </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to=</span><span class="st">&quot;Valores&quot;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="eliminación-de-stop-words" class="level3">
@@ -2881,15 +2907,17 @@ window.Quarto = {
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;stopwords&quot;</span>, <span class="at">package =</span> <span class="st">&quot;stopwords&quot;</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>stop_es <span class="ot">&lt;-</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">&quot;es&quot;</span>)</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Ponemos también palabras en inglés, porque hay citas que están en ese idioma</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>stop_en <span class="ot">&lt;-</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">&quot;en&quot;</span>)</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>stop_words <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">palabra =</span> <span class="fu">c</span>(stop_es, stop_en))</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificamos algunas stop words</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stop_words, <span class="dv">20</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Ponemos también palabras en inglés, porque hay citas que están en ese idioma</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>stop_en <span class="ot">&lt;-</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">&quot;en&quot;</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>stop_words <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">palabra =</span> <span class="fu">c</span>(stop_es, stop_en))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificamos algunas stop words</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stop_words, <span class="dv">20</span>)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(stop_words, <span class="dv">20</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Hacemos un <code>antijoin</code> entre la BD y las <code>stop_word_es</code>. El objetivo es quedarnos únicamente con las palabras que no estén en <code>stop_word_es</code>.</p>
+<p>Hacemos un <code>antijoin</code> entre la BD y las <code>stop_word_es</code>. El objetivo es quedarnos únicamente con las palabras que no estén en <code>stop_words</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Contamos las palabras antes</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>numero_de_palabras <span class="ot">&lt;-</span> <span class="fu">nrow</span>(noticias_tokens)</span>
@@ -2940,27 +2968,28 @@ window.Quarto = {
 <p>Sus fórmulas son:</p>
 <p><span class="math display">\[
 TF(t, d) = N_{d}(t) / (\sum_{t}N_{d}(t)),
-\]</span>es decir, el número de veces que aparece el término <span class="math inline">\(t\)</span> en el documento <span class="math inline">\(d\)</span> (<span class="math inline">\(N(t,d)\)</span>), dividido las apariciones totales de todos los términos en el documento <span class="math inline">\(d\)</span> (<span class="math inline">\(sum_t N(t,d)\)</span>). El resultado se puede interpretar como una frecuencia normalizada (probabilidad).</p>
+\]</span>donde <span class="math inline">\(N_{d}(t)\)</span> es el número de veces que aparece el término <span class="math inline">\(t\)</span> en el documento <span class="math inline">\(d\)</span> dividido por <span class="math inline">\(\sum_t N(t,d)\)</span>, las apariciones totales de todos los términos en el documento <span class="math inline">\(d\)</span>. El resultado se puede interpretar como una frecuencia normalizada (probabilidad).</p>
 <p><span class="math display">\[
 IDF(t) = log_{10}(\frac{D}{D_t}),
 \]</span>donde <span class="math inline">\(D\)</span> es el número total de documentos y <span class="math inline">\(D_{t}\)</span> el número total de documentos que contienen el término t.</p>
-<p>En este sentido, notemos que cuando <span class="math inline">\(D = D_{t}\)</span> tenemos que el <span class="math inline">\(IDF(t)=0\)</span> lo cual tiene sentido porque se trata de un término que aparece en todos los documentos, puede ser redundante. Ahora, si <span class="math inline">\(D_t&lt;&lt;D\)</span> el logaritmo se hace mucho más grande que 1. Por ejemplo, si una palabra <span class="math inline">\(\bar{t}\)</span> está muy repetida en 1 solo documento sobre un total de 1000 documentos, tendremos que <span class="math inline">\(IDF(\bar{t})=3)\)</span>.</p>
+<p>En este sentido, notemos que cuando <span class="math inline">\(D = D_{t}\)</span> tenemos que el <span class="math inline">\(IDF(t)=0\)</span>, lo cual tiene sentido porque se trata de un término que aparece en todos los documentos, osea que puede ser redundante. Ahora, si <span class="math inline">\(D_t&lt;&lt;D\)</span> el logaritmo se hace mucho más grande que 1.</p>
+<p>Por ejemplo, si una palabra <span class="math inline">\(\bar{t}\)</span> está muy repetida en 1 solo documento sobre un total de 1000 documentos, tendremos que <span class="math inline">\(IDF(\bar{t})=3\)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img role="img" src="data:image/png;base64,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" class="img-fluid figure-img" width="313"></p>
 <figcaption>Logaritmo base diez cerca de uno.</figcaption>
 </figure>
 </div>
-<p>Por lo tanto, la idea es darle más peso a palabras que:</p>
+<p>Por lo tanto, según cada métrica, la idea es darle más peso a palabras que</p>
 <ul>
-<li>Aparecen <strong>muchas veces</strong> en un documento específico (TF alto)</li>
-<li>Aparecen en <strong>pocos documentos</strong> del total (IDF alto)</li>
+<li>aparecen <strong>muchas veces</strong> en un documento específico (<span class="math inline">\(TF\)</span> alto),</li>
+<li>aparecen en <strong>pocos documentos</strong> del total (<span class="math inline">\(IDF\)</span> alto).</li>
 </ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculamos TF-IDF usando tidytext</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>noticias_tfidf <span class="ot">&lt;-</span> noticias_tokens <span class="sc">|&gt;</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(id, titulo, palabra) <span class="sc">|&gt;</span>  <span class="co"># Contamos palabras por documento</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_tf_idf</span>(palabra, id, n)     <span class="co"># Calculamos TF-IDF</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_tf_idf</span>(palabra, id, n)    <span class="co"># Calculamos TF-IDF</span></span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Veamos el resultado</span></span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(noticias_tfidf <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(tf_idf)), <span class="dv">10</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2968,7 +2997,8 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 </section>
 <section id="interpretando-tf-idf" class="level3">
 <h3 class="anchored" data-anchor-id="interpretando-tf-idf">Interpretando TF-IDF</h3>
-<p>Los valores de <em>TF-IDF</em> nos dicen qué palabras son más “distintivas” de cada noticia. Su fórmula es el producto de las dos métricas. Es importante notar que esta métrica es función de <span class="math inline">\(t\)</span> y <span class="math inline">\(d\)</span>, ya que combina una métrica global con otra local.</p>
+<p>Los valores de <em>TF-IDF</em> nos dicen qué palabras son más “distintivas” de cada noticia. Su fórmula es el producto de las dos métricas.</p>
+<p>Es importante notar que esta métrica es función de <span class="math inline">\(t\)</span> y <span class="math inline">\(d\)</span>, ya que combina una métrica global (<span class="math inline">\(IDF(t)\)</span>) con otra local <span class="math inline">\(TF(t,d)\)</span>.</p>
 <p><span class="math display">\[
 (TF-IDF) (t, d) = TF(t,d)\times IDF(t)
 \]</span></p>
@@ -2980,11 +3010,9 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id, <span class="fu">desc</span>(tf_idf))</span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Veamos las primeras 3 noticias</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>top_palabras_por_noticia <span class="sc">|&gt;</span></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, titulo, palabra, tf_idf) <span class="sc">|&gt;</span> </span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id, <span class="fu">desc</span>(tf_idf))</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange(desc(tf_idf))</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>top_palabras_por_noticia <span class="sc">|&gt;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, palabra, tf_idf) </span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange(desc(tf_idf))</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="análisis-del-corpus-completo" class="level3">
@@ -2995,9 +3023,9 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(palabra) <span class="sc">|&gt;</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">tfidf_promedio =</span> <span class="fu">mean</span>(tf_idf),</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_tf =</span> <span class="fu">mean</span>(tf),</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_idf =</span> <span class="fu">mean</span>(idf),</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_documentos =</span> <span class="fu">n</span>(),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_documentos =</span> <span class="fu">n</span>(),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_tf =</span> <span class="fu">mean</span>(tf),</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_idf =</span> <span class="fu">mean</span>(idf),</span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">frecuencia_total =</span> <span class="fu">sum</span>(n)</span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
 <span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(tfidf_promedio)) <span class="sc">|&gt;</span></span>
@@ -3007,11 +3035,11 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(terminos_distintivos, <span class="dv">20</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><u><strong>Importante</strong></u>: noten cómo varían los resultados cuando cambiamos <code>n_docs</code>.</p>
-<p>Si dejamos un valor bajo, los términos que aparecerán más arriba tendrán pocos documentos, ya que esto les dará un IDF más alto. Esto puede ser útil, pero no representar al corpus completo. Podría ser que hubo una noticia muy especifica sobre un tema que nunca más se volvió a hablar.</p>
-<p>En cambio, si tomamos una valor moderado (en relación al total de documentos) los valores que obtendremos serán más representativos del corpus completo, pero perderán IDF.</p>
-<p>En el extremo, si tomamos valores muy grandes, el IDF se volverá muy bajo y pasaremos a tener <em>stopwords</em> o términos que tienen poca importancia porque se pierde la relevancia del documento.</p>
+<p>Si dejamos <code>n_docs</code> <strong>en un valor bajo</strong>, los términos que aparecerán más arriba tendrán pocos documentos, ya que esto les dará un IDF más alto. Esto podría suceder si hubo una noticia muy especifica sobre un tema que nunca más se volvió a hablar.</p>
+<p>En cambio, si tomamos <code>n_docs</code> <strong>moderado</strong> (en relación al total de documentos) los valores que obtendremos serán más representativos del corpus completo, pero perderán IDF.</p>
+<p>En el extremo, si tomamos <strong>valores muy grandes de</strong> <code>n_docs</code>, el IDF se volverá muy bajo y pasaremos a tener <em>stopwords</em> o términos que tienen poca importancia porque se pierde la relevancia del documento.</p>
 <p><strong>¿Qué hacemos?</strong></p>
-<p>A veces no se trata sencillamente de obtener el TF-IDF más alto y ya, hay que interpretar los resultados entendiendo qué cuantifican las métricas y cómo se reflejan en nuestro corpus.</p>
+<p>A veces no se trata sencillamente de obtener el TF-IDF más alto y ya: hay que interpretar los resultados entendiendo qué cuantifican las métricas y cómo se reflejan en nuestro corpus.</p>
 <p>Para eso, <u><strong>primero tenemos que tener noción del volumen del corpus y qué queremos mostrar, antes de hacer un análisis.</strong></u></p>
 <ul>
 <li><p>Por ejemplo, si sabemos que nuestro corpus tiene 75 noticias y queremos buscar aquellos términos que hayan sido relevantes en los últimos meses/años, nos convendrá tomar un valor moderado (por ej. 10).</p></li>
@@ -3024,7 +3052,7 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <section id="visualización-de-resultados" class="level2">
 <h2 class="anchored" data-anchor-id="visualización-de-resultados">4. Visualización de Resultados</h2>
 <section id="top-términos-por-tf-idf" class="level3">
-<h3 class="anchored" data-anchor-id="top-términos-por-tf-idf">Top términos por TF-IDF</h3>
+<h3 class="anchored" data-anchor-id="top-términos-por-tf-idf">Top términos por <span class="math inline">\(TF-IDF\)</span></h3>
 <p>Visualizamos los términos más distintivos del corpus. Para esto optamos por el enfoque intermedio (<code>n_docs=10</code>), es decir, queremos encontrar tópicos relevantes.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Seleccionamos los top 20 términos</span></span>
@@ -3040,7 +3068,7 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Noticias de Paz y Seguridad - ONU&quot;</span>,</span>
 <span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;TF-IDF Promedio&quot;</span>,</span>
 <span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Fuente: news.un.org | Análisis con tidytext&quot;</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;Fuente: es.globalvoices.org.&quot;</span></span>
 <span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
 <span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
@@ -3050,7 +3078,7 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>()</span>
 <span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Nos enteramos que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan “China”, “India”, “refugiados”, etc.</p>
+<p>Este gráfico muestra que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan “China”, “India”, “refugiados”, etc.</p>
 </section>
 <section id="palabras-por-frecuencias" class="level3">
 <h3 class="anchored" data-anchor-id="palabras-por-frecuencias">Palabras por frecuencias</h3>
@@ -3079,10 +3107,11 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>()</span>
 <span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>Acá vemos como salta un conjunto distinto de palabras, que no pondera el <span class="math inline">\(IDF\)</span>.</p>
 </section>
 <section id="comparación-de-métricas-frecuencia-vs-tf-idf" class="level3">
 <h3 class="anchored" data-anchor-id="comparación-de-métricas-frecuencia-vs-tf-idf">Comparación de métricas: Frecuencia vs TF-IDF</h3>
-<p>Es interesante comparar qué términos son más frecuentes vs. cuáles tienen mayor TF-IDF.</p>
+<p>Es interesante comparar qué términos son más frecuentes vs. cuáles tienen mayor <span class="math inline">\(TF-IDF\)</span>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combinamos ambas métricas</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>comparacion <span class="ot">&lt;-</span> palabras_frecuentes <span class="sc">|&gt;</span></span>
@@ -3114,20 +3143,21 @@ IDF(t) = log_{10}(\frac{D}{D_t}),
 <span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><u><strong>Interpretación</strong></u>: este gráfico es muy útil porque nos ayuda a interpretar las métricas.</p>
-<p>En términos de extremos, tendremos que valores muy a la derecha y abajo serán, generalmente, palabras asociadas al lenguaje (suelen saltar <em>stopwords</em> que no filtramos correctamente). Mientras que valores muy a la izquierda y arriba serán palabras que aparecen poco en el corpus total, pero igual destacan.</p>
+<p>En términos de extremos, tendremos que valores muy a la derecha y abajo serán, generalmente, palabras asociadas al lenguaje (suelen saltar <em>stopwords</em> que no filtramos correctamente).</p>
+<p>Mientras que para valores muy a la izquierda y arriba habrá palabras que aparecen en menor medida en el corpus total, pero igual destacan.</p>
 </section>
 <section id="términos-distintivos-por-noticia-individual" class="level3">
 <h3 class="anchored" data-anchor-id="términos-distintivos-por-noticia-individual">Términos distintivos por noticia individual</h3>
-<p>Finalmente, podemos visualizar los términos más distintivos de algunas noticias seleccionadas:</p>
+<p>Finalmente, podemos visualizar los términos más distintivos de algunas noticias seleccionadas, por ejemplo, las cuatro primeras.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Seleccionamos las primeras 4 noticias como ejemplo</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>noticias_seleccionadas <span class="ot">&lt;-</span> top_palabras_por_noticia <span class="sc">|&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">&lt;=</span> <span class="dv">4</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(id) <span class="sc">|&gt;</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(tf_idf, <span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">&lt;=</span> <span class="dv">4</span>) <span class="sc">|&gt;</span> <span class="co"># filtramos las 4 primeras</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(id) <span class="sc">|&gt;</span> <span class="co"># las agrupamos</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(tf_idf, <span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span> <span class="co"># tomamos las 8 palabras más distintivas de cada noticia </span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> <span class="co"># desagrupamos para seguir trabajando</span></span>
 <span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">titulo_corto =</span> <span class="fu">str_trunc</span>(titulo, <span class="at">width =</span> <span class="dv">50</span>)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">titulo_corto =</span> <span class="fu">str_trunc</span>(titulo, <span class="at">width =</span> <span class="dv">25</span>) <span class="co"># creamos una versión corta del título para mostrar en el gráfico</span></span>
 <span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(noticias_seleccionadas, </span>
