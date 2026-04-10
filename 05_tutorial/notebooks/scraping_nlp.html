@@ -2582,18 +2582,19 @@ window.Quarto = {
 <p>Combinamos toda la información en un <code>data.frame</code> que condense lo que tenemos hasta ahora.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aseguramos que todos los vectores tengan la misma longitud, para el dataframe</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n_noticias <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">length</span>(titulos), <span class="fu">length</span>(urls), <span class="fu">length</span>(resumenes), <span class="fu">length</span>(fechas))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete, las primeras 4 en este caso)</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>noticias_gv <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">titulo =</span> titulos[(<span class="fu">length</span>(titulos)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> urls[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">resumen =</span> resumenes[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias],</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">fecha_raw =</span> fechas[(<span class="fu">length</span>(urls)<span class="sc">-</span>n_noticias)<span class="sc">:</span>n_noticias] <span class="co"># raw porque es un character, por ahora</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostramos las primeras noticias</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(noticias_gv, <span class="dv">10</span>)</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>inicio <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>n_final <span class="ot">&lt;-</span> <span class="fu">length</span>(resumenes)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete, las primeras 4 en este caso)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>noticias_gv <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">titulo =</span> titulos[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>n_final<span class="dv">-1</span>)],</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> urls[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>n_final<span class="dv">-1</span>)], </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>n_final],</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">fecha_raw =</span> fechas[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>n_final<span class="dv">-1</span>)] <span class="co"># raw porque es un character, por ahora</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostramos las primeras noticias</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>noticias_gv</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="función-para-sistematizar-el-scraping-de-una-página" class="level3">
@@ -2632,24 +2633,24 @@ window.Quarto = {
 <span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Si es la primera primera página, sabemos que las primeras 4 noticias no tien</span></span>
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># en resumen</span></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">length</span>(titulos), <span class="fu">length</span>(urls), <span class="fu">length</span>(resumenes), <span class="fu">length</span>(fechas))</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  final <span class="ot">&lt;-</span> <span class="fu">length</span>(resumenes)</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  inicio <span class="ot">&lt;-</span> <span class="dv">4</span></span>
 <span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retornamos un tibble</span></span>
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (first_page){</span>
 <span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(</span>
 <span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[(<span class="fu">length</span>(titulos)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n],</span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[(<span class="fu">length</span>(urls)<span class="sc">-</span>n)<span class="sc">:</span>n]</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>final<span class="dv">-1</span>)],</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>final<span class="dv">-1</span>)],</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>final],</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[inicio<span class="sc">:</span>(inicio<span class="sc">+</span>final<span class="dv">-1</span>)]</span>
 <span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  )} <span class="cf">else</span> {</span>
 <span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>n],</span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[<span class="dv">1</span><span class="sc">:</span>n]</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">titulo =</span> titulos[<span class="dv">1</span><span class="sc">:</span>(final)],</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">url =</span> urls[<span class="dv">1</span><span class="sc">:</span>(final)],</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">resumen =</span> resumenes[<span class="dv">1</span><span class="sc">:</span>(final)],</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">fecha_raw =</span> fechas[<span class="dv">1</span><span class="sc">:</span>(final)]</span>
 <span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2730,7 +2731,7 @@ window.Quarto = {
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Concatenamos todos los párrafos</span></span>
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  cuerpo_noticia <span class="ot">=</span> <span class="fu">str_c</span>(cuerpo_noticia, <span class="at">collapse =</span> <span class="st">&quot; &quot;</span>)</span>
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Eliminamos caracteres especiales</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Eliminamos caracteres </span></span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  cuerpo_noticia <span class="ot">=</span> <span class="fu">str_replace_all</span>(cuerpo_noticia, <span class="st">&quot;[</span><span class="sc">\\</span><span class="st">r</span><span class="sc">\\</span><span class="st">n</span><span class="sc">\\</span><span class="st">t]+&quot;</span>, <span class="st">&quot; &quot;</span>)</span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Eliminamos todo tipo de comillas (estándar, tipográficas, simples, dobles, backticks y porcentajes)</span></span>

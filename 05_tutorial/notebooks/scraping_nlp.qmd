@@ -192,18 +192,19 @@ Combinamos toda la información en un `data.frame` que condense lo que tenemos h
 
 ```{r}
 # Aseguramos que todos los vectores tengan la misma longitud, para el dataframe
-n_noticias <- min(length(titulos), length(urls), length(resumenes), length(fechas))
+inicio <- 4
+n_final <- length(resumenes)
 
 # Creamos un tibble con los datos extraídos (descartamos aquellas que no tienen copete, las primeras 4 en este caso)
 noticias_gv <- tibble(
-  titulo = titulos[(length(titulos)-n_noticias):n_noticias],
-  url = urls[(length(urls)-n_noticias):n_noticias],
-  resumen = resumenes[(length(urls)-n_noticias):n_noticias],
-  fecha_raw = fechas[(length(urls)-n_noticias):n_noticias] # raw porque es un character, por ahora
+  titulo = titulos[inicio:(inicio+n_final-1)],
+  url = urls[inicio:(inicio+n_final-1)], 
+  resumen = resumenes[1:n_final],
+  fecha_raw = fechas[inicio:(inicio+n_final-1)] # raw porque es un character, por ahora
 )
 
 # Mostramos las primeras noticias
-head(noticias_gv, 10)
+noticias_gv
 ```
 
 ### Función para sistematizar el *scraping* de una página
@@ -246,24 +247,24 @@ scrapear_gv <- function(url, first_page=FALSE) {
   
   # Si es la primera primera página, sabemos que las primeras 4 noticias no tien
   # en resumen
-  n <- min(length(titulos), length(urls), length(resumenes), length(fechas))
-  
+  final <- length(resumenes)
+  inicio <- 4
   
   # Retornamos un tibble
   if (first_page){
   return(
     tibble(
-      titulo = titulos[(length(titulos)-n):n],
-      url = urls[(length(urls)-n):n],
-      resumen = resumenes[(length(urls)-n):n],
-      fecha_raw = fechas[(length(urls)-n):n]
+      titulo = titulos[inicio:(inicio+final-1)],
+      url = urls[inicio:(inicio+final-1)],
+      resumen = resumenes[1:final],
+      fecha_raw = fechas[inicio:(inicio+final-1)]
     )
   )} else {
     tibble(
-      titulo = titulos[1:n],
-      url = urls[1:n],
-      resumen = resumenes[1:n],
-      fecha_raw = fechas[1:n]
+      titulo = titulos[1:(final)],
+      url = urls[1:(final)],
+      resumen = resumenes[1:(final)],
+      fecha_raw = fechas[1:(final)]
     )
   }
 }
@@ -354,7 +355,7 @@ extraer_cuerpo_noticia = function(url) {
   # Concatenamos todos los párrafos
   cuerpo_noticia = str_c(cuerpo_noticia, collapse = " ")
   
-  # Eliminamos caracteres especiales
+  # Eliminamos caracteres 
   cuerpo_noticia = str_replace_all(cuerpo_noticia, "[\\r\\n\\t]+", " ")
   
   # Eliminamos todo tipo de comillas (estándar, tipográficas, simples, dobles, backticks y porcentajes)
