@@ -3,7 +3,10 @@ title: "Web scraping y procesamiento del lenguaje natural: noticias"
 date: "`r Sys.Date()`"
 lang: es
 execute:
-  eval: false
+  echo: true
+  output: true
+  eval: true
+  cache: true
 format:
   html:
     toc: true
@@ -25,7 +28,7 @@ Hoy vamos a integrar dos técnicas fundamentales para el análisis de datos: *we
 
 1.  **Primera parte**: vamos a aprender a hacer scraping de noticias de ~~la ONU sobre Paz y Seguridad~~ Global Voices (un sitio de noticias) utilizando `rvest` y `httr2`.
 2.  **Segunda parte**: vamos a usar las herramientas que aprendimos en las clases previas para limpiar y transformar los datos extraídos usando herramientas del `tidyverse`.
-3.  **Tercera parte**: aplicaremos técnicas de **NLP** (tokenización, eliminación de *stop words* y cálculo de $TF-IDF$) para identificar los términos más relevantes en las noticias.
+3.  **Tercera parte**: aplicaremos técnicas de **NLP** (tokenización, lematización, eliminación de *stop words* y cálculo de $TF-IDF$) para identificar los términos más relevantes en las noticias.
 4.  **Cuarta parte**: visualizaremos los resultados con `ggplot2` para interpretar los hallazgos. Esto lo vamos a usar únicamente para interpretar los resultados, no lo vamos a ver en detalle. Sin embargo, más adelante van a poder volver sobre esta clase para ver en detalle cómo podemos generar visualizaciones.
 
 ------------------------------------------------------------------------
@@ -44,6 +47,7 @@ library(tidyverse)  # Manipulación de datos
 library(rvest)      # Web scraping
 library(httr2)      # Requests HTTP
 library(tidytext)   # Análisis de texto
+library(udpipe)     # Lematización
 library(robotstxt)  # Verificar permisos de scraping
 library(here)       # Manejo de rutas de archivos
 library(xml2)       # Manejo de HTML (guardar la página completa x ej)
@@ -448,7 +452,7 @@ noticias_limpio <- noticias_limpio |>
     # Limpiamos caracteres extraños y normalizamos
     texto_completo = str_replace_all(texto_completo, "[\\r\\n\\t]+", " "),
     texto_completo = str_squish(texto_completo)  # Elimina espacios múltiples
-  ) |> 
+  ) |>
   select(-cuerpo) # Eliminamos la columna original de cuerpo para ahorrar espacio
 
 # En general los editores de texto esconden los comandos
@@ -456,6 +460,17 @@ noticias_limpio <- noticias_limpio |>
 # \t -> tabulación
 # \r -> retorno de carro (en algunos sistemas es similar a \n) 
 
+# Guardamos el objeto para futuro análisis
+# Le asignamos la misma fecha de descarga que el dataset original por consistencia
+attr(noticias_limpio, "fecha_descarga") <- noticias_gv |>
+  attr("fecha_descarga") 
+
+noticias_limpio |>
+  mutate(texto=texto_completo) |> 
+  select(id, titulo, texto) |>
+  write_rds(
+    file.path(data_dir, "noticias_gv_limpio.rds")
+  )
 # Verificamos el resultado
 noticias_limpio |>
   select(id, titulo, texto_completo) |>
@@ -492,50 +507,87 @@ noticias_limpio |>
 
 NLP *(Natural Language Processing*) es un conjunto de técnicas que nos permiten analizar texto de forma cuantitativa. Veamos técnicas fundamentales:
 
-1.  **Tokenización**: dividir el texto en palabras individuales.
-2.  **Eliminación de *stop words***: quitar palabras muy comunes que no aportan significado ("el", "la", "de", etc.).
-3.  **TF-IDF**: identificar qué términos son más distintivos dentro del corpus de noticias.
+1.  **Lematización:** reducir las palabras a su forma base —lema. Por ejemplo, "corriendo" a "correr".
+2.  **Tokenización**: dividir el texto en palabras individuales.
+3.  **Eliminación de *stop words***: quitar palabras muy comunes que no aportan significado ("el", "la", "de", etc.).
+4.  **TF-IDF**: identificar qué términos son más distintivos dentro del corpus de noticias.
 
-### Tokenización
+### Lematización y tokenización
 
-La *tokenización* es el proceso de dividir el texto en unidades más pequeñas (tokens), usualmente palabras o pseudopalabras.
+La lematización es el proceso de mapear palabras a su forma base. Para hacer esta identificación, muchas veces, es necesario el contexto. Por ejemplo, la palabra "vino" adquiere distintos significados en "Él [vino]{.underline} ayer" y "El [vino]{.underline} estaba riquísimo". El primer caso se mapea a "vino" y el segundo a "ir".
+
+Otro proceso similar es el *stemming*. Esta operación, en contraste, recorta sufijos heurísticamente (más rápido, pero menos preciso, lo cual puede generar palabras inexistentes), mientras que la lematización usa análisis morfológico y contextos para encontrar la forma base del diccionario. En este caso, "historial" e "historia" podrían ser mapeadas a "histori" por más que no tengan nada que ver.
+
+Por lo tanto, si lematizamos **debemos hacerlo sí o sí** **antes (o en simultáneo) con la tokenización el texto.**
 
 ```{r}
-# Tokenizamos el texto (dividimos en palabras)
-noticias_tokens <- noticias_limpio |>
-  select(id, titulo, texto_completo) |>
-  unnest_tokens(
-    output=palabra, 
-    input=texto_completo,
-    token="words" # podemos usar characters, ngrams, sentences, paragraphs, etc. Ver doc.
-  ) 
+# Descarga y carga el modelo de lematización en español
+m_es <- udpipe_download_model(language = "spanish")
+modelo_es <- udpipe_load_model(m_es$file_model)
 
-# La función unnest_tokens() del paquete tidytext hace todo el trabajo de tokenización, limpieza básica y normalización (pone todo en minúscula, elimina puntuación, etc.). 
-# Notar que transforma el tibble original a formato long, donde cada fila es un token (palabra) de una noticia específica.
+# Lematiza el texto completo
+noticias_lemas <- udpipe_annotate(
+    modelo_es, 
+    x = noticias_limpio$texto_completo, 
+    doc_id = noticias_limpio$id
+  ) |>
+  as.data.frame() |>
+  mutate(id=as.integer(doc_id)) |> 
+  select(id, lemma, upos) 
 
-# Veamos el resultado
-head(noticias_tokens, 10)
+# Agregamos los titulares
+noticias_lemas <- noticias_lemas |> 
+  left_join(
+    noticias_limpio |> select(id, titulo), 
+    by = "id"
+  )
 ```
 
-¿Cuántos *tokens* tenemos en total?
+La ***tokenización*** es el proceso de dividir el texto en unidades más pequeñas (*tokens*), usualmente palabras o pseudopalabras.
+
+En este caso, la celda de abajo separa el texto palabras. Sin embargo, no vamos a seguir por este camino ya que la el proceso de lematización que hicimos arriba ya identificó las palabras de cada noticia.
 
 ```{r}
-noticias_tokens |>
-  summarise(
-    total_palabras = n(),
-    palabras_unicas = n_distinct(palabra),
-    porcentaje_unicas = 100*(palabras_unicas/total_palabras)
-  ) |> 
-  pivot_longer(
-    cols=everything(),
-    names_to="Métricas", 
-    values_to="Valores"
-  )
+# # Tokenizamos el texto (dividimos en palabras)
+# noticias_tokens <- noticias_limpio |>
+#   select(id, titulo, texto_completo) |>
+#   unnest_tokens(
+#     output=palabra, 
+#     input=texto_completo,
+#     token="words" # podemos usar characters, ngrams, sentences, paragraphs, etc. Ver doc.
+#   ) 
+# 
+# # La función unnest_tokens() del paquete tidytext hace todo el trabajo de tokenización, limpieza básica y normalización (pone todo en minúscula, elimina puntuación, etc.). 
+# # Notar que transforma el tibble original a formato long, donde cada fila es un token (palabra) de una noticia específica.
+# 
+# # Veamos el resultado
+# head(noticias_tokens, 10)
+# # ¿Cuántos tokens tenemos en total?
+# noticias_tokens |>
+#   summarise(
+#     total_palabras = n(),
+#     palabras_unicas = n_distinct(palabra),
+#     porcentaje_unicas = 100*(palabras_unicas/total_palabras)
+#   ) |> 
+#   pivot_longer(
+#     cols=everything(),
+#     names_to="Métricas", 
+#     values_to="Valores"
+#   )
+```
+
+Si continuamos con noticias_lemas notamos que en la columna lemma ya tenemos identificados los *tokens*. **Filtramos únicamente sustantivos (**`NOUN`**) , verbos (**`VERB`**) y adjetivos (**`ADJ`**) dado que seguramente condensen más carga semántica.**
+
+```{r}
+noticias_lemas$upos |> unique() 
+noticias_lemas <- noticias_lemas |> filter(upos %in% c("NOUN", "VERB", "ADJ"))   
 ```
 
 ### Eliminación de *stop words*
 
 Las *stop words* son palabras muy comunes que aparecen en casi todos los textos pero que aportan poco significado analítico. En español, estas incluyen artículos ("el", "la"), preposiciones ("de", "en"), pronombres, etc.
+
+En caso de que haber seleccionado sustantivos, verbos y adjetivos no haya sido suficiente forzamos a que estas palabras desaparezcan.
 
 ```{r}
 # Cargamos las stop words en español del paquete tidytext
@@ -546,7 +598,7 @@ stop_es <- stopwords::stopwords("es")
 # Ponemos también palabras en inglés, porque hay citas que están en ese idioma
 stop_en <- stopwords::stopwords("en")
 
-stop_words <- tibble(palabra = c(stop_es, stop_en))
+stop_words <- tibble(lemma = c(stop_es, stop_en))
 
 # Verificamos algunas stop words
 head(stop_words, 20)
@@ -557,15 +609,15 @@ Hacemos un `antijoin` entre la BD y las `stop_word_es`. El objetivo es quedarnos
 
 ```{r}
 # Contamos las palabras antes
-numero_de_palabras <- nrow(noticias_tokens)
+numero_de_palabras <- nrow(noticias_lemas)
 
 # Eliminamos las stop words
-noticias_tokens <- noticias_tokens |>
-  anti_join(stop_words, by = "palabra") |>
+noticias_lemas <- noticias_lemas |>
+  anti_join(stop_words, by = "lemma") |>
   # También eliminamos números y palabras de una sola letra
   filter(
-    !str_detect(palabra, "^\\d+$"), 
-    nchar(palabra) > 2               # Tienen más de 2 caracteres
+    !str_detect(lemma, "^\\d+$"), 
+    nchar(lemma) > 2               # Tienen más de 2 caracteres
   )
 
 # Desglocemos el regex "^\\d+$": el símbolo "^" indica el inicio de la cadena, "\\d+" representa una o más cifras (números), y el símbolo "$" indica el final de la cadena. En conjunto, "^\\d+$" coincide con cualquier cadena que consista exclusivamente en números, sin ningún otro carácter antes o después., por ejemplo, "2024" coincidiría, pero "covid19" no, porque tiene letras además de números.
@@ -574,11 +626,11 @@ noticias_tokens <- noticias_tokens |>
 
 # Comparamos: antes y después
 cat("Tokens antes de eliminar stop words:", numero_de_palabras, "\n")
-cat("Tokens después de eliminar stop words:", nrow(noticias_tokens), "\n")
+cat("Tokens después de eliminar stop words:", nrow(noticias_lemas), "\n")
 cat(
   "Reducción relativa porcentual:", 
   round(
-    100 * ((numero_de_palabras - nrow(noticias_tokens)) / numero_de_palabras),
+    100 * ((numero_de_palabras - nrow(noticias_lemas)) / numero_de_palabras),
     1
   ), 
   "%\n"
@@ -590,8 +642,8 @@ cat(
 Antes de calcular TF-IDF, veamos cuáles son las palabras más comunes en nuestro corpus.
 
 ```{r}
-palabras_frecuentes <- noticias_tokens |>
-  count(palabra, sort = TRUE)
+palabras_frecuentes <- noticias_lemas |>
+  count(lemma, sort = TRUE)
 
 head(palabras_frecuentes, 20)
 ```
@@ -626,10 +678,16 @@ Por lo tanto, según cada métrica, la idea es darle más peso a palabras que
 
 ```{r}
 # Calculamos TF-IDF usando tidytext
-noticias_tfidf <- noticias_tokens |>
-  count(id, titulo, palabra) |>  # Contamos palabras por documento
-  bind_tf_idf(palabra, id, n)    # Calculamos TF-IDF
+noticias_tfidf <- noticias_lemas |>
+  count(id, titulo, lemma) |>  # Contamos palabras por documento
+  bind_tf_idf(lemma, id, n)    # Calculamos TF-IDF
 
+# Guardamos esta BD para futuros análisis
+attr(noticias_tfidf, "fecha_descarga") <- noticias_limpio |>  
+  attr("fecha_descarga")
+noticias_tfidf |> write_rds(
+  file.path(data_dir, "noticias_tfidf.rds")
+)
 # Veamos el resultado
 head(noticias_tfidf |> arrange(desc(tf_idf)), 10)
 ```
@@ -653,7 +711,7 @@ top_palabras_por_noticia <- noticias_tfidf |>
   arrange(id, desc(tf_idf))
 
 top_palabras_por_noticia |>
-  select(id, palabra, tf_idf) 
+  select(id, lemma, tf_idf) 
   # arrange(desc(tf_idf))
 ```
 
@@ -662,8 +720,12 @@ top_palabras_por_noticia |>
 ¿Cuáles son los términos con mayor TF-IDF promedio en todo el corpus?
 
 ```{r}
+
+# VARIAR EN CLASE: es interesarte notar qué información recuperamos en cada caso
+n_docs <- 1
+
 terminos_distintivos <- noticias_tfidf |>
-  group_by(palabra) |>
+  group_by(lemma) |>
   summarise(
     tfidf_promedio = mean(tf_idf),
     n_documentos = n(),
@@ -673,7 +735,7 @@ terminos_distintivos <- noticias_tfidf |>
   ) |>
   arrange(desc(tfidf_promedio)) |>
   # Filtramos términos que aparecen en al menos 1,2/10/50 documentos
-  filter(n_documentos >= 10) # VARIAR EN CLASE: es interesarte notar qué información recuperamos en cada caso
+  filter(n_documentos >= n_docs) 
 
 head(terminos_distintivos, 20)
 ```
@@ -716,29 +778,33 @@ top_terminos <- terminos_distintivos |>
 
 # Creamos el gráfico
 ggplot(top_terminos, aes(x = tfidf_promedio, 
-                         y = reorder(palabra, tfidf_promedio))) +
+                         y = reorder(lemma, tfidf_promedio))) +
   geom_col(fill = "#4292C6", alpha = 0.8) +
   labs(
     title = "Top 20 Términos Más Distintivos",
-    subtitle = "Noticias de Paz y Seguridad - ONU",
+    subtitle = "Noticias de migración e inmigración - Global Voices (ES)",
     x = "TF-IDF Promedio",
-    y = NULL,
+    y = "Lemma",
     caption = "Fuente: es.globalvoices.org."
   ) +
   theme_minimal(base_size = 12) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12, color = "gray40"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    panel.grid.major.y = element_blank(),
     panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank()
+    
   )
+  
 ```
 
 Este gráfico muestra que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan "China", "India", "refugiados", etc.
 
 ### Palabras por frecuencias
 
-Podemos crear una visualización alternativa mostrando las palabras más frecuentes:
+Podemos crear una visualización alternativa mostrando las palabras más frecuentes. El gráfico es del mismo estilo que el de arriba (variable categórica en `y`, numérica en `x`).
 
 ```{r}
 #| fig-width: 10
@@ -748,9 +814,9 @@ Podemos crear una visualización alternativa mostrando las palabras más frecuen
 top_frecuentes <- palabras_frecuentes |>
   slice_max(n, n = 30)
 
-ggplot(top_frecuentes, aes(x = n, y = reorder(palabra, n))) +
+ggplot(top_frecuentes, aes(x = n, y = reorder(lemma, n))) +
   geom_segment(aes(x = 0, xend = n, 
-                   y = reorder(palabra, n), yend = reorder(palabra, n)),
+                   y = reorder(lemma, n), yend = reorder(lemma, n)),
                color = "gray70") +
   geom_point(size = 4, color = "#08519C") +
   labs(
@@ -763,6 +829,8 @@ ggplot(top_frecuentes, aes(x = n, y = reorder(palabra, n))) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12, color = "gray40"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank()
   )
@@ -775,52 +843,66 @@ Acá vemos como salta un conjunto distinto de palabras, que no pondera el $IDF$.
 Es interesante comparar qué términos son más frecuentes vs. cuáles tienen mayor $TF-IDF$.
 
 ```{r}
-#| fig-width: 12
-#| fig-height: 6
+#| fig-width: 14
+#| fig-height: 8
 
 # Combinamos ambas métricas
 comparacion <- palabras_frecuentes |>
   left_join(
-    terminos_distintivos |> select(palabra, tfidf_promedio),
-    by = "palabra"
+    terminos_distintivos |> select(lemma, tfidf_promedio, n_documentos),
+    by = "lemma"
   ) |>
   filter(!is.na(tfidf_promedio)) |>
-  slice_max(n, n = 80) # Tomamos las 80 palabras más frecuentes para comparar
+  slice_max(n, n = 80) # Tomamos las 50 palabras más frecuentes para comparar
 
 # Gráfico de dispersión
-ggplot(comparacion, aes(x = n, y = tfidf_promedio)) +
-  geom_point(size = 3, alpha = 0.6, color = "#08519C") +
+ggplot(comparacion, aes(x = n, y = tfidf_promedio, color=n_documentos)) +
+  geom_point(size = 3, alpha = 0.6) +
   ggrepel::geom_text_repel(
-    aes(label = palabra),
-    size = 5,
-    max.overlaps = 15
+    aes(label = lemma),
+    size = 10,
+    max.overlaps = 25,
+    box.padding = 0.5
   ) +
+  scale_color_viridis_c(option = "plasma", end = 0.9) +
   labs(
-    title = "Frecuencia vs. TF-IDF",
-    subtitle = "¿Las palabras más frecuentes son las más distintivas?",
+    title = "Frecuencia vs. TF-IDF promedio",
+    subtitle = "¿Las palabras más frecuentes son las más distintivas? ¿Cómo influye el número de noticias en el promedio?",
     x = "Frecuencia absoluta",
-    y = "TF-IDF promedio"
+    y = "TF-IDF promedio",
+    color="Número de noticias",
+    caption = "Fuente: es.globalvoices.org."
   ) +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 15) +
   theme(
     plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12, color = "gray40")
+    plot.subtitle = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    legend.position = c(0.85, 0.75), 
+    legend.background = element_rect(fill = "white", color = "gray90"),
+    legend.margin = margin(6, 10, 6, 10),
+    # panel.grid.minor = element_blank()
   )
 ```
 
-[**Interpretación**]{.underline}: este gráfico es muy útil porque nos ayuda a interpretar las métricas.
+[**Interpretación**]{.underline}
 
-En términos de extremos, tendremos que valores muy a la derecha y abajo serán, generalmente, palabras asociadas al lenguaje (suelen saltar *stopwords* que no filtramos correctamente).
+Este gráfico es muy útil porque condensa casi todo el análisis que hicimos. Nos ayuda a interpretar las métricas y la discusión que planteábamos más arriba respecto al número de documentos promedio.
 
-Mientras que para valores muy a la izquierda y arriba habrá palabras que aparecen en menor medida en el corpus total, pero igual destacan.
+En términos de extremos, tendremos que valores muy a la derecha serán palabras con alta frecuencia. Mientras que palabras que estén muy arriba se asociaran a saliencia sobre el corpus total.
+
+Finalmente, en la escala de colores identificamos el número de noticias en la cual aparece cada palabra. Este es el número tenido en cuenta para calcular el $TF-IDF$ promedio (`n_docs`).
+
+Se observa que si tomamos un valor grande recuperamos palabras asociadas al lenguaje común del corpus ("país", "hacer", "persona", "año", etc.); con valores altos palabras salientes ("ucraniano", "ruso") y con valores medianos (\~10) tópicos generales ("visa", "estudiante", "mujer", "refugiado").
 
 ### Términos distintivos por noticia individual
 
 Finalmente, podemos visualizar los términos más distintivos de algunas noticias seleccionadas, por ejemplo, las cuatro primeras.
 
 ```{r}
-#| fig-width: 12
-#| fig-height: 8
+#| fig-width: 14
+#| fig-height: 10
 
 # Seleccionamos las primeras 4 noticias como ejemplo
 noticias_seleccionadas <- top_palabras_por_noticia |>
@@ -833,7 +915,7 @@ noticias_seleccionadas <- top_palabras_por_noticia |>
   )
 
 ggplot(noticias_seleccionadas, 
-       aes(x = tf_idf, y = reorder_within(palabra, tf_idf, id))) +
+       aes(x = tf_idf, y = reorder_within(lemma, tf_idf, id))) +
   geom_col(fill = "#2171B5", alpha = 0.7) +
   scale_y_reordered() +
   facet_wrap(~ titulo_corto, scales = "free", ncol = 2) +
@@ -847,7 +929,9 @@ ggplot(noticias_seleccionadas,
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 11, color = "gray40"),
-    strip.text = element_text(size = 9, face = "bold"),
+    strip.text = element_text(size = 15, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank()
   )
