@@ -39,6 +39,7 @@ Hoy vamos a integrar dos técnicas fundamentales para el análisis de datos: *we
 #| label: load-packages
 #| message: false
 #| warning: false
+#| cache: false
 
 # Si no tienen instalados estos paquetes, descomenten la línea siguiente:
 # install.packages(c("tidyverse", "rvest", "httr2", "tidytext", "robotstxt", "stopwords"))
@@ -103,6 +104,7 @@ Primero, vamos a cargar la página principal de noticias sobre migraciones e inm
 -   `str_trim()`: limpia espacios en blanco al inicio y al final del texto (esta es del *tidyverse*).
 
 ```{r}
+#| cache: false
 # URL de la página de noticias sobre Paz y Seguridad de la ONU en español
 # url_noticias <- "https://news.un.org/es/news/topic/peace-and-security"
 url_noticias <- "https://es.globalvoices.org/category/topics/migration-immigration/"
@@ -115,6 +117,7 @@ pagina_html
 ```
 
 ```{r}
+#| cache: false
 # Es una buena práctica guardar el html y registrar cuándo la descargamos
 data_dir = here("05_tutorial", "data")
 
@@ -128,10 +131,10 @@ if (!dir.exists(data_dir)) {
 
 # Guardamos en formato rds para uso interno y registro de fecha de descarga
 attr(pagina_html, "fecha_descarga") <- Sys.time()
-pagina_html |> write_rds(file.path(data_dir, "pagina_noticias_gv.rds"))
 
-# Guardamos en html para abrir en el navegador si queremos
-write_html(pagina_html, file = file.path(data_dir, "pagina_noticias_gv.rds.html"))
+# Guardamos en html para abrir en el navegador si queremos 
+# (el atributo no se vá a guardar, pero lo vamos a usar más tarde)
+write_html(pagina_html, file = file.path(data_dir, "pagina_noticias_gv.html"))
 ```
 
 Ahora necesitamos identificar los **selectores CSS** correctos para extraer los elementos que nos interesan. Para eso podemos usar herramientas como **SelectorGadget** y/o las **DevTools del navegador** (F12 en Chrome/Firefox).
@@ -333,10 +336,6 @@ Podríamos trabajar con más de `n=3`, pero ya estaríamos usando muchos recurso
 
 # Esto puede tardar un poco, depende de la cantidad de páginas y la conexión
 noticias_gv = scrapear_n_gv(n=3) # EN CLASE PONER <4!
-
-# Guardamos este objeto en disco
-attr(noticias_gv, "fecha_descarga") <- Sys.time()
-write_rds(noticias_gv, file.path(data_dir, "noticias_gv.rds"))
 ```
 
 ### Función que permita extraer el cuerpo del noticia
@@ -391,8 +390,7 @@ cuerpos_noticias_gv <- noticias_gv |>
 # Guardamos esta tabla por separado para ahorrar memoria y no tener que volver a hacer scraping cada vez que queramos analizar el texto
 
 # Le asignamos la misma fecha de descarga que el dataset original por consistencia
-attr(cuerpos_noticias_gv, "fecha_descarga") <- noticias_gv |>
-  attr("fecha_descarga") 
+attr(cuerpos_noticias_gv, "fecha_descarga") <- pagina_html |> attr("fecha_descarga")
 
 cuerpos_noticias_gv |> write_rds(
   file.path(data_dir, "cuerpos_noticias_gv")
@@ -462,15 +460,14 @@ noticias_limpio <- noticias_limpio |>
 
 # Guardamos el objeto para futuro análisis
 # Le asignamos la misma fecha de descarga que el dataset original por consistencia
-attr(noticias_limpio, "fecha_descarga") <- noticias_gv |>
-  attr("fecha_descarga") 
-
+attr(noticias_limpio, "fecha_descarga") <- pagina_html |>  attr("fecha_descarga") 
 noticias_limpio |>
   mutate(texto=texto_completo) |> 
   select(id, titulo, texto) |>
   write_rds(
     file.path(data_dir, "noticias_gv_limpio.rds")
   )
+
 # Verificamos el resultado
 noticias_limpio |>
   select(id, titulo, texto_completo) |>
@@ -522,7 +519,7 @@ Por lo tanto, si lematizamos **debemos hacerlo sí o sí** **antes (o en simult�
 
 ```{r}
 # Descarga y carga el modelo de lematización en español
-m_es <- udpipe_download_model(language = "spanish")
+m_es <- udpipe_download_model(language = "spanish", overwrite = FALSE)
 modelo_es <- udpipe_load_model(m_es$file_model)
 
 # Lematiza el texto completo
@@ -766,7 +763,7 @@ Para eso, [**primero tenemos que tener noción del volumen del corpus y qué que
 
 ### Top términos por $TF-IDF$
 
-Visualizamos los términos más distintivos del corpus. Para esto optamos por el enfoque intermedio (`n_docs=10`), es decir, queremos encontrar tópicos relevantes.
+Visualizamos los términos más distintivos del corpus. Para esto optamos por el primer enfoque (`n_docs=1`), es decir, queremos encontrar tópicos relevantes.
 
 ```{r}
 #| fig-width: 10
@@ -799,8 +796,6 @@ ggplot(top_terminos, aes(x = tfidf_promedio,
   )
   
 ```
-
-Este gráfico muestra que, en relación a la migración e inmigración, entre los términos más relevantes de noticias mundiales, se destacan "China", "India", "refugiados", etc.
 
 ### Palabras por frecuencias
 
