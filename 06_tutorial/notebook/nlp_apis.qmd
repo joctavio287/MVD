@@ -58,6 +58,7 @@ library(udpipe)     # Lematización
 library(robotstxt)  # Verificar permisos de scraping
 library(here)       # Manejo de rutas de archivos
 library(xml2)       # Manejo de HTML (guardar la página completa x ej)
+library(tm)         # Text Mining (Document Term Matrix) 
 
 library(jsonlite)   # Para trabajar con JSON
 library(tidylo)     # Log Odds Ratio ponderado
@@ -332,7 +333,82 @@ tokens <- as_tibble(noticias_lemas) |>
 head(tokens)
 ```
 
-En base a esta tabla ya podemos realizar exactamente el mismo análisis que la vez pasada ([les queda como tarea]{.underline}). Ahora vamos a *LogOddsRatio*.
+En base a esta tabla ya podemos realizar exactamente el mismo análisis que la vez pasada ([les queda como tarea]{.underline}).
+
+Antes de pasar a a ver *LogOddRatios* revisemo una representación visual que nos quedó pendiente la vez pasada.
+
+### Document Term-Frequency Matrix
+
+La Matriz de Frecuencia de Términos (Document-Term Matrix o **DTM**) es una representación matricial de un corpus de texto. En esta matriz:
+
+-   las filas representan los documentos individuales (por ejemplo, cada noticia o comunicado).
+
+-   las columnas representan los términos (las palabras o lemas).
+
+-   cada celda indica la frecuencia absoluta (el conteo) de un término específico dentro de un documento determinado.
+
+Esta estructura es el punto de partida fundamental para aplicar algoritmos de Procesamiento de Lenguaje Natural (NLP), tales como la clasificación de textos, el análisis de sentimientos y el modelado de tópicos (topic modeling).
+
+Para crearla, primero contamos la aparición de cada lema por documento y luego transformamos esos datos a un formato matricial utilizando el paquete `tm`. Para un corpus grande esta matriz escala proporcionalmente ($N_{DOCS}\times N_{TERMS}$). Por esta razón, para un análisis exploratorio (como el nuestro), es necesario restringir la matriz a algunos términos que sean de nuestro interés.
+
+```{r}
+# install.packages("tm")
+# Calculamos la frecuencia de los tokens
+frecuencia_tokens <- tokens |> 
+  count(id, lemma, name = "n")  |>  
+  arrange(id)
+
+# Convertimos el data frame a una Document-Term Matrix (formato ancho)
+matriz_dtm <- frecuencia_tokens|> 
+  cast_dtm( document = id, term = lemma, value = n )
+
+# Inspeccionamos la estructura de la matriz (es gigante)
+# matriz_dtm
+
+# Filtramos palabras clave del conflicto en Europa del Este
+terminos_de_interes <- c("país", "gobierno", "ucraniano", "rusia", "invasión")
+matriz_dtm_de_interes <- matriz_dtm[, colnames(matriz_dtm) %in% terminos_de_interes]
+matriz_dtm_de_interes
+
+# Mostramos unicamente las primeras 20 lineas de la matriz
+as.matrix(matriz_dtm_de_interes)[1:20, ]
+```
+
+Algo que puede resultar interesante es estudiar cuántas veces aparecen nombrados a la par dos términos, por ejemplo, Rusia y Ucrania. Les queda como tarea.
+
+Una forma sencilla de condensar la información de la matriz es sumarla en el eje vertical, de forma tal que se obtiene un conteo total (sobre todos los documentos) para cada término.
+
+```{r}
+#| fig-width: 10 
+#| fig-height: 6
+#| fig-align: center
+
+# Convertimos la DTM a un data frame para ggplot
+dtm_df <- as.data.frame(as.matrix(matriz_dtm_de_interes)) |>
+  rownames_to_column(var = "id") |>
+  pivot_longer(-id, names_to = "lemma", values_to = "n") |> 
+  group_by(lemma) |> # Agrupamos por palabra
+  summarise(frecuencia_total = sum(n)) # Sumamos todas las apariciones
+
+# Graficamos la frecuencia de los términos de interés
+ggplot(dtm_df, aes(x = lemma, y = frecuencia_total)) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Frecuencia de términos de interés en la DTM",
+    x = "Término",
+    y = "Frecuencia",
+    caption = "Fuente: Noticias combinadas de Global Voices y NewsAPI"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )
+      
+
+
+```
 
 ## 3. ¿Qué palabras son características de cada fuente?
 
@@ -514,7 +590,7 @@ ggplot(top_palabras, aes(x = log_odds_plot, y = lemma, fill = fuente)) +
 #| fig-width: 10
 #| fig-height: 9
 
-ggplot(top_palabras, aes(x = log_odds_plot, y = lemma, color = fuente)) +
+final_plot = ggplot(top_palabras, aes(x = log_odds_plot, y = lemma, color = fuente)) +
   # Dibujamos la línea que sale desde el centro (0) hasta el punto
   geom_segment(
     aes(x = 0, xend = log_odds_plot, y = lemma, yend = lemma),
@@ -551,4 +627,29 @@ ggplot(top_palabras, aes(x = log_odds_plot, y = lemma, color = fuente)) +
     panel.grid.minor = element_blank(),
     axis.text.y = element_text(size = 11, face = "italic")
   )
+
 ```
+
+Para guardar la figura podemos usar el comando `ggsave`.
+
+```{r}
+# Creamos la carpeta output
+if (!dir.exists(here("06_tutorial", "output"))) {
+  dir.create(here("06_tutorial", "output"))
+}
+ggsave(
+  filename = here("06_tutorial", "output", "log_odds_comparativo.png"),
+  plot = final_plot,
+  width = 10,
+  height = 9,
+  dpi = 300
+)
+```
+
+Si quiséramos leerla en otra celda podemos usar `Rmarkdown`
+
+``` markdown
+![Este es el epígrafe de mi figura](ruta/a/tu/figura.png){width=80% fig-align="center"}
+```
+
+![Este es el epígrafe de la figura](images/log_odds_comparativo.png){width="80%" fig-align="center"}
