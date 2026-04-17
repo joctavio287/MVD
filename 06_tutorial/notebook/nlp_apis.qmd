@@ -79,7 +79,7 @@ Si bien el *web scraping* es una técnica poderosa, tiene limitaciones important
 
 -   **Costoso**: requiere parsear HTML, lidiar con JavaScript, etc.
 
--   **Límites éticos y legales**: debemos respetar \`robots.txt\` y las políticas del sitio.
+-   **Límites éticos y legales**: debemos respetar `robots.txt` y las políticas del sitio.
 
 Las **APIs (*Application Programming Interfaces*)** resuelven estos problemas. En general, los mismos sitios proveen su propia API para hacer *requests* de forma ordenada.
 
@@ -129,8 +129,8 @@ En su lugar, es conveniente usar variables de entorno. Para eso creamos un archi
 
 ```{r}
 # DESCOMENTAR LAS LINEAS DE ABAJO PARA CREAR EL ARCHIVO
-# # Editar .Renviron
 # install.packages("usethis")
+# # Editar .Renviron
 # usethis::edit_r_environ(scope = "project")
 ```
 
@@ -142,7 +142,7 @@ api_key <- Sys.getenv("NEWS_API_KEY")
 
 # Verificar que funciona (sin mostrar la clave completa)
 if (api_key == "") {
-  stop("No se encontró NEWSAPI_KEY. Revisá tu archivo .Renviron")
+  stop("No se encontró NEWS_API_KEY. Revisá tu archivo .Renviron")
 } else {
   cat("API Key cargada")
 }
@@ -284,7 +284,7 @@ noticias_combinadas |>
 
 La lematización es el proceso de mapear palabras a su forma base. Para hacer esta identificación, muchas veces, es necesario el contexto. Por ejemplo, la palabra "vino" adquiere distintos significados en "Él [vino]{.underline} ayer" y "El [vino]{.underline} estaba riquísimo". El primer caso se mapea a "vino" y el segundo a "ir".
 
-Otro proceso similar es el *stemming*. Esta operación, en contraste, recorta sufijos heurísticamente (más rápido, pero menos preciso, lo cual puede generar palabras inexistentes), mientras que la lematización usa análisis morfológico y contextos para encontrar la forma base del diccionario. En este caso, "historial" e "historia" podrían ser mapeadas a "histori" por más que no tengan nada que ver.
+Otro proceso similar es el *stemming*. Esta operación, en contraste, recorta sufijos heurísticamente (más rápido, pero menos preciso, lo cual puede generar palabras inexistentes), mientras que la lematización usa análisis morfológico y sintáctico para encontrar la forma base del diccionario. En este caso, "historial" e "historia" podrían ser mapeadas a "histori" por más que no tengan nada que ver.
 
 ```{r}
 # Cargar modelo de udpipe 

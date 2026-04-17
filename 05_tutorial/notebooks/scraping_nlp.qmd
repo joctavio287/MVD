@@ -513,7 +513,7 @@ NLP *(Natural Language Processing*) es un conjunto de técnicas que nos permiten
 
 La lematización es el proceso de mapear palabras a su forma base. Para hacer esta identificación, muchas veces, es necesario el contexto. Por ejemplo, la palabra "vino" adquiere distintos significados en "Él [vino]{.underline} ayer" y "El [vino]{.underline} estaba riquísimo". El primer caso se mapea a "vino" y el segundo a "ir".
 
-Otro proceso similar es el *stemming*. Esta operación, en contraste, recorta sufijos heurísticamente (más rápido, pero menos preciso, lo cual puede generar palabras inexistentes), mientras que la lematización usa análisis morfológico y contextos para encontrar la forma base del diccionario. En este caso, "historial" e "historia" podrían ser mapeadas a "histori" por más que no tengan nada que ver.
+Otro proceso similar es el *stemming*. Esta operación, en contraste, recorta sufijos heurísticamente (más rápido, pero menos preciso, lo cual puede generar palabras inexistentes), mientras que la lematización usa análisis morfológico y sintáctico para encontrar la forma base del diccionario. En este caso, "historial" e "historia" podrían ser mapeadas a "histori" por más que no tengan nada que ver.
 
 Por lo tanto, si lematizamos **debemos hacerlo sí o sí** **antes (o en simultáneo) con la tokenización el texto.**
 
@@ -542,7 +542,7 @@ noticias_lemas <- noticias_lemas |>
 
 La ***tokenización*** es el proceso de dividir el texto en unidades más pequeñas (*tokens*), usualmente palabras o pseudopalabras.
 
-En este caso, la celda de abajo separa el texto palabras. Sin embargo, no vamos a seguir por este camino ya que la el proceso de lematización que hicimos arriba ya identificó las palabras de cada noticia.
+En este caso, la celda de abajo separa el texto en palabras. Sin embargo, no vamos a seguir por este camino ya que la el proceso de lematización que hicimos arriba ya identificó las palabras de cada noticia.
 
 ```{r}
 # # Tokenizamos el texto (dividimos en palabras)
@@ -573,7 +573,7 @@ En este caso, la celda de abajo separa el texto palabras. Sin embargo, no vamos 
 #   )
 ```
 
-Si continuamos con noticias_lemas notamos que en la columna lemma ya tenemos identificados los *tokens*. **Filtramos únicamente sustantivos (**`NOUN`**) , verbos (**`VERB`**) y adjetivos (**`ADJ`**) dado que seguramente condensen más carga semántica.**
+Si continuamos con `noticias_lemas` notamos que en la columna lemma ya tenemos identificados los *tokens*. **Filtramos únicamente sustantivos (**`NOUN`**) , verbos (**`VERB`**) y adjetivos (**`ADJ`**) dado que seguramente condensen más carga semántica.**
 
 ```{r}
 noticias_lemas$upos |> unique() 
@@ -582,7 +582,7 @@ noticias_lemas <- noticias_lemas |> filter(upos %in% c("NOUN", "VERB", "ADJ"))
 
 ### Eliminación de *stop words*
 
-Las *stop words* son palabras muy comunes que aparecen en casi todos los textos pero que aportan poco significado analítico. En español, estas incluyen artículos ("el", "la"), preposiciones ("de", "en"), pronombres, etc.
+Las *stop words* son palabras muy comunes que aparecen en casi todos los textos pero que aportan poca carga semántica. En español, estas incluyen artículos ("el", "la"), preposiciones ("de", "en"), pronombres, etc.
 
 En caso de que haber seleccionado sustantivos, verbos y adjetivos no haya sido suficiente forzamos a que estas palabras desaparezcan.
 
@@ -602,7 +602,7 @@ head(stop_words, 20)
 tail(stop_words, 20)
 ```
 
-Hacemos un `antijoin` entre la BD y las `stop_word_es`. El objetivo es quedarnos únicamente con las palabras que no estén en `stop_words`.
+Hacemos un `antijoin` entre la BD y las `stop_word`. El objetivo es quedarnos únicamente con las palabras que no estén en `stop_words`.
 
 ```{r}
 # Contamos las palabras antes
@@ -776,12 +776,14 @@ top_terminos <- terminos_distintivos |>
 # Creamos el gráfico
 ggplot(top_terminos, aes(x = tfidf_promedio, 
                          y = reorder(lemma, tfidf_promedio))) +
-  geom_col(fill = "#4292C6", alpha = 0.8) +
+  geom_col(aes(fill = n_documentos), alpha = 0.8) +
+  # geom_col(alpha = 0.8) +
   labs(
     title = "Top 20 Términos Más Distintivos",
     subtitle = "Noticias de migración e inmigración - Global Voices (ES)",
     x = "TF-IDF Promedio",
     y = "Lemma",
+    fill = "Número de documentos",
     caption = "Fuente: es.globalvoices.org."
   ) +
   theme_minimal(base_size = 12) +
@@ -791,8 +793,7 @@ ggplot(top_terminos, aes(x = tfidf_promedio,
     axis.text.x = element_text(size = 12),
     axis.text.y = element_text(size = 12),
     panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank(),
-    
+    panel.grid.minor = element_blank()
   )
   
 ```
@@ -814,6 +815,7 @@ ggplot(top_frecuentes, aes(x = n, y = reorder(lemma, n))) +
                    y = reorder(lemma, n), yend = reorder(lemma, n)),
                color = "gray70") +
   geom_point(size = 4, color = "#08519C") +
+  # geom_point(size = 4, aes(color = n_documentos)) +
   labs(
     title = "Top 30 Palabras Más Frecuentes",
     subtitle = "Después de eliminar stop words",
@@ -889,7 +891,7 @@ En términos de extremos, tendremos que valores muy a la derecha serán palabras
 
 Finalmente, en la escala de colores identificamos el número de noticias en la cual aparece cada palabra. Este es el número tenido en cuenta para calcular el $TF-IDF$ promedio (`n_docs`).
 
-Se observa que si tomamos un valor grande recuperamos palabras asociadas al lenguaje común del corpus ("país", "hacer", "persona", "año", etc.); con valores altos palabras salientes ("ucraniano", "ruso") y con valores medianos (\~10) tópicos generales ("visa", "estudiante", "mujer", "refugiado").
+Se observa que si tomamos un valor grande recuperamos palabras asociadas al lenguaje común del corpus ("país", "hacer", "persona", "año", etc.); con valores bajos palabras salientes ("ucraniano", "ruso") y con valores medianos (\~10) tópicos generales ("visa", "estudiante", "mujer", "refugiado").
 
 ### Términos distintivos por noticia individual
 
