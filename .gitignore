@@ -3,3 +3,5 @@
 *.pdf
 05_tutorial.zip
 .Renviron
+.positai
+*_cache

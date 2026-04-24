@@ -73,20 +73,20 @@ theme_set(theme_minimal(base_size = 12)) # Tema minimalista para ggplot2, base_s
 
 Si bien el *web scraping* es una técnica poderosa, tiene limitaciones importantes.
 
--   **No estructurado**: dependemos de la estructura HTML del sitio, que puede cambiar sin previo aviso.
+- **No estructurado**: dependemos de la estructura HTML del sitio, que puede cambiar sin previo aviso.
 
--   **Frágil**: un pequeño cambio en el diseño puede romper nuestro código.
+- **Frágil**: un pequeño cambio en el diseño puede romper nuestro código.
 
--   **Costoso**: requiere parsear HTML, lidiar con JavaScript, etc.
+- **Costoso**: requiere parsear HTML, lidiar con JavaScript, etc.
 
--   **Límites éticos y legales**: debemos respetar `robots.txt` y las políticas del sitio.
+- **Límites éticos y legales**: debemos respetar `robots.txt` y las políticas del sitio.
 
 Las **APIs (*Application Programming Interfaces*)** resuelven estos problemas. En general, los mismos sitios proveen su propia API para hacer *requests* de forma ordenada.
 
--   **Datos estructurados**: recibimos JSON o XML, que en general, son más fáciles de procesar.
--   **Estabilidad**: las APIs tienen contratos de versiones.
--   **Eficiencia**: sólo pedimos lo que necesitamos, no necesitamos leer toda la estructura.
--   **Legitimidad**: están diseñadas para ser consumidas programáticamente.
+- **Datos estructurados**: recibimos JSON o XML, que en general, son más fáciles de procesar.
+- **Estabilidad**: las APIs tienen contratos de versiones.
+- **Eficiencia**: sólo pedimos lo que necesitamos, no necesitamos leer toda la estructura.
+- **Legitimidad**: están diseñadas para ser consumidas programáticamente.
 
 ## 1. Nos conectamos con NewsAPI
 
@@ -341,11 +341,11 @@ Antes de pasar a a ver *LogOddRatios* revisemo una representación visual que no
 
 La Matriz de Frecuencia de Términos (Document-Term Matrix o **DTM**) es una representación matricial de un corpus de texto. En esta matriz:
 
--   las filas representan los documentos individuales (por ejemplo, cada noticia o comunicado).
+- las filas representan los documentos individuales (por ejemplo, cada noticia o comunicado).
 
--   las columnas representan los términos (las palabras o lemas).
+- las columnas representan los términos (las palabras o lemas).
 
--   cada celda indica la frecuencia absoluta (el conteo) de un término específico dentro de un documento determinado.
+- cada celda indica la frecuencia absoluta (el conteo) de un término específico dentro de un documento determinado.
 
 Esta estructura es el punto de partida fundamental para aplicar algoritmos de Procesamiento de Lenguaje Natural (NLP), tales como la clasificación de textos, el análisis de sentimientos y el modelado de tópicos (topic modeling).
 
@@ -440,16 +440,14 @@ $$\text{LOR}(t) = \log\left(\frac{\text{Odds}_i(t)}{\text{Odds}_j(t)}\right).$$
 
 ¿Por qué logaritmo? Notemos que si invertimos el orden del cociente lo único que cambia es el signo:
 
-$$
-Log(\frac{O_i}{O_j})=Log(O_i)-Log(O_j)=-(Log(O_j)-Log(O_i))=-Log(\frac{O_j}{O_i}).
-$$
+$$Log(\frac{O_i}{O_j})=Log(O_i)-Log(O_j)=-(Log(O_j)-Log(O_i))=-Log(\frac{O_j}{O_i}).$$
 
 Es decir que si $O_i=9$ y $O_j = 1$ tendremos que
 
--   $O_i / O_j = 9$
--   $O_j / O_i = 0.11...$ ← **asimétrico en valor absoluto**
--   $\log_{10}(O_i / O_j) = \log_{10}(10) = 1$
--   $\log_{10}(O_i / O_j) = \log_{10}(0.1) = -1$ ← **simétrico en valor absoluto**
+- $O_i / O_j = 9$
+- $O_j / O_i = 0.11...$ ← **asimétrico en valor absoluto**
+- $\log_{10}(O_i / O_j) = \log_{10}(10) = 1$
+- $\log_{10}(O_i / O_j) = \log_{10}(0.1) = -1$ ← **simétrico en valor absoluto**
 
 Algunos ejemplos:
 
@@ -464,10 +462,10 @@ Algunos ejemplos:
 ::: callout-tip
 ### Interpretación del Log Odds Ratio (y weighted también)
 
--   **LOR(**$t$**)** \> **0**: la palabra es más probable en el grupo $i$.
--   **LOR(**$t$**) \< 0**: la palabra es más probable en el grupo $j$.
--   **LOR(**$t$**)≈ 0**: la palabra aparece similar en ambos grupos.
--   **\|LOR(**$t$**)\| grande**: diferencia considerable entre grupos.
+- **LOR(**$t$**)** \> **0**: la palabra es más probable en el grupo $i$.
+- **LOR(**$t$**) \< 0**: la palabra es más probable en el grupo $j$.
+- **LOR(**$t$**)≈ 0**: la palabra aparece similar en ambos grupos.
+- **\|LOR(**$t$**)\| grande**: diferencia considerable entre grupos.
 :::
 
 ### Calcular Log Odds Ratio con `tidylo`
