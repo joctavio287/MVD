@@ -30,7 +30,7 @@ format:
 
 # Plan del día
 
-Hoy construimos visualizaciones desde cero usando la **la gramática de gráficos de** **`ggplot2`**, aplicada a datos reales del proyecto V-Dem sobre democracia en América del Sur. Vamos a estrucutrar la clase en tres partes:
+Hoy vamoa a construir visualizaciones desde cero usando la **la gramática de gráficos de** **`ggplot2`**, aplicada a datos reales del [proyecto V-Dem](https://github.com/vdeminstitute/vdemdata) sobre democracia en América del Sur. Vamos a estrucutrar la clase en tres partes:
 
 1.  ¿Qué es visualizar? Datos, estéticas y la lógica de capas.
 2.  Recorrido por los componentes de la gramática de gráficos.
@@ -67,7 +67,7 @@ En términos del `tidyverse` hablamos de mapear variables (columnas de una tabla
 Vamos a ver que **la elección del atributo correcto depende del tipo de variable** (continua, discreta, ordinal) **y de la historia que queremos contar.**
 
 ::: callout-tip
-No todos los atributos visuales son igual de efectivos para transmitir información cuantitativa. La posición (eje x/y) es la más precisa, seguida por longitud y área. El color es muy efectivo para variables categóricas, pero puede engañar con variables continuas si no se elige bien la paleta.
+No todos los atributos visuales son igual de efectivos para transmitir información cuantitativa. **La posición (eje x/y) es la más precisa, seguida por longitud y área. El color es muy efectivo para variables categóricas, pero puede engañar con variables continuas si no se elige bien la paleta.**
 :::
 
 ### Gramática de los gráficos en el `tidyverse`
@@ -76,7 +76,7 @@ En `ggplot2` los gráficos se construyen en **capas**, de la más elemental a la
 
 a.  **Datos** → la tabla con la información a graficar, en general, en formato *long* ya que los mapeos se hacen a variables (columnas).
 
-b.  **Mapeos estéticos →** cómo variables se asignan a atributos visuales.
+b.  **Mapeos estéticos →** cómo se asignan variables a atributos visuales.
 
 c.  **Objetos geométricos** → los tipos de gráficos visuales (puntos, líneas, barras, etc).
 
@@ -86,7 +86,7 @@ e.  **Ajustes de posición** **y escalas** → dónde y cómo se etiquetan los e
 
 f.  **Sistemas de coordenadas y facetas** → la proyección y las subdivisiones del gráfico.
 
-Los gráficos se construyen apilando estas capas, **siendo las primeras tres imprescindibles para construir cualquier figura**. El resto de las capas refina y enriquece. Para apilar las capas se usa el operador `+`.
+Los gráficos se construyen apilando estas capas, **siendo las primeras tres imprescindibles para construir cualquier figura**. El resto de las capas tienen valores defecto que de elegirlos enriquecen y refinan lo que queremos contar. Para apilar las capas se usa el operador `+`.
 
 ``` r
 ggplot(data = <DATOS>, mapping = aes(<MAPEOS>)) +
@@ -121,10 +121,11 @@ sudamerica <- vdemdata::vdem |>
     v2x_libdem,      # Índice de Democracia Liberal
     v2x_partipdem,   # Índice de Democracia Participativa
     v2x_egaldem,     # Índice de Democracia Igualitaria
-    e_pop,           # Población 
+    e_pop,           # Población (variable de contexto)
     e_gdppc          # PBI per cápita (variable de contexto)
-  ) |> 
-  drop_na(v2x_polyarchy:e_gdppc)
+  ) 
+#|> 
+ # drop_na(v2x_polyarchy:v2x_libdem)
 
 # Investigamos de qué tratan las variables
 variables <- names(sudamerica)[3:ncol(sudamerica)]
@@ -245,7 +246,8 @@ ggplot(data = tres_paises, mapping = aes(x = year, y = edi)) +
   )
 
 # Todas las geometrías heredan el mapeo de color en este otro caso
-ggplot(data = tres_paises, mapping = aes(x = year, y = edi, color = pais)) +      geom_line(linewidth = 0.9) +
+ggplot(data = tres_paises, mapping = aes(x = year, y = edi, color = pais)) +
+  geom_line(linewidth = 0.9) +
   geom_point(
     data = tres_paises |> filter(year %% 20 == 0),  # Un punto cada 20 años
     size = 2.5
@@ -253,22 +255,28 @@ ggplot(data = tres_paises, mapping = aes(x = year, y = edi, color = pais)) +    
 ```
 
 ::: callout-important
-Los mapeos definidos en el primer nivel `ggplot()` son **globales** y se aplican a todas las capas. Pero los definidos dentro de un `geom_*()` son **locales** y sobrescriben o extienden los globales solo para esa capa. Los mapeos locales son particularmente útiles para destacar subconjuntos específicos de los datos o para combinar geometrías que requieren estéticas distintas.
+Los mapeos definidos en el primer nivel `ggplot()` son **globales** y se aplican a todas las capas. Pero los definidos dentro de un `geom_*()` son **locales** y sobrescriben o extienden los globales solo para esa capa.
+
+Los mapeos locales son particularmente útiles para destacar subconjuntos específicos de los datos o para combinar geometrías que requieren estéticas distintas.
 :::
 
 #### c. Objetos geométricos (`geom_*`)
 
-Los objetos geométricos son las **marcas visuales** que representan los datos: puntos, líneas, barras, áreas, etc.
+Los objetos geométricos son las **formas visuales** que representan los datos: puntos, líneas, barras, áreas, etc.
 
 La elección del `geom_*` correcto depende del tipo de datos y la pregunta que busquemos responder. Veamos algunos ejemplos.
 
-**¿Existe una relación entre el PBI per cápita y el nivel de democracia electoral (EDI) en América del Sur para el año 2025?** Para hacer una visualización que nos de información para responder esta pregunta podría ser útil un **diagrama de dispersión**.
+**¿Existe una relación entre el PBI per cápita y el nivel de democracia electoral (EDI) en América del Sur para el año 2019?**
+
+Para hacer una visualización que nos de información para responder esta pregunta podría ser útil un **diagrama de dispersión**.
 
 ```{r}
 #| label: geom-point
 
-# Tomamos un año reciente para el scatter
+# Tomamos el año reciente para el scatter
 sudamerica_last_year <- sudamerica |>
+  # Seleccionamos el último año en el cual estan definidas las dos variables
+  # Recordemos que rangos es una tabla con variables de año
   filter(
     year == (rangos_sudamerica |> filter(variable=="pbi_pc")|> pull(max))|
     year == (rangos_sudamerica |> filter(variable=="edi")|> pull(max))
@@ -280,19 +288,21 @@ last_year<- min(
   (rangos_sudamerica |> filter(variable=="pbi_pc")|> pull(max))
 )
 
+sudamerica_last_year
+
 ggplot(data = sudamerica_last_year,
        mapping = aes(x = pbi_pc, y = edi, colour = pais)) +
   geom_point(size = 4, alpha = 0.8) +
   # "labs" es abreviatura de labels: etiquetas --> asignamos una por cada mapa y aquellas que querramos sumar (título, subt, etc.)
   labs(
-    title = "Diagrama de dispersión",
+    title = paste0("Diagrama de dispersión - Año ",last_year),
     x="PBI per capita",
     y="Índice de democracia electoral (EDI)",
     color="País"
   )
 ```
 
-Para las **series temporales** son es natural el uso de `geom_line` tal como vimos más arriba.
+Para las **series temporales** es natural el uso de `geom_line` tal como vimos más arriba.
 
 ```{r}
 #| label: geom-line
@@ -308,7 +318,9 @@ ggplot(data = tres_paises,
   )
 ```
 
-Podemos superponer capas del mismo o distinto tipo. Eso puede ser útil si queremos **destacar sucesos particulares en la serie**. Por ejemplo, acá añadimos puntos en los años de quiebres democráticos conocidos en Chile y Argentina para enriquecer la visualización.
+Podemos superponer capas del mismo o distinto tipo. Eso puede ser útil si queremos **destacar sucesos particulares en la serie**.
+
+Por ejemplo, acá añadimos puntos en los años de quiebres democráticos conocidos en Chile y Argentina para enriquecer la visualización.
 
 ```{r}
 #| label: geom-point-line
@@ -323,7 +335,7 @@ quiebres <- arg_chile |>
     (year %in% c(1930, 1943, 1955, 1962, 1966, 1976)) |
     (year == 1973)
   )
-
+quiebres
 ggplot(
   data = arg_chile, aes(x = year, y = edi, colour = pais)
   ) +
@@ -349,6 +361,9 @@ Para hablar de distribuciones hay una gran variedad de alternativas. Las clásic
 ```{r}
 #| label: geom-distribuciones
 
+# Esto era sudamerica a partir de 1900
+sudamerica_reciente
+
 # Histograma
 p_hist <- ggplot(sudamerica_reciente, aes(x = edi)) +
   geom_histogram(binwidth = 0.05, fill = "steelblue", colour = "white") +
@@ -358,22 +373,25 @@ p_hist <- ggplot(sudamerica_reciente, aes(x = edi)) +
 p_dens <- ggplot(sudamerica_reciente, aes(x = edi)) +
   geom_density(fill = "steelblue", alpha = 0.4) +
 # p_dens <- ggplot(sudamerica_reciente, aes(x = edi, fill=pais)) +
-  # geom_density(alpha = 0.4) +
+  # geom_density(alpha = 0.4) + #DESCOMENTAR PARA VER DIF
   labs(title = "Densidad", x = "EDI", y = "Densidad")
 
 # Boxplot por país
 p_box <- ggplot(sudamerica_reciente, aes(
-  x = reorder(pais, edi, median), # devuelve un factor de scores (la mediana) donde cada nivel es un pais y el orden viene dado en orden creciente
+  # devuelve un factor de scores (la mediana) donde cada nivel es un pais y el orden viene dado en orden creciente
+  x = reorder(pais, edi, median), 
   y = edi, fill = pais)) +
   geom_boxplot(show.legend = FALSE) +
-  coord_flip() +
+  # coord_flip() + #DESCOMENTAR PARA VER DIF
   labs(title = "Boxplot por país", x = NULL, y = "Índice de democracia electoral (EDI)")
 
 # Ensamblamos con patchwork (más adelante charlamos sobre la sintaxis)
 (p_hist + p_dens) / p_box
 ```
 
-Teniendo en cuenta que se tratan de distribuciones a lo largo de los años, resulta evidente notar que, en general, los países del cono sur no presentan una gran estabilidad democrática, al menos no para el período que contemplamos. Esto se nota viendo la gran dispersión en las distribuciones. En particular, se destacan Bolivia y Uruguay por ser los países más extremos en estas distribuciones.
+Teniendo en cuenta que se tratan de distribuciones a lo largo de los años, resulta evidente notar que, en general, los países del cono sur no presentan una gran estabilidad democrática, al menos no para el período que contemplamos.
+
+Esto se nota viendo la gran dispersión en las distribuciones. En particular, se destacan Bolivia y Uruguay por ser los países más extremos en estas distribuciones. La dispersión la vemos, por ejemplo, en los "box" que representan el IQR (*Interquartile range*), es decir, el rango comprendido entre el 25 y 75 %.
 
 Si quisiéramos indagar más sobre el tema deberíamos desglosar los datos por país y ver períodos más estrechos de tiempo.
 
@@ -381,7 +399,9 @@ Si quisiéramos indagar más sobre el tema deberíamos desglosar los datos por p
 
 Las transformaciones estadísticas calculan valores derivados de los datos *antes* de dibujarlos. Muchos `geom_*` tienen una `stat_*` implícita (por ejemplo, `geom_histogram` usa `stat_bin`). También podemos llamarlas explícitamente.
 
-**¿Cuál es la tendencia general del EDI en toda la región?** A veces es conviente suavizar los datos para ver si existe una tendencia clara.
+**¿Cuál es la tendencia general del EDI en toda la región?**
+
+A veces es conviente suavizar los datos para ver si existe una tendencia clara.
 
 ```{r}
 #| label: stat-smooth
@@ -407,7 +427,9 @@ ggplot(sudamerica_reciente, aes(x = year, y = edi)) +
 ```
 
 ::: callout-warning
-Siempre que se grafique una curva suavizada es importante superponerla a los datos crudos, para ver, al menos de forma cualitativa, si la tendencia es clara. Por ejemplo, en el caso de arriba, al hacer un suavizado sobre todos los países juntos la curva no pareciera ser una tendencia evidente de los procesos que en verdad sucedieron. Prueben ver la versión desagregada por país (descomentar gráfico de abajo).
+Siempre que se grafique una curva suavizada es importante superponerla a los datos crudos, para ver, al menos de forma cualitativa, si la tendencia es clara.
+
+Por ejemplo, en el caso de arriba, al hacer un suavizado sobre todos los países juntos la curva no pareciera ser una tendencia evidente de los procesos que en verdad sucedieron. Prueben ver la versión desagregada por país (descomentar gráfico de abajo).
 :::
 
 Otra forma de agregar los datos sin perder la serie temporal es, en lugar de mostrar todos los puntos, calcular la mediana entre todos los paises y el rango (en términos de cuantiles) por año para toda la región.
@@ -464,6 +486,8 @@ resumen_paises <- sudamerica |>
     pop_mediana = median(e_pop, na.rm = TRUE)
   )
 
+resumen_paises
+
 p_lineal <- ggplot(
   resumen_paises, aes(x = pop_mediana, y = edi_mediana, color = pais)
   ) +
@@ -479,9 +503,8 @@ p_lineal <- ggplot(
   # Convertimos los datos a millones
   scale_x_continuous(
     labels = scales::label_number(scale = 1/1e6, suffix = "M")
-  ) 
-
-  # expand_limits(y = c(0, 1), x = c(0, 230e6))
+  ) +
+  expand_limits(y = c(0, 1))
 
 p_log <- ggplot(
   resumen_paises, aes(x = pop_mediana, y = edi_mediana, color = pais)
@@ -506,7 +529,9 @@ p_log <- ggplot(
 p_lineal / p_log + plot_layout(guides = "collect") 
 ```
 
-En este caso, tal vez no hay una escala muy clara, pero sí hay un problema visual. En la escala lineal como Brasil tiene una población mucho mayor que el resto de los países hace que los puntos se colapsen y sea difícil distinguir la población de cada país.
+En este caso, tal vez no hay un patrón muy claro, pero sí hay un problema visual.
+
+En la escala lineal como Brasil tiene una población mucho mayor que el resto de los países hace que los puntos se colapsen y sea difícil distinguir la población de cada país.
 
 **Escalas de color: paletas cualitativas y continuas**
 
@@ -624,7 +649,7 @@ ggplot(sudamerica_reciente, aes(x = year, y = edi)) +
 
 `facet_wrap()` con escalas libres
 
-A veces queremos ver la *forma* de cada serie sin forzar una escala común. Usamos `scales = "free_y"` para que cada subgráfico tenga su propio eje vertical (`"free_x"` para cada uno su propio eje horizontal, `"free"` ambos en simultaneo).
+A veces queremos ver la *forma* de cada serie sin forzar una escala común. Usamos `scales = "free_y"` para que cada subgráfico tenga su propio eje vertical, `"free_x"` para que cada uno tenga su propio eje horizontal y `"free"` para ambos en simultaneo.
 
 ```{r}
 #| label: facet-scales-free
@@ -643,6 +668,7 @@ sudamerica_long <- sudamerica_reciente |>
     "edi" = "Democracia Electoral (EDI)",
     "ldi" = "Democracia Liberal (LDI)"
   ))
+sudamerica_long
 
 ggplot(sudamerica_long, aes(x = year, y = valor, colour = indice)) +
   geom_line(linewidth = 0.7, alpha = 0.85) +
@@ -745,7 +771,7 @@ p3 <- ggplot(tres_paises, aes(x = edi, y = ldi, colour = pais)) +
 
 ## Análisis Exploratorio de Datos (EDA) vs. Comunicación
 
-En general, cuando se pretende hacer una visualización uno distingue entre
+En general, cuando se pretende hacer una visualización se distingue entre
 
 - [**EDA (Exploratorio):**]{.underline} el destinatario somos nosotros (quienes hacemos el análisis). El objetivo es *entender* los datos: buscar patrones, anomalías, distribuciones. Muchas veces importa más la velocidad que la estética. Los ejes sin etiquetas, los colores por defecto y el *overplotting* son aceptables porque **el objetivo es el descubrimiento**, no la comunicación.
 
@@ -755,7 +781,7 @@ En los tutoriales, hasta ahora, estuvimos haciendo análisis exploratorio, si bi
 
 Veamos cómo podría ser un estudio de caso simplificado.
 
-**Supongamos que conocemos los procesos democráticos hasta la decada del 90 en latinoaméroca (época en la cual terminaron la mayoría de las dictaduras) y ahora, quisieramos entender qué pasó de ahí en adelante. En particular, queremos ver si algún país destaca por tener una baja en la participación democrática.**
+***Supongamos que conocemos los procesos democráticos hasta la década del 90 en latinoamérica (época en la cual terminaron la mayoría de las dictaduras) y, ahora, quisiéramos entender qué pasó de ahí en adelante. En particular, queremos ver si algún país destaca por tener una baja en la participación democrática.***
 
 ### El gráfico exploratorio
 
@@ -776,8 +802,9 @@ sudamerica_long_full <- sudamerica |>
 # Primera mirada: todos los países, todos los índices
 ggplot(
   sudamerica_long_full, 
-  aes(x = year, y = valor, colour = pais, linetype = indice)
+  aes(x = year, y = valor, colour = pais)
   ) +
+  facet_wrap(~ indice, ncol = 2, scale="free_y") +
   geom_line(linewidth=1)+
   scale_colour_brewer( 
     palette = "Paired"
@@ -786,7 +813,7 @@ ggplot(
 
 Como pueden ver este gráfico está lleno de problemas. Seguramente el más destacable es que estamos mezclando en el mismo gráfico muchos indicadores y *overplotteandolos* todos juntos para todos los países.
 
-Aun así, si nos esforzamos un poco vemos que hay una trayectoria descendente para varios países a partir del 2005 como Brasil y Ecuador. Pero una curva que se destaca por sobre el resto es Venezuela. Podemos ver en detalle ese caso.
+Aun así, si nos esforzamos un poco vemos que hay una trayectoria descendente para varios países a partir del como Brasil y Ecuador. Pero una curva que se destaca por sobre el resto es Venezuela o Perú (aunque después remonta). Podemos ver en detalle ese caso.
 
 ### Refinamos el análisis
 
@@ -795,7 +822,7 @@ Antes de pasar a comunicación, hacemos una segunda iteración: filtramos Venezu
 ```{r}
 #| label: eda-refinado
 
-pais_seleccionado <- "Venezuela"
+pais_seleccionado <- "Peru"
 
 pais_vs_region <- sudamerica |>
   filter(year >= 1990) |>
@@ -810,10 +837,12 @@ ggplot(pais_vs_region, aes(x = year)) +
   labs(title = paste0(pais_seleccionado, " vs. mediana regional — EDI"))
 ```
 
-Ahora se nota que la tendencia general de la región para el EDI es bastante estable, oscila entre 0.68 y 0.77 en términos muy generales. Podemos seleccionar varios países para ver cómo fluctúan en torno a la tendencia general. **Algunos casos interesantes son Venezuela desde los 2000, Bolivia los últimos años, Ecuador desde el 2005. Hacemos, entonces, un gráfico comparando los tres países contra la mediana.**
+Ahora se nota que la tendencia general de la región para el EDI es bastante estable, oscila entre 0.68 y 0.77 en términos muy generales. Podemos seleccionar varios países para ver cómo fluctúan en torno a la tendencia general.
+
+**Algunos casos interesantes son Venezuela desde los 2000, Bolivia los últimos años, Peru entre los 90 y el 2000. Hacemos, entonces, un gráfico comparando los tres países contra la mediana.**
 
 ```{r}
-paises_seleccionado <- c("Venezuela", "Bolivia", "Ecuador")
+paises_seleccionado <- c("Venezuela", "Bolivia", "Peru")
 
 paises_vs_region <- sudamerica |>
   filter(year >= 1990) |>
@@ -841,16 +870,16 @@ Tomamos exactamente los mismos datos y los transformamos en un gráfico listo pa
 colores_paises <- c(
   "Venezuela" = "#C0392B",
   "Bolivia"   = "#1A5276",
-  "Ecuador"   = "#117A65"
+  "Peru"   = "#117A65"
 )
 
 # Datos: los tres países vs contexto regional
 tres_paises_vs_region <- sudamerica |>
   filter(year >= 1990) |>
   group_by(year) |>
-  mutate(edi_region = mean(edi, na.rm = TRUE)) |>
+  mutate(edi_region = median(edi, na.rm = TRUE)) |>
   ungroup() |>
-  filter(pais %in% c("Venezuela", "Bolivia", "Ecuador"))
+  filter(pais %in% c("Venezuela", "Bolivia", "Peru"))
 
 # IQR regional
 iqr_regional <- sudamerica |>
@@ -865,18 +894,21 @@ iqr_regional <- sudamerica |>
 # Hitos históricos por país
 hitos <- tribble(
   ~pais,       ~year, ~etiqueta,                         ~hjust, ~vjust,
-  "Venezuela", 1999,  "Asume\nChávez",                    -0.6,      1.2,
+  "Venezuela", 1999,  "Asume\nChávez",                    +0.9,      1.2,
   "Venezuela", 2013,  "Asume\nMaduro",                    -0.2,      1.5,
-  "Bolivia",   2006,  "Asume\nEvo Morales",               0,      -0.8,
-  "Bolivia",   2019,  "Crisis\npolítica",                 0,      1.2,
-  "Ecuador",   2007,  "Asume\nCorrea",                    0.35,      1.6,
-  "Ecuador",   2017,  "Fin gob.\nCorrea",                   0.3,      1.4
+  "Bolivia",   2006,  "Asume\nEvo Morales",               0,      +1.8,
+  "Bolivia",   2019,  "Crisis\npolítica",                 1.4,      1.5,
+  "Peru",      1992,  "Autogolpe\nFujimori",           -0.2,   -0.8,
+  "Peru",      2000,  "Caída\nFujimori",               0.0,    1.5,
 ) |>
   left_join(
     tres_paises_vs_region |> select(pais, year, edi),
     by = c("pais", "year")
   )
-
+# vjust = 0  →  texto ARRIBA  del punto  ↑ •
+# vjust = 1  →  texto ABAJO   del punto  • ↓
+# hjust = 0  →  texto a la DERECHA  •  →
+# hjust = 1  →  texto a la IZQUIERDA  ←  •
 ggplot(tres_paises_vs_region, aes(x = year)) +
 
   # Banda IQR regional (interquartil range (desde el cuartil 25 al 75))
@@ -910,13 +942,16 @@ ggplot(tres_paises_vs_region, aes(x = year)) +
   ) +
 
   # Etiqueta media regional
-  annotate("text", x = 2022, y = 0.72,
-           label = "Media\nregional",
+  annotate("text", x = 2021, y = 0.71,
+           label = "Mediana\nregional",
            size = 3, colour = "grey50", hjust = 1) +
 
   # Escalas
   scale_colour_manual(values = colores_paises) +
-  scale_x_continuous(breaks = seq(1990, 2020, by = 5)) +
+  # scale_x_continuous(breaks = seq(1990, 2020, by = 5)) +
+  scale_x_continuous(
+    breaks = c(seq(1990, 2020, by = 5), max(tres_paises_vs_region$year))
+    ) +
   scale_y_continuous(
     limits = c(0.1, .9),
     labels = scales::label_number(accuracy = 0.1)
@@ -946,7 +981,7 @@ ggplot(tres_paises_vs_region, aes(x = year)) +
   )
 ```
 
-### ¿Qué cambió entre el grfico exploratorio y el comunicativo?
+### ¿Qué cambió entre el gráfico exploratorio y el comunicativo?
 
 El gráfico que elegimos para comunicar no es que tiene más información, sino que tiene un resumen y una selección específica que se justifica por aquello que queremos contar.
 
