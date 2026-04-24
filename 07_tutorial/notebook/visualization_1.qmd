@@ -629,6 +629,8 @@ ggplot(
 
 Las facetas son una de las herramientas más poderosas de `ggplot2`. Permiten comparar subgrupos manteniendo la misma escala.
 
+En particular, `facet_wrap` toma una \~variable (la tilde se usa para indicar que el "wrap" se hace en función a esa variable) y hace una secuencia de gráficos en la que cada elemento representa una observación de esa cantidad.
+
 ```{r}
 #| label: facet-wrap
 #| fig-width: 6
@@ -649,7 +651,9 @@ ggplot(sudamerica_reciente, aes(x = year, y = edi)) +
 
 `facet_wrap()` con escalas libres
 
-A veces queremos ver la *forma* de cada serie sin forzar una escala común. Usamos `scales = "free_y"` para que cada subgráfico tenga su propio eje vertical, `"free_x"` para que cada uno tenga su propio eje horizontal y `"free"` para ambos en simultaneo.
+A veces queremos ver la *forma* de cada serie sin forzar una escala común.
+
+Usamos `scales = "free_y"` para que cada subgráfico tenga su propio eje vertical, `"free_x"` para que cada uno tenga su propio eje horizontal y `"free"` para ambos en simultaneo.
 
 ```{r}
 #| label: facet-scales-free
@@ -691,7 +695,7 @@ ggplot(sudamerica_long, aes(x = year, y = valor, colour = indice)) +
   theme(legend.position = "bottom")
 ```
 
-`facet_grid()`: cruzar dos variables
+`facet_grid()`: es muy similar a la anterior, con la particularidad que las dimensiones de la grilla quedan supeditadas a las dimensiones de las variables que seleccionamos. Se usa llamando `var1~var2`, lo cual indica que en las filas irá la variable 1 y en las columnas la variable 2, como si fuera una matriz.
 
 ```{r}
 #| label: facet-grid
