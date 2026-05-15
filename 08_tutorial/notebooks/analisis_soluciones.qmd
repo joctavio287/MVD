@@ -1,28 +1,35 @@
 ---
-title: "Analisis de datos de Brasil"
-date: 2026-05-12
+title: "Continuamos explorando los datos de Brasil"
+date: "`r Sys.Date()`"
 lang: es
+execute:
+  echo: true
+  output: true
+  eval: true
+  cache: true
 format:
   html:
+    theme: cosmo
     toc: true
     toc-location: left
+    toc-title: "Contenidos"
+    code-fold: false
+    code-tools: true
+    df-print: paged
+    
     embed-resources: true
-    fig-align: center
-    out-width: 60%
-knitr:
-  opts_chunk:
-    out.width: "60%"
-    fig.align: "center"
-editor: 
-  markdown: 
-    wrap: 72
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+        }
+        </style>
 ---
 
 # Plan del día
 
-Hoy vamos a revisar la segunda entrega (TP2), completar el *notebook*
-que vieron en la clase magistral pasada y, sobre el final, avanzar con
-el proyecto grupal.
+Hoy vamos a revisar la segunda entrega (TP2), completar el *notebook* que vieron en la clase magistral pasada y, sobre el final, avanzar con el proyecto grupal.
 
 ## Librerías
 
@@ -46,9 +53,7 @@ pacman::p_load(
 
 ## Datos
 
-Vamos a usar los mismos datos que descargaron la clase pasada para
-responder algunas de las preguntas que quedaron abiertas. Todas estas
-BDs identifican las observaciones por `id_municipio`.
+Vamos a usar los mismos datos que descargaron la clase pasada para responder algunas de las preguntas que quedaron abiertas. Todas estas BDs identifican las observaciones por `id_municipio`.
 
 **Descripción detallada de los municipios (**`df_municipalities`**)**
 
@@ -99,8 +104,7 @@ BDs identifican las observaciones por `id_municipio`.
 - `educ_exp`: gasto en educación.
 - `urban_exp`: gasto en urbanismo y vivienda.
 
-**Índice de precios al consumidor (**`df_prices`) **→ referencia de
-inflación**
+**Índice de precios al consumidor (**`df_prices`) **→ referencia de inflación**
 
 - `year`: año de referencia.
 - `mes`: número de mes.
@@ -113,8 +117,7 @@ inflación**
 - `population`: cantidad de población.
 - `gdp`: producto interno bruto.
 
-**Subsidios de asignaciones familiares y auxilios de emergencia
-(**`df_transfers`**)**
+**Subsidios de asignaciones familiares y auxilios de emergencia (**`df_transfers`**)**
 
 - `id_municipio`: código de municipio.
 - `year`: año de referencia.
@@ -135,29 +138,19 @@ df_municipalities = readRDS(here("08_tutorial/data/municipalities.rds"))
 
 La consigna decía:
 
-> Replicar algunas de las siguientes figuras a partir de los datos de
-> Brasil y pensar qué pregunta responde cada figura.
+> Replicar algunas de las siguientes figuras a partir de los datos de Brasil y pensar qué pregunta responde cada figura.
 
 ### Ejemplo 1
 
-![**Cleveland Plot** → reemplaza el gráfico de barras cuando tenemos
-muchas categorías y/o la variable de interés no comienza en el
-origen](images/clipboard-2128405012.png){fig-align="center" width="436"}
+![**Cleveland Plot** → reemplaza el gráfico de barras cuando tenemos muchas categorías y/o la variable de interés no comienza en el origen](images/clipboard-2128405012.png){fig-align="center" width="436"}
 
-Vamos a usar los datos de **subsidios** para graficar la cantidad de
-subsidios por habitante para cada región (**¿por qué por habitante?**).
-Copiando el gráfico de arriba, la cantidad de subsidios haría las veces
-de esperanza de vida y la región de país.
+Vamos a usar los datos de **subsidios** para graficar la cantidad de subsidios por habitante para cada región (**¿por qué por habitante?**). Copiando el gráfico de arriba, la cantidad de subsidios haría las veces de esperanza de vida y la región de país.
 
-Además, para hablar de porcentajes asignados a cada región, podemos
-normalizar la cantidad de subsidios por habitante sobre el total de
-transferencias por habitantes realizadas en el año. De esta forma,
-podremos **ver si existen desequilibrios en la asignación de subsidios
-por unidad de habitante entre las diferentes regiones.**
+Además, para hablar de porcentajes asignados a cada región, podemos normalizar la cantidad de subsidios por habitante sobre el total de transferencias por habitantes realizadas en el año. De esta forma, podremos **ver si existen desequilibrios en la asignación de subsidios por unidad de habitante entre las diferentes regiones.**
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 4
+#| fig-width: 10
+#| fig-height: 6
 #| fig-align: "center"
 #| fig-dpi: 500
 plot_data <- df_transfers |> left_join(
@@ -188,7 +181,7 @@ ggplot(
     y = fct_reorder(region, relative_transfer_to_total, .fun=max)
     )
   ) + 
-  geom_point(color="#0066cc", size=2)+
+  geom_point(color="#0066cc", size=4)+
   scale_x_continuous(labels = scales::percent)+
   theme_minimal() +
   theme(
@@ -198,29 +191,23 @@ ggplot(
     panel.grid.minor.x = element_line(color = "#e5e5e5", linewidth = 0.1),
     
     # Hacer los textos de los ejes más limpios y legibles
-    axis.text = element_text(size = 11, color = "black"),
+    axis.text = element_text(size = 15, color = "black"),
     # Elimina el título "region" para imitar la imagen de arriba
-    axis.title.y = element_blank() 
+    axis.title.y = element_blank(), 
+    axis.title.x = element_text(size=15)
   ) + 
   
   # Etiqueta del eje X limpia
   labs(x = "Porcentaje sobre el total de transferencias por habitante") 
 ```
 
-Para el año 2025 pareciera haber una tendencia clara aunque no muy
-significativa hacia el norte (la diferencia relativa es del 2%). **El
-análisis lo podemos repetir para los últimos 5 años para ver si hay
-alguna tendencia clara.**
+Para el año 2025 pareciera haber una tendencia clara aunque no muy significativa hacia el norte (la diferencia relativa es del 2%). **El análisis lo podemos repetir para los últimos 5 años para ver si hay alguna tendencia clara.**
 
-Una forma de cuantificar la tendencia es calcular [la correlación de
-Spearman, que es una medida similar a la correlación de Pearson, pero
-tiene en cuenta el orden de las variables en vez de sus valores. Así,
-una correlación será alta si al crecer una variable en orden (por
-ejemplo, de sur a norte), la otra también.]{.underline}
+Una forma de cuantificar la tendencia es calcular [la correlación de Spearman, que es una medida similar a la correlación de Pearson, pero tiene en cuenta el orden de las variables en vez de sus valores. Así, una correlación será alta si al crecer una variable en orden (por ejemplo, de sur a norte), la otra también.]{.underline}
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 4
+#| fig-width: 12
+#| fig-height: 8
 #| fig-align: "center"
 #| fig-dpi: 500
 
@@ -243,7 +230,7 @@ ggplot(
     color = factor(year)
   )
   ) + 
-  geom_point(size=2) +
+  geom_point(size=4) +
   scale_x_continuous(labels = scales::percent)+
   theme_minimal() +
   theme(
@@ -253,8 +240,9 @@ ggplot(
     panel.grid.minor.x = element_line(color = "#e5e5e5", linewidth = 0.1),
     
     # Hace los textos de los ejes más limpios y legibles
-    axis.text = element_text(size = 11, color = "black"),
-    axis.title.y = element_blank() 
+    axis.text = element_text(size = 15, color = "black"),
+    axis.title.y = element_blank(),
+    axis.title.x = element_text(size=15)
   ) + 
   
   # Etiqueta del eje X limpia
@@ -264,28 +252,22 @@ ggplot(
   ) +
   annotate(
     "text", x =.25, y = 1, label = corr_text,
-     hjust = 1.1, vjust = -1.1, size = 3, fontface = "italic"
+     hjust = 1.1, vjust = -1.1, size = 4.5, fontface = "italic"
   )
 
 ```
 
 ### Ejemplo 2
 
-![**Series de tiempo** → usar etiquetas sobre series es más claro que
-separar un recuadro por color. Sobre todo si tenemos muchas
-curvas.](images/clipboard-2055894573.png){fig-align="center"
-width="456"}
+![**Series de tiempo** → usar etiquetas sobre series es más claro que separar un recuadro por color. Sobre todo si tenemos muchas curvas.](images/clipboard-2055894573.png){fig-align="center" width="456"}
 
-Continuando el análisis de arriba, podemos preguntarnos **cómo varía
-esta asignación a lo largo del tiempo**.
+Continuando el análisis de arriba, podemos preguntarnos **cómo varía esta asignación a lo largo del tiempo**.
 
-Y para responder reciclamos la información que ordenamos arriba. Podemos
-graficar el porcentaje de transferencia, pero en función del tiempo, lo
-cual es mucho mejor para visualizar la tendencia a lo largo del tiempo.
+Y para responder reciclamos la información que ordenamos arriba. Podemos graficar el porcentaje de transferencia, pero en función del tiempo, lo cual es mucho mejor para visualizar la tendencia a lo largo del tiempo.
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 6
+#| fig-width: 11
+#| fig-height: 8
 #| fig-align: "center"
 #| fig-dpi: 500
 #| 
@@ -318,7 +300,7 @@ ggplot(
     color='black',
     hjust = -0.1,         # Desplaza el texto ligeramente a la derecha
     vjust = 0.5,          # Alinea verticalmente con el punto final
-    size = 3.5,           # Tamaño de fuente legible
+    size = 4.5,           # Tamaño de fuente legible
     fontface = "plain",
     # Evita que se encimen textos si están muy cerca (lo saco porque sino borra una etiqueta)
     # check_overlap = TRUE  
@@ -337,57 +319,39 @@ ggplot(
     axis.line = element_line(color = "black", linewidth = 0.8),
 
     # Configuración de tipografía limpia y oscura
-    axis.text = element_text(size = 12, color = "black"),
-    axis.title = element_text(size = 14, color = "black"),
+    axis.text = element_text(size = 15, color = "black"),
+    axis.title = element_text(size = 15, color = "black"),
     legend.position = "none"
   )
 ```
 
-Es importante notar que no se muestra el cero en el eje y, lo cual suele
-estar mal porque perceptivamente se distorsionan los valores absolutos
-de las magnitudes.
+Es importante notar que no se muestra el cero en el eje y, lo cual suele estar mal porque perceptivamente se distorsionan los valores absolutos de las magnitudes.
 
-En este gráfico de líneas usamos un eje Y truncado para **maximizar la
-resolución visual de los cambios**. Dado que las categorías son partes
-de un todo (suman 100%), el interés analítico reside en la
-**convergencia o divergencia** de las regiones y no en la distancia
-respecto al origen. Es importante mencionar la intención de una figura a
-la hora de comunicar, vista por sí sola podría mal interpretarse. **Para
-eso se utilizan las leyendas.**
+En este gráfico de líneas usamos un eje Y truncado para **maximizar la resolución visual de los cambios**. Dado que las categorías son partes de un todo (suman 100%), el interés analítico reside en la **convergencia o divergencia** de las regiones y no en la distancia respecto al origen. Es importante mencionar la intención de una figura a la hora de comunicar, vista por sí sola podría mal interpretarse. **Para eso se utilizan las leyendas.**
 
 ### Ejemplo 3
 
-![**Density Plot** → superponer varias distribuciones suele ser útil,
-siempre y cuando refieran a la misma "población". En el ejemplo **las
-muestras de leche son la población, el contenido de grasa en leche es la
-medida y la categoría es la especie de
-vaca.**](images/clipboard-1696950652.png){fig-align="center"
-width="604"}
+![**Density Plot** → superponer varias distribuciones suele ser útil, siempre y cuando refieran a la misma "población". En el ejemplo **las muestras de leche son la población, el contenido de grasa en leche es la medida y la categoría es la especie de vaca.**](images/clipboard-1696950652.png){fig-align="center" width="604"}
 
-Para hacer algo similar, podemos utilizar la base de finanzas que tiene
-la distribución de gastos por municipio en cada año:
+Para hacer algo similar, podemos utilizar la base de finanzas que tiene la distribución de gastos por municipio en cada año:
 
 - `health_exp`: gasto en salud por municipio.
 - `educ_exp`: gasto en educación por municipio.
 - `urban_exp`: gasto en urbanismo y vivienda por municipio.
 
-**¿Cuál es la "población"?, ¿Cuál es la medida? Y, ¿Cuáles son las
-categorías?** La respuesta va a depender de qué queramos responder.
+**¿Cuál es la "población"?, ¿Cuál es la medida? Y, ¿Cuáles son las categorías?** La respuesta va a depender de qué queramos responder.
 
-Si nos interesa **cómo se distribuyen los gastos públicos para la región
-del Norte en el año 2025**, podríamos elegir:
+Si nos interesa **cómo se distribuyen los gastos públicos para la región del Norte en el año 2025**, podríamos elegir:
 
-- Universo/población: los municipios (cada "municipio-año 2025" es una
-  observación).
+- Universo/población: los municipios (cada "municipio-año 2025" es una observación).
 
 - Variable medida (eje X): el monto invertido.
 
-- Categorías: el tipo de área programática (Salud vs. Educación vs.
-  Urbanismo → cada una representara una densidad).
+- Categorías: el tipo de área programática (Salud vs. Educación vs. Urbanismo → cada una representara una densidad).
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 12
+#| fig-height: 8
 #| fig-align: "center"
 #| fig-dpi: 500
 
@@ -449,7 +413,7 @@ ggplot(
     data = label_picos|> filter(region=='Norte'),
     aes(x = x_pos, y = y_pos, label = gasto_categoria, color = gasto_categoria),
     inherit.aes = FALSE,
-    size = 3.5,
+    size = 5,
     fontface = "bold",
     vjust = -0.3, # Ajuste fino para que el texto flote justo milímetros arriba de la punta
     check_overlap=TRUE
@@ -477,8 +441,8 @@ ggplot(
     panel.grid.minor = element_blank(),
     axis.ticks.y =element_blank(),
     axis.text.y = element_blank(),
-    axis.text = element_text(size = 11, color = "black"),
-    axis.title = element_text(size = 13, color = "black"),
+    axis.text = element_text(size = 15, color = "black"),
+    axis.title = element_text(size = 15, color = "black"),
     legend.position = "none"
   ) +
   labs(
@@ -487,11 +451,13 @@ ggplot(
   )
 ```
 
-Además, dado que empezamos a analizar las diferencias entre regiones.
-Podemos replicar el mismo gráfico desagregando las regiones usando
-facetas.
+Además, dado que empezamos a analizar las diferencias entre regiones. Podemos replicar el mismo gráfico desagregando las regiones usando facetas.
 
 ```{r}
+#| fig-width: 14
+#| fig-height: 10
+#| fig-align: "center"
+#| dpi: 500
 ggplot(
   # Sacamos el filtro
   data = plot_data, 
@@ -505,7 +471,7 @@ ggplot(
     data = label_picos,
     aes(x = x_pos, y = y_pos, label = gasto_categoria, color = gasto_categoria),
     inherit.aes = FALSE,
-    size = 3.5,
+    size = 5,
     fontface = "bold",
     vjust = -0.3, # Ajuste fino para que el texto flote justo milímetros arriba de la punta
     check_overlap=TRUE
@@ -534,8 +500,8 @@ ggplot(
     panel.grid.minor = element_blank(),
     axis.ticks.y =element_blank(),
     axis.text.y = element_blank(),
-    axis.text = element_text(size = 11, color = "black"),
-    axis.title = element_text(size = 13, color = "black"),
+    axis.text = element_text(size = 16, color = "black"),
+    axis.title = element_text(size = 16, color = "black"),
     legend.position = "none"
   ) +
   labs(
@@ -546,29 +512,19 @@ ggplot(
 
 ### Ejemplo 4
 
-![**Ridge Plot** → super útil para ver la dinámica de distribuciones a
-lo largo del tiempo, en vez de estadísticos de resúmen, como la media o
-la mediana en el
-tiempo.](images/clipboard-3678782796.png){fig-align="center"
-width="540"}
+![**Ridge Plot** → super útil para ver la dinámica de distribuciones a lo largo del tiempo, en vez de estadísticos de resúmen, como la media o la mediana en el tiempo.](images/clipboard-3678782796.png){fig-align="center" width="540"}
 
-Si nos concentramos en una región específica, como el Norte, podemos
-visualizar lo mismo que arriba, pero a lo largo del tiempo.
+Si nos concentramos en una región específica, como el Norte, podemos visualizar lo mismo que arriba, pero a lo largo del tiempo.
 
-En este sentido, **podremos responder cómo varía la distribución de
-gastos municipales de la región Norte a lo largo del tiempo.**
-Obviamente, si quisiéramos ver cómo se trasladan en el eje las
-distribuciones correctamente, deberíamos ajustar los valores acorde a la
-inflación o el ingreso anual del país.
+En este sentido, **podremos responder cómo varía la distribución de gastos municipales de la región Norte a lo largo del tiempo.** Obviamente, si quisiéramos ver cómo se trasladan en el eje las distribuciones correctamente, deberíamos ajustar los valores acorde a la inflación o el ingreso anual del país.
 
-De todos modos, sin tener ese cuidado, las diferencias relativas para
-cada año sí se mantienen.
+De todos modos, sin tener ese cuidado, las diferencias relativas para cada año sí se mantienen.
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 14
+#| fig-height: 10
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 
 # Preparamos los datos nuevamente, pero conservando todos los años
 plot_data_ridgeline <- df_finance |> 
@@ -635,8 +591,8 @@ ggplot(
     legend.title = element_blank(),
     legend.background = element_blank(),
     
-    axis.text = element_text(size = 11, color = "black"),
-    axis.title = element_text(size = 12, face = "bold")
+    axis.text = element_text(size = 15, color = "black"),
+    axis.title = element_text(size = 15, face = "bold")
   ) +
   labs(
     x = "Monto del Gasto Municipal de la región Norte (Escala Logarítmica)",
@@ -646,29 +602,19 @@ ggplot(
 
 ### Ejemplo 5
 
-![**Matriz de correlación**→ se cruzan las variables con una escala de
-colores que permite ver la correlación cruzada. Se omiten las
-autocorrelaciones y los valores
-repetidos](images/clipboard-3664342639.png){fig-align="center"
-width="352" height="323"}
+![**Matriz de correlación**→ se cruzan las variables con una escala de colores que permite ver la correlación cruzada. Se omiten las autocorrelaciones y los valores repetidos](images/clipboard-3664342639.png){fig-align="center" width="352" height="323"}
 
-En este ejemplo es interesante, más que nada, notar que la alineación de
-las variables se eligió para que no haya elementos de autocorrelación,
-ya que no tienen información (siempre dan uno). Tampoco hay elementos
-repetidos, es decir, se omitió la correlación del Al(uminio) con el
-Ba(rio) porque ya está la del Bario con el Aluminio, que es exactamente
-igual.
+En este ejemplo es interesante, más que nada, notar que la alineación de las variables se eligió para que no haya elementos de autocorrelación, ya que no tienen información (siempre dan uno). Tampoco hay elementos repetidos, es decir, se omitió la correlación del Al(uminio) con el Ba(rio) porque ya está la del Bario con el Aluminio, que es exactamente igual.
 
-Un detalle a tener en cuenta es que la escala está fija en valores
-arbitrarios, no los máximos absolutos. Puede ser cuestionable,
-dependiendo qué es lo que quieran mostrar.
+Un detalle a tener en cuenta es que la escala está fija en valores arbitrarios, no los máximos absolutos. Puede ser cuestionable, dependiendo qué es lo que quieran mostrar.
 
-El candidato natural para hacer una matriz de correlación, es la base de
-datos del censo. Podemos ver, **si sobre el conjunto de municipios, hay
-correlaciones marcadas entre las variables poblacionales.** Lo malo es
-que el año más reciente que tenemos es el 2010.
+El candidato natural para hacer una matriz de correlación, es la base de datos del censo. Podemos ver, **si sobre el conjunto de municipios, hay correlaciones marcadas entre las variables poblacionales.** Lo malo es que el año más reciente que tenemos es el 2010.
 
 ```{r}
+#| fig-width: 12
+#| fig-height: 10
+#| fig-align: "center"
+#| dpi: 500
 # Definimos un orden estricto para las variables a correlacionar
 variables_ordenadas <- c(
   "gini_index", 
@@ -722,8 +668,8 @@ ggplot(
   theme(
     panel.grid = element_blank(),
     axis.title = element_blank(),
-    axis.text.x = element_text( face = "bold", angle = 45, hjust = 0, vjust = 0),
-    axis.text.y = element_text( face = "bold"),
+    axis.text.x = element_text( face = "bold", angle = 45, hjust = 0, vjust = 0, size=15),
+    axis.text.y = element_text(size=15, face = "bold"),
     legend.position = "bottom",
     legend.title = element_text(vjust = 1, hjust = 0.5)
   ) +
@@ -733,36 +679,21 @@ ggplot(
 
 ### Ejemplo 6
 
-![**Heatmap** → hay un montón de funcionalidades que puede tener este
-tipo de gráfico. En este caso específico se usa para visualizar series
-de tiempo que alcanzan un máximo bien
-definido.](images/clipboard-2276979020.png){fig-align="center"
-width="561"}
+![**Heatmap** → hay un montón de funcionalidades que puede tener este tipo de gráfico. En este caso específico se usa para visualizar series de tiempo que alcanzan un máximo bien definido.](images/clipboard-2276979020.png){fig-align="center" width="561"}
 
-El uso que le dan al *heatmap* en el ejemplo es útil cuando sabemos que
-la tendencia global de una variable es suave, por ejemplo, monótona
-creciente, y queremos entender cómo se desagrega el efecto en
-sub-categorías. En el ejemplo, está bueno para entender "quién llega
-primero".
+El uso que le dan al *heatmap* en el ejemplo es útil cuando sabemos que la tendencia global de una variable es suave, por ejemplo, monótona creciente, y queremos entender cómo se desagrega el efecto en sub-categorías. En el ejemplo, está bueno para entender "quién llega primero".
 
-En nuestros datos podemos usarlo para **estudiar el crecimiento
-poblacional según las distintas regiones.**
+En nuestros datos podemos usarlo para **estudiar el crecimiento poblacional según las distintas regiones.**
 
-En particular, sabemos que la población de todos los municipios
-probablemente crezca salvo que haya eventos canónicos, como migraciones
-o catástrofes. Así que la pregunta a responder sería **qué tan rápido
-llegan al valor actual (el máximo) y si hay o no alguna región que
-crezca en mayor medida que el resto.**
+En particular, sabemos que la población de todos los municipios probablemente crezca salvo que haya eventos canónicos, como migraciones o catástrofes. Así que la pregunta a responder sería **qué tan rápido llegan al valor actual (el máximo) y si hay o no alguna región que crezca en mayor medida que el resto.**
 
-Para eso podemos armar series de tiempo normalizadas al máximo histórico
-de cada municipio y graficarlas por separado en una estructura tipo
-*heatmap*.
+Para eso podemos armar series de tiempo normalizadas al máximo histórico de cada municipio y graficarlas por separado en una estructura tipo *heatmap*.
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 14
+#| fig-height: 10
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 
 plot_data_heatmap <- df_socioeconomic |> 
   left_join( 
@@ -804,8 +735,9 @@ ggplot(
   theme(
     panel.grid = element_blank(),
     axis.title = element_blank(),
-    axis.text = element_text(size = 11, color = "black", face = "bold"),
-    
+    axis.text = element_text(size = 15, color = "black", face = "bold"),
+    axis.text.x = element_text(size=15),
+    axis.text.y = element_text(size=15),
     # Leyenda arriba a la izquierda
     legend.position = "top",
     legend.justification = "left",
@@ -819,14 +751,13 @@ ggplot(
 
 ### ¿Cómo evolucionaron los precios a lo largo del tiempo?
 
-El Índice de Precios al Consumidor (IPC) es un indicador económico que
-mide la evolución del costo de vida. Se usa para medir la inflación.
+El Índice de Precios al Consumidor (IPC) es un indicador económico que mide la evolución del costo de vida. Se usa para medir la inflación.
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 4
+#| fig-width: 12
+#| fig-height: 8
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 # Transformar año y mes en una fecha y graficar
 df_prices_clean <- df_prices |>
   mutate(date = make_date(year, mes, 1)) |>
@@ -835,21 +766,25 @@ df_prices_clean <- df_prices |>
 ggplot(df_prices_clean, aes(x = date, y = ipc)) +
   geom_line(color = "steelblue", linewidth = 1) +
   theme_minimal() +
-  labs(title = "Evolución de los Precios (IPC) a lo largo del tiempo",
+  theme(
+    axis.text.x = element_text(size=15),
+    axis.text.y = element_text(size=15),
+  )+
+  labs(
+    title = "Evolución de los Precios (IPC) a lo largo del tiempo",
        x = "Año", 
        y = "Índice de Precios (IPC)")
 ```
 
 ### ¿Qué partidos recibieron mayor cantidad de votos en todas las elecciones?
 
-Para eso podemos usar un Cleveland-Plot que ya aprendimos a hacer en el
-primer ejemplo.
+Para eso podemos usar un Cleveland-Plot que ya aprendimos a hacer en el primer ejemplo.
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 4
+#| fig-width: 12
+#| fig-height: 8
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 df_top_parties <- df_elections |>
   group_by(sigla_partido) |>
   summarise(total_votos_historico = sum(total_votes, na.rm = TRUE)) |>
@@ -861,7 +796,7 @@ ggplot(
   aes(x = total_votos_historico, y = reorder(sigla_partido, total_votos_historico))
   ) +
   # Usamos puntos en lugar de columnas, ajustando el tamaño y color
-  geom_point(color = "steelblue", size = 2.5) + 
+  geom_point(color = "steelblue", size = 4) + 
   
   # Formateamos el eje X para que los votos se lean con comas separadoras
   scale_x_continuous(labels = scales::comma) +
@@ -871,8 +806,8 @@ ggplot(
     panel.grid.major.y = element_line(color = "gray80", linewidth = 0.5),
     panel.grid.major.x = element_line(color = "gray80", linewidth = 0.5),
     panel.grid.minor = element_blank(), 
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 13, face = "bold")
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 15, face = "bold")
   ) +
   labs(title = "Top 10 Partidos con Mayor Cantidad de Votos Históricos",
        y = NULL, # Quitamos el título del eje Y porque las siglas ya explican qué es
@@ -881,15 +816,13 @@ ggplot(
 
 ### ¿Cómo se comparan los gastos en salud, educación y urbanismo entre las distintas macro-regiones?
 
-Podemos hacer una variante a los *density plots* que hicimos antes que
-se llaman *violin plots*. Son particularmente útiles cuando tenemos
-muchas distribuciones.
+Podemos hacer una variante a los *density plots* que hicimos antes que se llaman *violin plots*. Son particularmente útiles cuando tenemos muchas distribuciones.
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 4
+#| fig-width: 12
+#| fig-height: 8
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 # Unimos finanzas, municipios y población, y calculamos el per cápita
 df_finance_per_capita <- df_finance |>
   filter(year == 2025) |>
@@ -943,6 +876,10 @@ ggplot(df_finance_per_capita, aes(x = region, y = gasto_pc, fill = tipo_gasto)) 
       )
     ) +
   theme_minimal() +
+  theme(
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 15, face = "bold")
+  )+
   labs(
     title = "Densidad del Gasto Municipal por Macror-región para el año 2025",
     subtitle = "El punto negro indica la mediana de cada distribución (Escala Log)",
@@ -954,14 +891,13 @@ ggplot(df_finance_per_capita, aes(x = region, y = gasto_pc, fill = tipo_gasto)) 
 
 ### ¿Cómo cambió el número de beneficiarios de transferencias sociales a lo largo del tiempo, por región?
 
-Podemos usar series de tiempo, tal como hicimos al principio, pero con
-valores absolutos en cambio.
+Podemos usar series de tiempo, tal como hicimos al principio, pero con valores absolutos en cambio.
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 4
+#| fig-width: 14
+#| fig-height: 10
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 df_transfers_region <- df_transfers |>
   left_join(df_municipalities |> select(id_municipio, region), by = "id_municipio") |>
   drop_na(region) |>
@@ -1001,8 +937,8 @@ ggplot(df_transfers_region, aes(x = year, y = total_beneficiarios, color = regio
   theme(
     legend.position = "none",                
     axis.line = element_line(linewidth = .8), 
-    axis.text = element_text(size = 10, color = "black"),
-    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 15, color = "black"),
+    axis.title = element_text(size = 15),
     panel.grid.major = element_line(color = "gray90", linewidth = 0.5),
     panel.grid.minor = element_blank() # Ocultamos la secundaria para que no sature
   ) +
@@ -1016,10 +952,10 @@ ggplot(df_transfers_region, aes(x = year, y = total_beneficiarios, color = regio
 ### ¿Existe un "ciclo político" en el gasto público? ¿Los municipios gastan más en salud, educación y urbanismo en años electorales?
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 4
+#| fig-width: 14
+#| fig-height: 10
 #| fig-align: "center"
-#| fig-dpi: 500
+#| dpi: 500
 # Extraer los años en los que hubo elecciones
 election_years <- unique(df_elections$year)
 df_cycle <- df_finance |>
@@ -1060,7 +996,7 @@ ggplot(
     data = df_cycle |>filter(tipo_anio == "Año Electoral"),
     aes(label = tipo_gasto),hjust = 0, # Alinea a la izquierda
     nudge_x = 0.05, # Separa un poquito el texto del punto
-    size = 3.5,
+    size = 5,
     color = "black"
   ) +
   
@@ -1077,10 +1013,10 @@ ggplot(
   theme(
     axis.line.x = element_blank(),
     axis.ticks.x = element_blank(), 
-    axis.text.x = element_text(size = 10, color = "black"),
+    axis.text.x = element_text(size = 15, color = "black"),
     axis.title.x = element_blank(), # Sin título en el eje X
-    axis.title.y = element_text(size = 10),
-    axis.text.y = element_text(size = 10, color = "black"),
+    axis.title.y = element_text(size = 15),
+    axis.text.y = element_text(size = 15, color = "black"),
     legend.position = "none" 
   ) +
   labs(
@@ -1091,11 +1027,10 @@ ggplot(
 ```
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 4
+#| fig-width: 14
+#| fig-height: 10
 #| fig-align: "center"
-#| fig-dpi: 500
-
+#| dpi: 500
 df_cycle_relativo <- df_cycle |>
   # Pasamos a formato ancho para poder comparar directamente
   pivot_wider(names_from = tipo_anio, values_from = gasto_promedio) |>
@@ -1128,7 +1063,7 @@ ggplot(
   geom_line(color = "gray60", linewidth = 1) +
   
   # Puntos en los extremos tomando el color de cada categoría
-  geom_point(size = 4) +
+  geom_point(size = 5) +
   
   # Etiquetas a la derecha
   geom_text(
@@ -1155,10 +1090,10 @@ ggplot(
   theme(
     axis.line.x = element_blank(),   
     axis.ticks.x = element_blank(),  
-    axis.text.x = element_text(size = 11, color = "black", face = "bold"), 
+    axis.text.x = element_text(size = 15, color = "black", face = "bold"), 
     axis.title.x = element_blank(),  
-    axis.title.y = element_text(size = 10),
-    axis.text.y = element_text(size = 10, color = "black"),
+    axis.title.y = element_text(size = 15),
+    axis.text.y = element_text(size = 15, color = "black"),
     legend.position = "none"         
   ) +
   labs(
