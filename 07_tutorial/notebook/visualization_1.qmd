@@ -30,7 +30,7 @@ format:
 
 # Plan del día
 
-Hoy vamoa a construir visualizaciones desde cero usando la **la gramática de gráficos de** **`ggplot2`**, aplicada a datos reales del [proyecto V-Dem](https://github.com/vdeminstitute/vdemdata) sobre democracia en América del Sur. Vamos a estrucutrar la clase en tres partes:
+Hoy vamos a construir visualizaciones desde cero usando la **la gramática de gráficos de** **`ggplot2`**, aplicada a datos reales del [proyecto V-Dem](https://github.com/vdeminstitute/vdemdata) sobre democracia en América del Sur. Vamos a estrucutrar la clase en tres partes:
 
 1.  ¿Qué es visualizar? Datos, estéticas y la lógica de capas.
 2.  Recorrido por los componentes de la gramática de gráficos.
