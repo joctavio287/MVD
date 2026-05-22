@@ -28,13 +28,13 @@ format:
 
 # ¿De qué trata la clase de hoy?
 
-Hoy vamos a repasar cómo especificar, implementar y visualizar **modelos de regresión lineal**. La idea principal es que se puedan llevar de este notebook herramientas para comunicar los resultados siguiendo el estándar de la comunidad científica.
+Hoy vamos a repasar cómo especificar, implementar y visualizar **modelos de regresión lineal**. La idea principal es que se lleven de este *notebook* herramientas útiles para comunicar resultados.
 
 El flujo de trabajo de hoy quedó estructurado en cuatro partes:
 
 1.  **Modelo base y la sintaxis del `tidyverse`**: cómo especificar y estimar un modelo para entender qué significa cada coeficiente.
 2.  **Especificación avanzada**: logaritmos, polinomios e interacciones para capturar relaciones no lineales.
-3.  **El paquete `broom`**: convertir los modelos en `dataframes` para automatizar el análisis.
+3.  **El paquete `broom`**: vamos convertir los modelos en objetos del `tidyverse` para mejorar la presentación de resultados y determinar de forma clara la bondad de los ajustes.
 4.  **Visualizaciones**: herramientas gráficas para modelos lineales.
 
 ------------------------------------------------------------------------
@@ -69,10 +69,12 @@ pacman::p_load(
 
 Vamos a utilizar nuevamente los datos de Brasil.
 
-Antes de modelar necesitamos **construir un dataset analítico** que combine las distintas fuentes que venimos usando. La unidad de análisis va a ser el **municipio en el año electoral 2020** (elecciones municipales).
+Antes de armar un modelo necesitamos **construir un *dataset* único** que combine las distintas fuentes que venimos usando, bajo la premisa de que **nuestro objetivo será encontrar qué variables explican en promedio los resultados de las elecciones municipales del año 2020 para el partido PT** (Partido de los Trabajadores).
 
 ::: callout-note
-**¿Por qué 2020?** Los datos de `df_elections` corresponden a **elecciones municipales** (1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024), no presidenciales. Usamos 2020 por ser la elección municipal más reciente con cobertura completa de municipios. (...CINOK)
+**¿Por qué 2020 y por qué el PT?**
+
+Los datos de `df_elections` corresponden a **elecciones municipales** (1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024), no presidenciales. Usamos 2020 por ser la elección municipal más reciente con cobertura completa de municipios (algunas bases no tenían datos para el 2024) y elegimos el PT porque es de los que presentaron mayor cantidad de candidatos a lo largo del territorio.
 :::
 
 ```{r}
@@ -90,7 +92,9 @@ df_socioeconomic  <- readRDS(here("08_tutorial/data/socioeconomic.rds"))
 df_municipalities <- readRDS(here("08_tutorial/data/municipalities.rds"))
 ```
 
-Usamos exclusivamente datos del año 2020 para garantizar consistencia temporal. Las variables del censo (Gini, IDH, pobreza) quedan excluidas porque solo están disponibles para 1991, 2000 y 2010, y mezclar años distintos no tiene sentido en el análisis que vamos a hacer. De todos modos, `df_census` y `df_prices` están disponibles en `/data` si se les ocurre otro análisis para hacer.
+Las variables del censo (Gini, IDH, pobreza) quedan excluidas porque solo están disponibles para 1991, 2000 y 2010, y mezclar datos de otros años no tiene sentido en el análisis que vamos a hacer.
+
+De todos modos, `df_census` y `df_prices` están disponibles en `/data` si se les ocurre otro objeto de estudio. Por ejemplo, tratar de predecir el GDP de Brasil.
 
 ```{r}
 #| label: construir-dataset-analitico
@@ -112,15 +116,16 @@ df_voto_pt <- df_elections |>
   filter(id_municipio %in% municipios_donde_compitio_pt) |> 
   # Para cada municipio
   group_by(id_municipio) |>
-  # Calculamos el porcentaje de votos al PT sobre el total de votos nominales
+  # calculamos el porcentaje de votos al PT sobre el total de votos nominales
   summarise(
     votos_pt     = sum(total_votes[sigla_partido == "PT"], na.rm = TRUE),
     votos_totales = sum(total_votes, na.rm = TRUE),
     .groups = "drop"
   ) |>
-  mutate(pct_pt = votos_pt / votos_totales * 100) |>
   # Evitamos divisiones por cero
-  filter(votos_totales > 0, !is.na(votos_pt))
+  filter(votos_totales > 0, !is.na(votos_pt)) |>
+  mutate(pct_pt = 100 * votos_pt / votos_totales) 
+
 
 # ----------------------------------------------------------
 # Variables socio-económicas del año 2020
@@ -136,24 +141,17 @@ df_socio_2020 <- df_socioeconomic |>
     gdp_per_capita = gdp / population    
   ) |>
   # Tiramos NAs y divisiones por cero
-  filter(population > 0, !is.na(gdp)) |> 
-  drop_na(year)
+  filter(population > 0, !is.na(gdp)) 
 
 # ----------------------------------------------------------
 # Transferencias del año 2020
 # transfer_amount: monto total de subsidios (Bolsa Familia)
 # transfer_n: número de beneficiarios únicos
-# Calculamos transfer_per_cap = transfer_amount / transfer_n
 
 df_transfers_2020 <- df_transfers |>
   filter(year == 2020) |>
   select(id_municipio, year, transfer_amount, transfer_n) |>
-  filter(!is.na(transfer_amount), transfer_n > 0) |>
-  # Monto por beneficiario
-  mutate(
-    transfer_per_cap = transfer_amount / transfer_n  
-  ) |> 
-  drop_na(year)
+  filter(!is.na(transfer_amount), transfer_n > 0) 
 
 # ----------------------------------------------------------
 # Variables de gasto municipal por area programática (2020)
@@ -161,22 +159,9 @@ df_transfers_2020 <- df_transfers |>
 # educ_exp:   gasto en educación
 # urban_exp:  gasto en urbanismo y vivienda
 
-df_finance_2020 <- df_finance |> 
+df_finance_2020 <- df_finance |>
   filter(year == 2020) |>
-  select(id_municipio, year, health_exp, educ_exp, urban_exp) |> 
-  drop_na(year) |> 
-  # Normalizamos por la cantidad de habitantes para romper la correlación entre variables
-  left_join(
-    df_socio_2020 |> select(id_municipio, population), 
-    by="id_municipio"
-  ) |> 
-  mutate(
-    health_exp = health_exp/population, 
-    educ_exp = educ_exp/population, 
-    urban_exp = urban_exp/population, 
-  ) |> 
-  select(id_municipio, year, health_exp, educ_exp, urban_exp)
-  
+  select(id_municipio, year, health_exp, educ_exp, urban_exp) 
 
 # ----------------------------------------------------------
 # Ensamblamos el dataset final con LEFT JOINs
@@ -198,7 +183,7 @@ df_modelo <- df_voto_pt |>
     legal_amazon = as.integer(legal_amazon)  # 1 si pertenece a la Amazonía Legal
   ) |>
   # Quitamos observaciones con valores faltantes en las variables clave
-  drop_na(pct_pt, gdp_per_capita, population, transfer_per_cap, region) |>
+  drop_na(pct_pt, gdp_per_capita, population, transfer_n, region) |>
   # Filtramos valores extremos claramente erróneos
   filter(gdp_per_capita > 0, population > 0)
 
@@ -213,7 +198,7 @@ head(df_modelo)
 
 En general, siempre y cuando un gráfico muestre la misma información en forma compacta y digerible, desaliento el uso de tablas. Pero, en ciertas ocasiones, sobre todo cuando se reportan métricas de bondad de ajustes, el uso de tablas se vuelve ineludible.
 
-Antes de correr cualquier regresión, es buena práctica explorar la distribución de las variables (podríamos hacer gráficos de las distribuciones, pero eso ya lo hicimos la clase pasada). Para eso podemos usar `kable` y `kableExtra` para hacer una tabla resumen que se vea coqueta.
+Antes de correr cualquier regresión, es buena práctica explorar la distribución de las variables (podríamos hacer gráficos de las distribuciones). Para eso podemos usar `kable` y `kableExtra` para hacer una tabla resumen con estadística descrpitiva que se vea coqueta.
 
 ```{r}
 #| label: tabla-descriptiva
@@ -226,7 +211,7 @@ Antes de correr cualquier regresión, es buena práctica explorar la distribuci�
 tabla_desc <- df_modelo |>
   select(
     pct_pt, gdp_per_capita, population,
-    transfer_per_cap, health_exp, educ_exp, urban_exp
+    transfer_n, health_exp, educ_exp, urban_exp
   ) |>
   pivot_longer(cols = everything(), names_to = "Variable", values_to = "valor") |>
   group_by(Variable) |>
@@ -245,27 +230,31 @@ tabla_desc <- df_modelo |>
     "pct_pt"           ~ "% Votos PT (2020)",
     "gdp_per_capita"   ~ "PIB per cápita (R$)",
     "population"       ~ "Población",
-    "transfer_per_cap" ~ "Transferencias por beneficiario (R$)",
-    "health_exp"       ~ "Gasto en Salud per capita (R$)",
-    "educ_exp"         ~ "Gasto en Educación per capita (R$)",
-    "urban_exp"        ~ "Gasto en Urbanismo per capita (R$)"
+    "transfer_n"       ~ "Número de transferencias",
+    "health_exp"       ~ "Gasto en Salud (R$)",
+    "educ_exp"         ~ "Gasto en Educación (R$)",
+    "urban_exp"        ~ "Gasto en Urbanismo (R$)"
+    # "health_exp"       ~ "Gasto en Salud per capita (R$)",
+    # "educ_exp"         ~ "Gasto en Educación per capita (R$)",
+    # "urban_exp"        ~ "Gasto en Urbanismo per capita (R$)"
   ))
 
 # ----------------------------------------------------------
-# Renderizamos con kable y kableExtra
+# Renderizamos con kable y kableExtra (recuerden f1 para ver más info)
 tabla_desc |>
   knitr::kable(
     caption = "Tabla 1. Estadísticas descriptivas — Municipios de Brasil (2020)",
     digits  = 2,
     format  = "html",
-    align   = c("l", rep("r", 6))
+    align   = c("l", rep("c", 6)) # alineación de las columnas left, center, right
   ) |>
+  # Cuestiones de estilo
   kableExtra::kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width        = FALSE,
-    font_size         = 13
+    font_size         = 15
   ) |>
-  kableExtra::row_spec(0, bold = TRUE, background = "#2c3e50", color = "white") |>
+  kableExtra::row_spec(0, bold = TRUE, background = "gray", color = "white") |>
   kableExtra::footnote(
     general = "Fuente: IBGE, TSE y Ministerio de Ciudadanía de Brasil.",
     general_title = "Nota: esta es una tabla coqueta"
@@ -274,11 +263,11 @@ tabla_desc |>
 
 ------------------------------------------------------------------------
 
-# 1. El modelo lineal base y el atajo del Tidyverse
+# 1. El modelo lineal base y la sintaxis del `tidyverse`
 
 ## ¿Qué es un modelo lineal?
 
-Un modelo de regresión lineal es una de las herramientas más poderosas y omnipresentes en ciencia en general. Su lógica es simple: queremos **cuantificar cómo cambia, en promedio, una variable dependiente** $Y$ **cuando cambia una variable independiente** $X$**, manteniendo todo lo demás constante** (los economistas suelen decir *ceteris paribus*).
+Los modelos de regresión lineal son de las herramientas más poderosas y omnipresentes en ciencia en general. Su lógica es simple: queremos **cuantificar cómo cambia en promedio una variable dependiente** $Y$ **cuando cambia una variable independiente** $X$**, al mantener las variables restantes constantes** (los economistas suelen decir *ceteris paribus*).
 
 La forma general del modelo es
 
@@ -287,23 +276,23 @@ $$Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \ldots + \beta_k X_{ki} + \v
 donde
 
 - $Y_i$ es el resultado que queremos explicar (en nuestro caso, el **% de votos al PT** en el municipio $i$).
-- $\beta_0$ es el **intercepto**: el valor promedio de $Y$ cuando todos los $X$ valen cero. Es decir, una valor base respecto que las variables independientes modificaran.
+- $\beta_0$ es el **intercepto**: el valor promedio de $Y$ cuando todos los $X$ valen cero. Es decir, una valor base respecto al cual las variables independientes sumaran o restaran.
 - $\beta_j$ es el **coeficiente** de la variable $X_j$: en nuestro modelo nos dirá cuántos puntos porcentuales cambia el voto al PT cuando $X_j$ aumenta en una unidad, *manteniendo fijas* todas las demás variables.
-- $\varepsilon_i$ es el **término de error**: todo lo que el modelo no explica para el municipio $i$.
+- $\varepsilon_i$ es el **término de error**: condensa todo lo que el modelo no puede explicar para el municipio $i$.
 
-El método que usa R para encontrar los mejores $\beta$ se llama **Mínimos Cuadrados Ordinarios (OLS —*Ordinary Least Squares—*)**. Este método minimiza la suma de los errores al cuadrado $\sum \varepsilon_i^2$, lo que garantiza que la recta ajustada sea la que mejor se aproxima a los datos.
+El método que usa R para encontrar los mejores $\beta$ se llama **Mínimos Cuadrados Ordinarios (OLS —*Ordinary Least Squares—*)**. Este método minimiza la suma de los errores al cuadrado $\sum \varepsilon_i^2$ garantizando que la recta ajustada sea la que mejor se aproxima a los datos.
 
 ::: callout-tip
 **Interpretación de coeficientes**
 
-Un coeficiente $\hat{\beta}_1 = 0.3$ sobre `transfer_per_cap` se leería así: *"Un aumento de un real en el monto promedio de transferencias por beneficiario **se asocia, en promedio, con un incremento** de 0.3 puntos porcentuales en el voto al PT, manteniendo constantes las demás variables del modelo."*
+Un coeficiente $\hat{\beta}_1 = 0.3$ sobre `transfer_n` se leería así: *"Un aumento de 1 habitante sobre el total promedio de beneficiarios en un municipio **se asocia, en promedio, con un incremento** de 0.3 puntos porcentuales en el voto al PT, manteniendo constantes las demás variables del modelo."*
 
-Es importante enfatizar que cuando se construye un modelo, en general, se habla de "asociaciones", "vinculaciones", "correlaciones" entre las variables dependientes e independientes, pero nunca de "causas" porque **para encontrar causalidad** entre dos variables ni siquiera basta con que los resultados sean significativos. En general **se requiere un diseño experimental o cuasi-experimental específico que contemple todas las posibles contingencias.**
+Es importante enfatizar que cuando se construye un modelo, en general, se habla de "asociaciones", "vinculaciones", "correlaciones" entre las variables dependientes e independientes, pero nunca de "causas" porque **para encontrar causalidad** entre dos variables ni siquiera basta con que los resultados sean significativos. En general, **se requiere un diseño experimental o cuasi-experimental específico que contemple todas las posibles contingencias.**
 :::
 
 ## Inspeccionando la variable dependiente: ¿cómo se distribuye el voto al PT?
 
-Antes de correr cualquier modelo, conviene mirar la distribución de la variable que queremos explicar. Un **violin plot** superpuesto con puntos individuales nos da dos cosas al mismo tiempo: la forma de la distribución (el ancho del violín) y la variación real entre municipios (los puntos).
+Antes de correr cualquier modelo, conviene mirar la distribución de la variable que queremos explicar. Un **violin plot** superpuesto con puntos individuales nos dice la forma de la distribución (el ancho del violín) y la variación real entre municipios (los puntos).
 
 ```{r}
 #| label: fig-distribucion-pt
@@ -329,7 +318,9 @@ paleta_region <- c(
 # ----------------------------------------------------------
 # Violin + jitter de pct_pt por región
 df_modelo |>
+  # reordenamos las regiones acorde a la mediana de votos al PT
   mutate(region = fct_reorder(region, pct_pt, median)) |>
+  # noten que usamos ggplot dentro deun pipe
   ggplot(aes(x = region, y = pct_pt, fill = region, color = region)) +
   geom_violin(
     alpha     = 0.5,
@@ -348,34 +339,35 @@ df_modelo |>
     linewidth= 0.8,
     color    = "gray20"
   ) +
-  scale_fill_manual(values  = paleta_region, guide = "none") +
+  # guide none quita la cajita de asignacion color→region
+  scale_fill_manual(values  = paleta_region, guide = "none") + 
   scale_color_manual(values = paleta_region, guide = "none") +
   scale_y_continuous(labels = scales::label_percent(scale = 1),
                      breaks = seq(0, 100, 20)) +
   labs(
-    title    = "Distribución del voto al PT por macro-región",
+    title    = "Distribución del voto al PT por región",
     subtitle = "Cada punto es un municipio. La barra horizontal marca la mediana regional. Elecciones municipales 2020.",
     x        = NULL,
     y        = "% Votos al PT",
     caption  = paste0("Fuente: TSE (2020). N = ", n_municipios, " municipios.")
   ) +
-  theme_minimal(base_size = 13) +
+  theme_minimal(base_size = 15) +
   theme(
     plot.title       = element_text(face = "bold", size = 15),
-    plot.subtitle    = element_text(size = 11, color = "gray40"),
+    plot.subtitle    = element_text(size = 12, color = "gray40"),
     panel.grid.major.x = element_blank(),
     panel.grid.minor   = element_blank(),
-    axis.text.x      = element_text(size = 12, face = "bold")
+    axis.text.x      = element_text(size = 15, face = "bold")
   )
 ```
 
 ::: callout-note
 **¿Qué vemos de estas distribuciones?**
 
-Los datos se distribuyen distinto según la región. Esto nos anticipa que `region` va a ser un predictor importante en los modelos. Además, podríamos probar agrupar las regiones en tres categorías: Centro-Oeste, Sudeste y Norte por un lado, y Nordeste y Sul, por otros. Ya que las primeras tres regiones parecen redundantes en su distribución.
+Los datos se distribuyen heterogeneamente según la región. Esto nos anticipa que la variable `region` va a ser un predictor importante en los modelos. Si viéramos que hay regiones con distribuciones muy similares podríamos agruparlas para reducir redundancias en el modelo.
 :::
 
-## Estimando el modelo base con `lm()`
+## Modelo 1: estimando el modelo base con `lm()`
 
 La función `lm()` (de *linear model*) es la herramienta estándar de R para OLS. La sintaxis básica es:
 
@@ -383,16 +375,18 @@ La función `lm()` (de *linear model*) es la herramienta estándar de R para OLS
 modelo <- lm(formula = Y ~ X1 + X2 + X3, data = data)
 ```
 
-Cuando tenemos muchos predictores, el `tidyverse` ofrece un atajo muy conveniente: la fórmula `Y ~ .` que significa *"regresá Y sobre todas las demás columnas del dataset"*.
+Cuando tenemos muchos predictores, el `tidyverse` ofrece un atajo muy conveniente: la fórmula `Y ~ .` que significa *"regresá Y sobre todas las demás variables"*. También está `Y ~ . - X3` que significa *"regresá Y sobre todas las variables, salvo X3".*
 
-Esto es útil para exploración, aunque en la práctica siempre deberíamos pensar qué variables incluir en el modelo con criterio teórico y contextual, no se trata de probar a fuerza bruta hasta encontrar algo.
+Esto es útil para exploración, aunque en la práctica siempre deberíamos pensar qué variables queremos incluir en el modelo con criterio teórico y contextual ya que no se trata de probar a fuerza bruta hasta encontrar algo.
 
 ::: callout-note
-## Sobre las categóricas (*dummy variables)*
+## Sobre las variables categóricas y el mapeo a las *dummy variables*
 
-Para entender cómo funcionan las variables *dummy* (o dicotómicas), conviene pensarlas en términos binarios: 1 o 0. Si nuestro país tiene cinco regiones, la intuición sería construir cinco vectores que se mapeen a cada región (1,0,0,0,0), (0,1,0,0,0) y así. Sin embargo, el modelo solo necesita construir cuatro vectores porque el quinto vector es redundante; si los cuatro primeros elementos son nulos, por descarte, la quinta región debe estar prendida.
+Para entender cómo se transforman variables categóricas en *dummy variables*, conviene pensar en términos binarios: 1s y 0s.
 
-Esa región que se queda deliberadamente sin asignación propia es la que llamamos "categoría de referencia". Así, el intercepto del modelo nos indica el peso de la referencia cuando el resto de las variables son cero. En este sentido, cuando analicemos los pesos del resto de las regiones, vamos a estar calculando cuántos puntos sube o baja el voto en comparación directa con la referencia. Por eso, conviene **elegir la referencia a conciencia de la hipótesis o historia que quiera uno contar.**
+Si nuestro país tiene cinco regiones, la intuición sería construir cinco vectores que se mapeen uno a uno con cada región: (1,0,0,0,0)→"Norte", (0,1,0,0,0)→"Sul" y así. Sin embargo, hacer esto no es necesario porque el modelo solo necesita construir cuatro vectores ya que el quinto vector es redundante: si los cuatro primeros elementos tienen peso nulo, por descarte, la quinta región debe estar prendida.
+
+Esa región que se queda deliberadamente sin asignación propia es la que llamamos "categoría de referencia". De esta forma, **cuando hay *dummy variables* el intercepto del modelo nos indica el peso de la referencia cuando el resto de las variables son cero**. Así, los pesos del resto de las regiones van a cuantificar cuántos puntos sube o baja el voto en comparación directa con la referencia. Por esta razón, conviene **elegir la referencia a conciencia de la hipótesis o la historia que queremos contar.**
 :::
 
 ```{r}
@@ -405,21 +399,24 @@ Esa región que se queda deliberadamente sin asignación propia es la que llamam
 # Usamos un subconjunto seleccionado de variables para el
 # "atajo del tidyverse" (y ~ .) y el modelo controlado
 
-# Primero, construimos un subconjunto con las variables que
-# vamos a usar en el modelo base (para que y ~ . sea limpio)
+# SELECCIONAMOS LA REFERENCIA DE LA VARIABLE CATEGORICA  
+# Elegimos Centro-OESTE para que quede primera en las regiones porque es la que tiene la mediana más baja en la distribución.
 df_modelo  <- df_modelo |>
-  # ELEJIMOS QUE Centro-OESTE qUEDE PRIMERA PQ TIENE LA MEDIANA MÁS BAJA (EL PISO) --> ES LA QUE AGARRA DE REFERENCIA PARA CONSTRUIR LA DUMMY
-  mutate(region=fct_relevel(region, "Centro-Oeste"))
-  
+  mutate(
+    region=fct_relevel(region, "Centro-Oeste")
+  )
+
+# Construimos un subconjunto con las variables que
+# vamos a usar en el modelo base (para que y ~ . sea limpio)  
 df_modelo_base <- df_modelo |> 
   select(
     pct_pt,            # Variable dependiente: % votos al PT
     gdp_per_capita,    # PIB per cápita del municipio
     population,        # Tamaño del municipio
-    transfer_per_cap,  # Transferencias sociales por beneficiario
-    health_exp,        # Gasto municipal en salud per capita
-    educ_exp,          # Gasto municipal en educación per capita 
-    urban_exp,         # Gasto municipal en urbanismo per capita
+    transfer_n,        # Transferencias sociales totales
+    health_exp,        # Gasto municipal en salud 
+    educ_exp,          # Gasto municipal en educación
+    urban_exp,         # Gasto municipal en urbanismo
     region,            # Macro-región (variable categórica)
     legal_amazon       # Si pertenece a la Amazonía Legal (dummy)
   )
@@ -427,8 +424,8 @@ df_modelo_base <- df_modelo |>
 # ----------------------------------------------------------
 # El atajo y ~ . ("punto"): regresá pct_pt sobre TODAS
 # las demás columnas del dataframe df_modelo_base.
-# R convierte automáticamente los factores en dummies
-# ----------------------------------------------------------
+# R convierte automáticamente los factores en dummies, tomando
+# como referencia la primera de las variables
 modelo_1 <- lm(pct_pt ~ ., data = df_modelo_base)
 
 # Veamos el output clásico
@@ -438,12 +435,12 @@ summary(modelo_1)
 ::: callout-note
 **¿Cómo leer el output de `summary()`?**
 
-- **`Estimate`**: el coeficiente $\hat{\beta}$ nos dice cuánto cambia `pct_pt` cuando la variable sube una unidad.
-- **`Std. Error`**: el error estándar del coeficiente. Mide la incertidumbre de la estimación.
-  - **`t value`**: el estadístico de prueba $t = \hat{\beta} / SE(\hat{\beta})$ que mide la "fuerza" del resultado como una relación de cuántos errores estándar se aleja nuestra estimación del cero (mayor a 2 o menor a -2 el efecto suele ser significativo).
-- **`Pr(>|t|)`**: el p-valor. Si es menor al umbral de (usualmente 0.05), rechazamos la hipótesis nula de que $\beta = 0$.
-- **`R-squared`**: la proporción de varianza en `pct_pt` que explica el modelo. 1 = ajuste perfecto; 0 = no explica nada.
-- **`regionNordeste`**: siendo `Centro-Oeste` la categoría de referencia, este coeficiente indica cuántos puntos porcentuales más (o menos) vota al PT el Nordeste respecto al Centro-Oeste, manteniendo todo lo demás igual.
+- **Estimate**: el coeficiente $\hat{\beta}$ nos dice cuánto cambia `pct_pt` cuando la variable sube una unidad.
+- **Std. Error**: el error estándar del coeficiente. Mide la incertidumbre de la estimación.
+- **T value**: el estadístico de prueba $t = \hat{\beta} / SE(\hat{\beta})$ que mide la "fuerza" del resultado como una relación de cuántos errores estándar se aleja nuestra estimación del cero (mayor a 2 o menor a -2 el efecto suele ser significativo).
+- **Pr(\>\|t\|)**: el p-valor. Si es menor al umbral (usualmente 0.05), rechazamos la hipótesis nula de que $\beta = 0$.
+- **R-squared**: la proporción de la varianza en `pct_pt` que explica el modelo. 1 → ajuste perfecto, 0 → no explica nada.
+- **Ejemplo**: veamos **`regionNordeste`**. Siendo `Centro-Oeste` la categoría de referencia, este coeficiente indica cuántos puntos porcentuales más (o menos) vota al PT en el Nordeste, manteniendo el resto de las variables fijas.
 :::
 
 ![Regiones Brasil](images/clipboard-2594739054.png){fig-align="center" width="296"}
@@ -451,11 +448,17 @@ summary(modelo_1)
 ::: callout-caution
 **Algunos detalles de interpretación**
 
-**1. R² ≈ 0.16 — ¿por qué tan bajo?** El R² bajo no invalida el análisis. En datos de corte transversal con \~1000 municipios heterogéneos (diferencias históricas, geográficas, culturales), es completamente esperable que las pocas variables económicas disponibles expliquen solo una fracción de la varianza electoral. Lo que más importa en este tipo de modelos no es el R² sino si los estimadores $\hat{\beta}$ son insesgados y consistentes. Un R² bajo simplemente podría significar que hay mucha variación idiosincrática que no capturamos — no particularmente que los efectos que sí encontramos sean falsos.
+**1. R² ≈ 0.16 — ¿por qué tan bajo?**
 
-**2. `legal_amazon` negativo y significativo — un hallazgo contraintuitivo.** Los municipios de la Amazonía Legal votan aproximadamente entre 12.1 y 4.9 puntos porcentuales *menos* al PT, controlando por región. Esto parece sorprendente dado que la Amazonía Legal incluye casi todo el Norte, región historicamente afines al PT. Sin embargo, la Amazonía Legal también abarca amplias zonas del Centro-Oeste con fuerte presencia del agronegocio y del evangelismo, bases electorales del bolsonarismo desde 2018.
+El R² bajo no invalida el análisis. En datos de corte transversal con \~1000 municipios heterogéneos (diferencias históricas, geográficas, culturales), es completamente esperable que las pocas variables económicas disponibles expliquen una porción reducida de la varianza electoral.
 
-Este resultado ilustra el valor de los controles: la región ya capta parte de la geografía política; la Amazonía Legal captura algo diferente intra-región.
+Lo que más importa en este tipo de modelos no es el R² sino si los estimadores $\hat{\beta}$ son insesgados y consistentes. Un R² bajo simplemente podría significar que hay variación idiosincrática que el modelo no logra capturar —no particularmente que los efectos que sí encontramos sean falsos.
+
+**2. `legal_amazon` negativo y significativo**
+
+Los municipios de la Amazonía Legal votan aproximadamente entre 12.1 y 7 puntos porcentuales *menos* al PT, controlando por región. Esto parece sorprendente, dado que la Amazonía Legal incluye casi todo el Norte, región historicamente afines al PT. Sin embargo, la Amazonía Legal también abarca amplias zonas del Centro-Oeste con fuerte presencia del agronegocio y del evangelismo, bases electorales del bolsonarismo desde 2018.
+
+Este resultado ilustra **el valor de las variables control: la región ya capta parte de la geografía política; la Amazonía Legal captura información intra-región.**
 :::
 
 ![Amazonia Legal](images/clipboard-4019165358.png){fig-align="center" width="341"}
@@ -468,13 +471,13 @@ Este resultado ilustra el valor de los controles: la región ya capta parte de l
 
 El modelo lineal asume que la relación entre $X$ e $Y$ es una **línea recta**. Pero en la realidad, muchas relaciones son curvilíneas. Por ejemplo:
 
-- El efecto del **PIB per cápita** sobre el voto quizás no sea constante: pasar de ser un municipio muy pobre a uno medianamente pobre puede tener mucho más impacto electoral que pasar de ser rico a muy rico. Esto es una **relación log-lineal**.
-- El efecto del **gasto en ubranismo** podría ser creciente hasta cierto punto y luego revertirse debido al hastío y la sensación de derroche: dando una relación de **curva en U invertida**.
+- El efecto del **GDP per cápita** sobre el voto quizás no sea constante: pasar de ser un municipio muy pobre a uno medianamente pobre puede tener mucho más impacto electoral que pasar de ser rico a muy rico. Esto es una **relación log-lineal**.
+- El efecto del **gasto en ubranismo** podría ser creciente hasta cierto punto y luego revertirse debido al hastío y la sensación de derroche: dando una relación de **curva en U invertida**. Esto es una **relación cuadrática**.
 - El impacto de las **transferencias sociales** sobre el voto al PT quizás no es el mismo en el Nordeste (donde el PT tiene raíces históricas profundas) que en el Sur (donde el PT enfrenta mayor competencia). Esto se modela con una **interacción**.
 
 ### Logaritmo: interpretación en elasticidades
 
-Cuando tomamos el logaritmo natural de una variable $X$ continua y positiva (como el PIB per cápita), el modelo se convierte en:
+Cuando tomamos el logaritmo natural de una variable $X$ **continua y positiva** (como el GDP per cápita), el modelo se convierte en:
 
 $$Y_i = \beta_0 + \beta_1 \ln(X_i) + \varepsilon_i$$
 
@@ -482,7 +485,7 @@ El coeficiente $\beta_1$ ya no se interpreta como "cuánto cambia $Y$ por una un
 
 > *"Un incremento del 1% en* $X$ se asocia con un cambio de $\beta_1 / 100$ unidades en $Y$." Equivalentemente, *"Un incremento del 1 unidad en* el $ln X$ se asocia con un cambio de $\beta_1$ unidades en $Y$."
 
-Esto es una **semi-elasticidad** y es extremadamente útil para variables como el PIB, la población o el gasto, que tienen distribuciones muy asimétricas con colas largas a la derecha.
+Esto modelado se denomina **semi-elastico** y es extremadamente útil para variables como el GDP, la población o el gasto, que tienen distribuciones muy asimétricas con colas largas a la derecha.
 
 ### Términos cuadráticos: rendimientos decrecientes
 
@@ -490,7 +493,9 @@ Si sospechamos que la relación entre $X$ e $Y$ tiene una forma de parábola (cu
 
 $$Y_i = \beta_0 + \beta_1 X_i + \beta_2 X_i^2 + \varepsilon_i$$
 
-El máximo (o mínimo) de la parábola ocurre en $X^* = -\beta_1 / (2\beta_2)$. Si $\beta_2 < 0$, la curva es una U invertida (hay un punto óptimo). En R, la sintaxis es `I(X^2)` dentro de la fórmula.
+El máximo (o mínimo) de la parábola ocurre en $X^* = -\beta_1 / (2\beta_2)$. Si $\beta_2 < 0$, la curva es una U invertida (hay un punto óptimo).
+
+En R, la sintaxis para hacer este modelado es `I(X^2)` dentro de la fórmula.
 
 ### Interacciones: efectos heterogéneos
 
@@ -498,13 +503,17 @@ Una interacción $X_1 \times X_2$ permite que el efecto de $X_1$ sobre $Y$ varí
 
 $$Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 (X_{1i} \times X_{2i}) + \varepsilon_i$$
 
-El efecto marginal de $X_1$ es ahora $\partial Y / \partial X_1 = \beta_1 + \beta_3 X_2$, es decir, **depende del valor de** $X_2$ **y del peso asignado a la interacción** $\beta_3$.
+El efecto marginal de $X_1$ es ahora $\partial Y / \partial X_1 = \beta_1 + \beta_3 X_2$, es decir, **depende del** **valor de** $X_2$ **y del peso asignado a la interacción** $\beta_3$.
 
-En nuestro caso preguntas pertinentes serían ¿el efecto del PBI per cápita sobre el voto al PT varía según la región? ¿El impacto de las transferencias es diferente en el Nordeste que en el Sur?
+En nuestro caso preguntas pertinentes serían para modelas interacciones serían ¿el efecto del GDP per cápita sobre el voto al PT varía según la región? ¿El impacto de las transferencias es diferente en el Nordeste que en el Sur?
 
-## Motivación visual: ¿por qué logaritmo?
+## Modelo 2: incorporando semi-elasticidades
 
-Antes de estimar el segundo modelo, conviene *ver* la forma de la relación entre PIB per cápita y voto al PT. Si la relación fuera lineal, los puntos deberían distribuirse uniformemente alrededor de una recta. Si es curvilínea, necesitamos transformar.
+### Motivación visual: ¿por qué logaritmo?
+
+Antes de estimar el segundo modelo, conviene *ver* la forma de la relación entre PIB per cápita y voto al PT. Si la relación fuera lineal, los puntos deberían distribuirse uniformemente alrededor de una recta. Si la relación es curvilínea, necesitamos aplicar alguna transformación. De yapa podemos graficar también la relación entre el gasto en urbanismo y el voto al PT, bajo la posibilidad de encontrar una relación cuadrática negativa en su distribución.
+
+Esto lo hacemos porque tenemos la suposición de que **las variables que escalan con el tamaño de la población sirven parcialmente de proxy (miden indirectamente) para el tamaño poblacional**. Osea, que si un municipio tiene 500000 unidades de alguna variable de repente va a pesar mucho más en el ajuste que otro que tiene 500 unidades. Al loguear, la diferencia se achica y el efecto sobre la variable se mitiga.
 
 ```{r}
 #| label: fig-log-motivacion
@@ -549,7 +558,7 @@ p_log <- df_modelo |>
   labs(
     title    = "Escala logarítmica",
     subtitle = "Relación más lineal y homogénea",
-    x        = "ln(PIB per cápita)",
+    x        = "log(PIB per cápita)",
     y        = "% Votos al PT"
   ) +
   theme_minimal(base_size = 12) +
@@ -562,7 +571,7 @@ p_urban <- df_modelo |>
   ggplot(aes(x = urban_exp, y = pct_pt)) +
   geom_point(alpha = 0.12, size = 0.9, color = "#2171B5") +
   
-  # ACÁ LA MAGIA: Forzamos a geom_smooth a estimar una parábola cuadrática
+  # Forzamos a geom_smooth a estimar una parábola cuadrática
   geom_smooth(method = "lm", 
               formula = y ~ poly(x, 2, raw = TRUE), 
               se = TRUE,
@@ -572,7 +581,7 @@ p_urban <- df_modelo |>
   scale_x_continuous(labels = scales::label_comma(big.mark = ".")) +
   scale_y_continuous(labels = scales::label_percent(scale = 1)) +
   labs(
-    title    = "Relación polinómica (Cuadrática)",
+    title    = "Relación polinómica (Cuadrática)→ Claramente no existe",
     subtitle = "Modelando efectos curvilíneos (U invertida) en gasto urbano",
     x        = "Gasto en Urbanismo per cápita (R$)",
     y        = "% Votos al PT"
@@ -581,11 +590,11 @@ p_urban <- df_modelo |>
   theme(plot.title    = element_text(face = "bold"),
         plot.subtitle = element_text(color = "gray40", size = 10),
         panel.grid.minor = element_blank())
-# patchwork combina los dos paneles en una sola figura
 
+# patchwork combina los paneles en una sola figura
 (p_original + p_log)/p_urban +
   plot_annotation(
-    title   = "¿Por qué loguear el PIB per cápita?",
+    title   = "¿Por qué loguear el PIB per capita?",
     caption = "Suavizador LOESS con banda de confianza al 95%. Fuente: IBGE / TSE (2020).",
     theme   = theme(plot.title = element_text(face = "bold", size = 14))
   )
@@ -594,12 +603,14 @@ p_urban <- df_modelo |>
 ::: callout-tip
 **¿Qué vemos?**
 
-En escala original, la nube de puntos está aplastada a la izquierda (muchos municipios pobres) y hay una cola muy larga a la derecha (pocos municipios muy ricos). El suavizador LOESS no puede distinguir una relación clara. En escala logarítmica, los puntos se distribuyen uniformemente y la relación negativa entre desarrollo económico y voto al PT se vuelve visible: municipios más ricos votan sistemáticamente menos al PT (para valores menores a $10^5$ (casi cien mil reales, es decir, un salario alto).
+En escala original, la nube de puntos está aplastada a la izquierda (muchos municipios pobres) y hay una cola muy larga a la derecha (pocos municipios muy ricos). El suavizador LOESS no puede distinguir una relación clara.
 
-Esto justifica usar `log(gdp_per_capita)` en el siguiente modelo. Sin embargo la suposición cuadrática en el gasto de urbanismo per capita, claramente no tiene sentido.
+En escala logarítmica, los puntos se distribuyen uniformemente y muestran una relación negativa para valores menores a $10^5$ (casi cien mil reales, es decir, un salario alto): municipios más ricos votan sistemáticamente menos al PT. Esto justifica usar `log(gdp_per_capita)` en el siguiente modelo.
+
+Por otro lado, la suposición cuadrática sobre el gasto en urbanismo claramente no tenía el sentido que le asignamos más arriba.
 :::
 
-Ahora, sí computemos el modelo tomando el logaritmo de esa variable, también para la población. Por último incluimos un termino cuadrático a las asignaciones de subsidios: si son muy altas puede influir negativamente dado que la gente
+Ahora, sí computemos el modelo tomando el logaritmo de esa variable y hagamos lo mismo para las variables de población y gasto (pueden estudiar ustedes que siguen un crecimiento similar al visto arriba).
 
 ```{r}
 #| label: modelo-2-log-poly
@@ -612,22 +623,20 @@ Ahora, sí computemos el modelo tomando el logaritmo de esa variable, también p
 # Transformaciones aplicadas:
 # - log(gdp_per_capita)   : semi-elasticidad del PIB per cápita
 # - log(population)       : semi-elasticidad del tamaño municipal
-# - todos los _exp        : aca no tomamos log porque ya ajustamos per capita al principio
-# - transfer_per_cap      : posible curva en U en la relación --> descartado (no lo hice para no llenar de graficos), lo dejamos lineal
+# - log sobre los _exp    : semi-elasticidad a los gastos por municipio
+# - transfer_n            : posible curva en U en la relación --> descartado (no lo hice para no llenar de graficos), lo dejamos lineal
 
 
 modelo_2 <- lm(
   pct_pt ~
     log(gdp_per_capita)      +   # Log del PIB per cápita
     log(population)          +   # Log de la población
-    transfer_per_cap         +   # Transferencias sociales por beneficiario (nivel)
-    # I(transfer_per_cap^2)    +   # Término cuadrático de transferencias si quisieramos 
-    # log(health_exp + 1)      +   # Log del gasto municipal en salud
-    # log(educ_exp   + 1)      +   # Log del gasto municipal en educación
-    # log(urban_exp  + 1)      +   # Log del gasto municipal en urbanismo
-    health_exp                +
-    educ_exp                 +
-    urban_exp                +
+    log(transfer_n)          +   # Log de las transferencias sociales totales
+    # I(transfer_n^2)        +   # Término cuadrático de transferencias
+    # +1 para evitar log(0) en municipios con gasto nulo)
+    log(health_exp + 1)      +   # Log del gasto municipal en salud + 1 
+    log(educ_exp   + 1)      +   # Log del gasto municipal en educación
+    log(urban_exp  + 1)      +   # Log del gasto municipal en urbanismo
     region                   +   # Efectos fijos de región (dummies)
     legal_amazon,                # Dummy Amazonía Legal
   data = df_modelo
@@ -638,13 +647,15 @@ summary(modelo_2)
 
 Noten cómo influyen los términos logarítmicos:
 
-- al crecer en promedio 1% el PBI per cápita de un municipio, el número de votos al PT decrece entre 2.8e-02 y 6.2e-02.
+- al crecer en promedio 1% el GDP per cápita de un municipio, el porcentaje del PT decrece entre 0,03% y 0.05%. Este término antes no era significativo.
 
-- Por otro lado, al crecer en promedio 1% la población de un municipio, los votos del PT decrecen entre 6.41e-02 y 8.169e-02.
+- Por otro lado, al crecer en promedio 1% la población de un municipio, los votos del PT decrecen entre 0,08% y 0,14%.
 
-## Motivación visual para las interacciones: ¿hay heterogeneidad regional en el poder adquisitivo?
+## Modelo 3: incorporando interacciones
 
-La interacción del Modelo 3 tiene sentido solo si el GDP realmente varían entre regiones. Un gráfico rápido antes de estimar sirve como chequeo de consistencia.
+### Motivación visual para las interacciones: ¿hay heterogeneidad regional en las asignaciones universales?
+
+La interacción del Modelo 3 tiene sentido solo si las gastos en asistencia realmente varían entre regiones. Un gráfico rápido antes de estimar sirve como chequeo de consistencia.
 
 ```{r}
 #| label: fig-transferencias-region
@@ -657,13 +668,9 @@ La interacción del Modelo 3 tiene sentido solo si el GDP realmente varían entr
 # Boxplot de gdp_per_capita por región, con puntos de
 # mediana destacados
 
-# df_modelo |>
-#   mutate(region = fct_reorder(region, transfer_per_cap, median)) |>
-#   ggplot(aes(x = region, y = transfer_per_cap,
-#              fill = region, color = region)) +
 df_modelo |>
-  mutate(region = fct_reorder(region, log(gdp_per_capita), median)) |>
-  ggplot(aes(x = region, y = log(gdp_per_capita),
+  mutate(region = fct_reorder(region, transfer_n, median)) |>
+  ggplot(aes(x = region, y = transfer_n,
              fill = region, color = region)) +
   geom_boxplot(
     alpha    = 0.3,
@@ -683,12 +690,12 @@ df_modelo |>
   ) +
   scale_fill_manual(values  = paleta_region, guide = "none") +
   scale_color_manual(values = paleta_region, guide = "none") +
-  scale_y_continuous(labels = scales::label_comma(big.mark = ".")) +
+  scale_y_log10(labels = scales::label_comma(big.mark = ".")) +
   labs(
-    title    = "GDP per capita según macro-región",
+    title    = "Transferencias sociales totales según región",
     subtitle = "Mediana marcada con punto blanco. Cada caja agrupa todos los municipios de la región.",
     x        = NULL,
-    y        = "GDP per capita",
+    y        = "Transferencias totales",
     caption  = "Fuente: Ministerio de Ciudadanía de Brasil (2020)."
   ) +
   theme_minimal(base_size = 13) +
@@ -704,7 +711,7 @@ df_modelo |>
 ::: callout-note
 **¿Qué vemos?**
 
-El Nordeste y el Norte tienen medianas de poder adquisitivo más bajas, mientras que el Sul presenta los montos más altos. Esta variación regional es la que el Modelo 3 intenta capturar con la interacción: si el GDP afecta el voto de forma diferente según la región, el coeficiente de interacción debería ser estadísticamente distinto de cero.
+El Nordeste y el Norte tienen medianas de transferencias más altas, mientras que el Sul presenta los montos más bajos. Esta variación regional es la que el Modelo 3 pretende capturar con la interacción: si las asignaciones universales afectan el voto de forma diferente según la región, el coeficiente de interacción debería ser estadísticamente distinto de cero.
 :::
 
 ```{r}
@@ -716,7 +723,7 @@ El Nordeste y el Norte tienen medianas de poder adquisitivo más bajas, mientras
 # Modelo 3: especificación con interacción
 #
 # La hipótesis que probamos: el efecto de las transferencias
-# sociales (transfer_per_cap) sobre el voto al PT varía según
+# sociales (transfer_n) sobre el voto al PT varía según
 # la macro-región del municipio.
 #
 # En R, la interacción se escribe como: X1 * X2
@@ -725,13 +732,12 @@ El Nordeste y el Norte tienen medianas de poder adquisitivo más bajas, mientras
 
 modelo_3 <- lm(
   pct_pt ~
-    # log(gdp_per_capita)   +        # Log del PIB per cápita
-    log(population)       +        # Log de la población
-    transfer_per_cap      +
-    log(gdp_per_capita) * region +    # Interacción: transferencias × región --> no escribimos ni region ni transferencia por separado así
-    health_exp            +
-    educ_exp              +
-    urban_exp             +
+    log(gdp_per_capita)           +        # Log del PIB per cápita
+    log(population)               +        # Log de la población
+    log(transfer_n) * region     +        # Interacción: transferencias × región --> no escribimos ni region ni transferencia por separado así
+    log(health_exp + 1)   +        # Log del gasto en salud
+    log(educ_exp   + 1)   +        # Log del gasto en educación
+    log(urban_exp  + 1)   +        # Log del gasto en urbanismo
     legal_amazon,                  # Dummy Amazonía Legal
   data = df_modelo
 )
@@ -742,40 +748,46 @@ summary(modelo_3)
 ::: callout-tip
 **¿Cómo leer los coeficientes de interacción?**
 
-El coeficiente `log(gdp_per_capita):regionNordeste` responde la pregunta: *¿en cuánto difiere el efecto del poder adquisitivo sobre el voto al PT en el Nordeste respecto al Centro-Oeste (categoría base)?*
+El coeficiente log(`transfer_n):regionSul` responde la pregunta: *¿en cuánto difiere el efecto de las transferencias sobre el voto al PT en el Sur respecto al Centro-Oeste (categoría base)?*
 
-Si ese coeficiente es positivo y significativo, significa que en el Nordeste el poder adquisitivo tienen un efecto adicional sobre el voto al PT por encima del efecto base (capturado por `log(gdp_per_capita)`a secas).
-
-Este tipo de análisis es central si quieren hacer estudios sobre vínculos programáticos entre partidos y votantes en contextos de América Latina.
+Si ese coeficiente es negativo **y significativo**, significa que en el Sur las transferencias tienen un efecto negativo sobre el voto al PT por encima del efecto base (capturado por `tranfer_n` a secas).
 :::
 
 ::: callout-warning
 **Dos cosas para notar al comparar los modelos 1, 2 y 3**
 
-**1. La variación del peso de `gdp_per_capita` en los tres modelos**
+**1. La variación del peso de `transfer_n` en los tres modelos**
 
-- En el Modelo 1 (sin logaritmo) el coeficiente es negativo y casi significativo (p≈0.067): más poder adquisitivo, menos voto al PT.
+El coeficiente cambia de magnitud, signo relativo y significancia entre los tres modelos porque cada especificación le pregunta algo diferente a los datos.
 
-- En el Modelo 2 (con logaritmo) el coeficiente sigue siendo negativo, pero ahora es significativo (p≈0.00814 \*\*) porque lo modelamos correctamente.
+- **Modelo 1 (sin transformar):** el modelo estima cuántos puntos porcentuales adicionales de voto al PT se asocian con cada beneficiario extra de transferencias, en promedio y para todos los municipios por igual. El coeficiente es pequeño en magnitud (≈ 0.002) pero muy significativo: hay una señal clara en los datos, aunque aplastada por la escala de la variable (que va de cientos a cientos de miles de beneficiarios).
 
-- En el modelo 3 (con logaritmo e interacciones por región) el coeficiente está lejos de ser significativo ( p≈0.34).
+- **Modelo 2** **(logaritmo natural):** la pregunta cambia, ahora estimamos cuánto cambia el voto cuando las transferencias crecen un 1%, no cuando suman un beneficiario más. Al comprimir la escala, la variación se redistribuye de forma homogénea entre municipios grandes y chicos. El resultado es que el coeficiente pierde significancia: el efecto promedio de las transferencias sobre el voto al PT, una vez que controlamos por tamaño en escala logarítmica, ya no es estadísticamente distinguible de cero. Dicho de otro modo, un municipio con 500.000 beneficiarios "pesa" muchísimo más que uno con 5.000 al ajustar la recta, pero si logueamos, esa diferencia se achica dramáticamente y la señal que parecía fuerte se debilita.
+
+- **Modelo 3** **(incorporamos la interacción)**: ahora el modelo ya no busca un efecto promedio de las transferencias para todo Brasil, sino que permite que ese efecto se desagregue por región. Al liberar esa restricción, el coeficiente principal de log(transfer_n) recupera magnitud y significancia porque ahora representa el efecto de las transferencias en la categoría de referencia (Centro-Oeste), no el promedio ponderado de cinco regiones con dinámicas políticas muy distintas.
+
+Es decir, el Modelo 2 promediaba efectos heterogéneos y esa heterogeneidad oculta es la que disminuía su poder predictivo. Es un patrón clásico (***aggregation bias***) en regresión: **un coeficiente que parece irrelevante en una especificación puede volverse central en otra cuando se modelan correctamente las interacciones**. Por eso **la interpretación de cualquier coeficiente siempre debe hacerse en el contexto del modelo completo, sin trasladar mecánicamente los resultados de una especificación a otra.**
+
+- En el Modelo 1 (sin logaritmos) el coeficiente es bajo, pero muy significativo: más transferencias, más voto al PT.
+
+- En el Modelo 2 (con logaritmo) el coeficiente pierde significancia.
+
+- En el modelo 3 (con logaritmo e interacciones por región) vuelve a ser signficativo (casi) y adquiere un valor mucho más alto.
 
   ```         
-  Modelos (1,2,3)                     Estimate   Std. Error  t value Pr(>|t|)   
-  gdp_per_capita                     -9.268e-05  5.039e-05  -1.840 0.066161 . 
-  log(gdp_per_capita)                -4.546e+00  1.714e+00  -2.652  0.00814 ** 
-  log(gdp_per_capita)                -4.658e+00  4.914e+00  -0.948  0.34341
+  Modelos (1,2,3)                 Estimate   Std. Error  t value Pr(>|t|) 
+  transfer_n                      2.075e-03  5.548e-04   3.740   0.000195 ***
+  log(transfer_n)                 1.6008     1.3852      1.156   0.2481
+  log(transfer_n)                 6.4727     3.4339      1.885  0.05975 .
   ```
 
-**¿Por qué sucede esto?** No significa que el poder adquisitivo haya dejado de importar, sino que su impacto quedó condicionado.
+**¿Por qué sucede esto?**
 
-Al incluir la interacción entre el GDP y la región el efecto del desarrollo económico se "reparte" y se absorbe de manera heterogénea según el territorio.
+COMENTARIO DIDACTICO
 
-En el Modelo 3, el coeficiente de `log(gdp_per_capita)` pasa a representar únicamente el efecto del PIB en la región de referencia (el Centro-Oeste), donde la relación estructural es distinta. Este es un excelente ejemplo de cómo la significancia de un término principal puede diluirse legítimamente cuando el modelo se vuelve condicional.
+**2. Hay interacciones que no son significativas —y eso también es un resultado.**
 
-**2. Las interacciones no son significativas — y eso también es un resultado.**
-
-Ninguna de las cuatro interacciones `log(gdp_per_capita):region` alcanza significancia al 5%. Esto indica que, en las elecciones municipales de 2020, no hay evidencia estadística de que el efecto del poder adquistivo sobre el voto al PT varíe según la región.
+Salvo en la región Sur, el efecto de las transferencias totales por municipio no es significativo. Esto significa que en el resto de las regiones, no hay evidencia de que el número de beneficiados afecte en el voto al PT.
 :::
 
 ------------------------------------------------------------------------
@@ -791,7 +803,7 @@ El paquete `broom` resuelve esto de forma elegante: convierte los resultados de 
 `broom` tiene **tres funciones clave**, cada una enfocada en un nivel diferente del análisis:
 
 | Función | ¿Qué devuelve? | Nivel |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | `tidy()` | Coeficientes, errores estándar, estadístico t, p-valor | Parámetros |
 | `glance()` | R², AIC, BIC, F-estadístico, degrees of freedom | Modelo global |
 | `augment()` | Valores predichos, residuos, leverage, distancia de Cook | Observaciones |
@@ -1033,8 +1045,8 @@ mapa_coeficientes <- c(
   "log(population)"                      = "ln(Población)",
   "gdp_per_capita"                       = "PIB per cápita",
   "population"                           = "Población",
-  "transfer_per_cap"                     = "Transferencias por beneficiario",
-  "I(transfer_per_cap^2)"                = "Transferencias² (cuadrático)",
+  "transfer_n"                           = "Transferencias totales",
+  "log(transfer_n)"                      = "ln(Transferencias totales)",
   "log(health_exp + 1)"                  = "ln(Gasto en Salud)",
   "log(educ_exp + 1)"                    = "ln(Gasto en Educación)",
   "log(urban_exp + 1)"                   = "ln(Gasto en Urbanismo)",
@@ -1046,10 +1058,10 @@ mapa_coeficientes <- c(
   "regionNordeste"                       = "Región: Nordeste",
   "regionNorte"                          = "Región: Norte",
   "legal_amazon"                         = "Amazonía Legal (dummy)",
-  "transfer_per_cap:regionSudeste"       = "Transferencias × Sudeste",
-  "transfer_per_cap:regionCentro-Oeste"  = "Transferencias × Centro-Oeste",
-  "transfer_per_cap:regionNordeste"      = "Transferencias × Nordeste",
-  "transfer_per_cap:regionNorte"         = "Transferencias × Norte"
+  "log(transfer_n):regionSudeste"       = "ln(Transferencias) × Sudeste",
+  "log(transfer_n):regionCentro-Oeste"  = "ln(Transferencias) × Centro-Oeste",
+  "log(transfer_n):regionNordeste"      = "ln(Transferencias) × Nordeste",
+  "log(transfer_n):regionNorte"         = "ln(Transferencias) × Norte"
 )
 
 # ----------------------------------------------------------
@@ -1153,18 +1165,28 @@ coefs_plot <- broom::tidy(modelo_2, conf.int = TRUE, conf.level = 0.95) |>
   mutate(
     etiqueta = case_match(
       term,
-      "log(gdp_per_capita)"    ~ "ln(PIB per cápita)",
-      "log(population)"        ~ "ln(Población)",
-      "transfer_per_cap"       ~ "Transferencias por beneficiario",
-      "I(transfer_per_cap^2)"  ~ "Transferencias² (cuadrático)",
-      "log(health_exp + 1)"    ~ "ln(Gasto en Salud)",
-      "log(educ_exp + 1)"      ~ "ln(Gasto en Educación)",
-      "log(urban_exp + 1)"     ~ "ln(Gasto en Urbanismo)",
-      "regionSudeste"          ~ "Región: Sudeste",
-      "regionCentro-Oeste"     ~ "Región: Centro-Oeste",
-      "regionNordeste"         ~ "Región: Nordeste",
-      "regionNorte"            ~ "Región: Norte",
-      "legal_amazon"           ~ "Amazonía Legal",
+      "(Intercept)"                          ~ "Intercepto",
+      "log(gdp_per_capita)"                  ~ "ln(PIB per cápita)",
+      "log(population)"                      ~ "ln(Población)",
+      "gdp_per_capita"                       ~ "PIB per cápita",
+      "population"                           ~ "Población",
+      "transfer_n"                           ~ "Transferencias totales",
+      "log(transfer_n)"                      ~ "ln(Transferencias totales)",
+      "log(health_exp + 1)"                  ~ "ln(Gasto en Salud)",
+      "log(educ_exp + 1)"                    ~ "ln(Gasto en Educación)",
+      "log(urban_exp + 1)"                   ~ "ln(Gasto en Urbanismo)",
+      "health_exp"                           ~ "Gasto en Salud",
+      "educ_exp"                             ~ "Gasto en Educación",
+      "urban_exp"                            ~ "Gasto en Urbanismo",
+      "regionSudeste"                        ~ "Región: Sudeste",
+      "regionCentro-Oeste"                   ~ "Región: Centro-Oeste",
+      "regionNordeste"                       ~ "Región: Nordeste",
+      "regionNorte"                          ~ "Región: Norte",
+      "legal_amazon"                         ~ "Amazonía Legal (dummy)",
+      "log(transfer_n):regionSudeste"       ~ "ln(Transferencias) × Sudeste",
+      "log(transfer_n):regionCentro-Oeste"  ~ "ln(Transferencias) × Centro-Oeste",
+      "log(transfer_n):regionNordeste"      ~ "ln(Transferencias) × Nordeste",
+      "log(transfer_n):regionNorte"         ~ "ln(Transferencias) × Norte",
       .default = term          # Si no está en el mapa, muestra el nombre original
     ),
     # Marcamos si el coeficiente es estadísticamente significativo
@@ -1228,7 +1250,9 @@ ggplot(
 
 ### Comparando coeficientes de los tres modelos
 
-Una extensión muy útil del *coefplot* es comparar los coeficientes de variables clave a través de los tres modelos, para evaluar la **robustez** de los hallazgos. Si el coeficiente de `transfer_per_cap` mantiene su signo y magnitud al cambiar la especificación, la evidencia sobre el vínculo programático es más creíble.
+Una extensión muy útil del *coefplot* es comparar los coeficientes de variables clave a través de los tres modelos, para evaluar la **robustez** de los hallazgos.
+
+Si el coeficiente de `legal_amazon` mantiene su signo y magnitud al cambiar la especificación, la evidencia sobre la pertenencia a esta región es mayor.
 
 ```{r}
 #| label: coefplot-comparacion
@@ -1244,25 +1268,23 @@ Una extensión muy útil del *coefplot* es comparar los coeficientes de variable
 # (en nivel, sin transformaciones) para una comparación limpia.
 
 variables_comunes <- c(
-  "gdp_per_capita", "log(gdp_per_capita)", "legal_amazon"
+  "legal_amazon"
 )
 
 df_coefs_comparacion <- bind_rows(
   broom::tidy(modelo_1, conf.int = TRUE) |> mutate(modelo = "Modelo 1: Base"),
   broom::tidy(modelo_2, conf.int = TRUE) |> mutate(modelo = "Modelo 2: Log"),
-  broom::tidy(modelo_3, conf.int = TRUE) |> mutate(modelo = "Modelo 3: Interacción")
+  broom::tidy(modelo_3, conf.int = TRUE) |> mutate(modelo = "Modelo 3: Log + Interacción")
 ) |>
   filter(term %in% variables_comunes) |>
   mutate(
     etiqueta = case_match(
       term,
-      "gdp_per_capita" ~ "GDP per capita",
-      "log(gdp_per_capita)" ~ "GDP per capita",
-      "legal_amazon"   ~ "Amazonía Legal"
+     "legal_amazon"   ~ "Amazonía Legal"
     ),
     modelo = factor(
       modelo,
-      levels = c("Modelo 1: Base", "Modelo 2: Log", "Modelo 3: Interacción")
+      levels = c("Modelo 1: Base", "Modelo 2: Log", "Modelo 3: Log + Interacción")
     )
   )
 
@@ -1312,7 +1334,7 @@ ggplot(
 ::: callout-note
 **¿Qué observar en el gráfico de robustez?**
 
-Si el coeficiente de GDP per capita mantiene el signo y es estadísticamente significativo en los tres modelos, tenemos evidencia robusta de un vínculo programático entre el GDP per capita y el voto al PT.
+Si el coeficiente de `legal_amazon` mantiene el signo y es estadísticamente significativo en los tres modelos, tenemos evidencia robusta de un vínculo entre dicha región y el voto al PT.
 
 Si el coeficiente cambia drásticamente entre modelos, hay que investigar qué variable o transformación está absorbiendo parte del efecto (posible colinealidad o especificación incorrecta).
 :::
