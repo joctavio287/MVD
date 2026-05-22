@@ -781,10 +781,6 @@ Es decir, el Modelo 2 promediaba efectos heterogéneos y esa heterogeneidad ocul
   log(transfer_n)                 6.4727     3.4339      1.885  0.05975 .
   ```
 
-**¿Por qué sucede esto?**
-
-COMENTARIO DIDACTICO
-
 **2. Hay interacciones que no son significativas —y eso también es un resultado.**
 
 Salvo en la región Sur, el efecto de las transferencias totales por municipio no es significativo. Esto significa que en el resto de las regiones, no hay evidencia de que el número de beneficiados afecte en el voto al PT.
@@ -803,7 +799,7 @@ El paquete `broom` resuelve esto de forma elegante: convierte los resultados de 
 `broom` tiene **tres funciones clave**, cada una enfocada en un nivel diferente del análisis:
 
 | Función | ¿Qué devuelve? | Nivel |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `tidy()` | Coeficientes, errores estándar, estadístico t, p-valor | Parámetros |
 | `glance()` | R², AIC, BIC, F-estadístico, degrees of freedom | Modelo global |
 | `augment()` | Valores predichos, residuos, leverage, distancia de Cook | Observaciones |
@@ -1340,3 +1336,91 @@ Si el coeficiente cambia drásticamente entre modelos, hay que investigar qué v
 :::
 
 ------------------------------------------------------------------------
+
+# Extra: Regresión Beta
+
+La regresión beta es la alternativa natural cuando la variable dependiente es una proporción acotada. A diferencia de OLS, que puede predecir valores fuera del rango posible (porcentajes negativos o mayores a 100), la regresión beta modela directamente la distribución de una variable en (0, 1) respetando sus límites matemáticos, lo que resuelve el patrón de "tijeretazo" que veíamos en el gráfico de residuos.
+
+::: callout-important
+## Recaudos
+
+1.  La variable debe transformarse a proporción (dividir por 100) y no puede contener valores exactamente iguales a 0 o 1, para lo cual aplicamos una corrección estándar.
+2.  Los coeficientes ya no se interpretan en puntos porcentuales sino en escala de *log-odds* yaque internamente transforma el output en *logit* (de *(0,1)* a *(-inf, inf)*), por lo que para comunicar efectos sustanciales conviene calcular efectos marginales o graficar predicciones.
+:::
+
+```{r}
+#| label: modelo-beta
+#| message: false
+#| warning: false
+
+# La regresión beta requiere el paquete betareg
+if (!require("betareg")) install.packages("betareg")
+library(betareg)
+
+# ----------------------------------------------------------
+# La regresión beta exige que Y esté estrictamente en (0, 1)
+# Transformamos pct_pt a proporción y aplicamos la corrección
+
+n_obs <- nrow(df_modelo)
+
+df_modelo <- df_modelo |>
+  mutate(
+    prop_pt = pct_pt / 100,
+    # Corrección estándar: empuja los 0s y 1s exactos levemente hacia adentro
+    prop_pt_adj = (prop_pt * (n_obs - 1) + 0.5) / n_obs
+  )
+
+# ----------------------------------------------------------
+# Modelo Beta con las mismas variables que el Modelo 3
+# La fórmula es idéntica; betareg usa un link logit por defecto
+# (equivalente a modelar log-odds de la proporción)
+
+modelo_beta <- betareg(
+  prop_pt_adj ~
+    log(gdp_per_capita)      +
+    log(population)          +
+    log(transfer_n) * region +
+    log(health_exp + 1)      +
+    log(educ_exp   + 1)      +
+    log(urban_exp  + 1)      +
+    legal_amazon,
+  data = df_modelo
+)
+
+summary(modelo_beta)
+```
+
+```{r}
+#| label: fig-residuos-beta
+#| fig-width: 10
+#| fig-height: 5
+#| message: false
+#| warning: false
+
+ggplot(
+  data.frame(
+    fitted   = fitted(modelo_beta),
+    residuos = residuals(modelo_beta, type = "sweighted2")
+  ),
+  aes(x = fitted, y = residuos)
+) +
+  geom_point(alpha = 0.3, color = "#2171B5", size = 1.2) +
+  geom_hline(yintercept = 0, color = "firebrick",
+             linetype = "dashed", linewidth = 0.8) +
+  geom_smooth(method = "loess", se = FALSE,
+              color = "darkorange", linewidth = 0.9) +
+  scale_x_continuous(labels = scales::label_percent(scale = 100)) +
+  labs(
+    title    = "Diagnóstico: Residuos vs. Valores Predichos — Modelo Beta",
+    subtitle = "A diferencia del Modelo 2 (OLS), la nube no muestra el corte diagonal inferior",
+    x        = "Valores predichos (proporción voto PT)",
+    y        = "Residuos ponderados",
+    caption  = "Residuos sweighted2 (estandarizados para regresión beta)."
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14),
+    plot.subtitle    = element_text(size = 10, color = "gray40"),
+    panel.grid.minor = element_blank()
+  )
+```
