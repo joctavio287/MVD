@@ -668,7 +668,7 @@ La interacción del Modelo 3 tiene sentido solo si las gastos en asistencia real
 # Boxplot de gdp_per_capita por región, con puntos de
 # mediana destacados
 
-df_modelo |>
+p_df_modelo |>
   mutate(region = fct_reorder(region, transfer_n, median)) |>
   ggplot(aes(x = region, y = transfer_n,
              fill = region, color = region)) +
@@ -712,6 +712,8 @@ df_modelo |>
 **¿Qué vemos?**
 
 El Nordeste y el Norte tienen medianas de transferencias más altas, mientras que el Sul presenta los montos más bajos. Esta variación regional es la que el Modelo 3 pretende capturar con la interacción: si las asignaciones universales afectan el voto de forma diferente según la región, el coeficiente de interacción debería ser estadísticamente distinto de cero.
+
+Para terminar de desentrañar este asunto, además, habría que investigar si la distribución de las `pct_pt`\~`transfer_n` en es distinta en cada región (queda pendiente que lo verifiquen).
 :::
 
 ```{r}
@@ -799,7 +801,7 @@ El paquete `broom` resuelve esto de forma elegante: convierte los resultados de 
 `broom` tiene **tres funciones clave**, cada una enfocada en un nivel diferente del análisis:
 
 | Función | ¿Qué devuelve? | Nivel |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | `tidy()` | Coeficientes, errores estándar, estadístico t, p-valor | Parámetros |
 | `glance()` | R², AIC, BIC, F-estadístico, degrees of freedom | Modelo global |
 | `augment()` | Valores predichos, residuos, leverage, distancia de Cook | Observaciones |
