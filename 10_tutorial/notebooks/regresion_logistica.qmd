@@ -741,7 +741,7 @@ Por el contrario, los términos de interacción (`Interacción: Mujer x Secundar
 
 ## Vizualización de la interacción: el impacto real en la probabilidad
 
-Los coeficientes de interacción son engañosos. La mejor forma de entender qué hace la interacción `age * sex` es graficar las **probabilidades predichas** del modelo a lo largo de la edad, separando por hombres y mujeres.
+Los coeficientes de interacción son engañosos. La mejor forma de entender qué hace la interacción `age * sex` es graficar las **probabilidades predichas** del mode en los distintos niveles educativos, separando por hombres y mujeres.
 
 Vamos a comparar el Modelo Base (sin interacción) con el Modelo Interactivo para ver *la influencia real* de haber agregado este término.
 
