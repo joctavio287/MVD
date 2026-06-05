@@ -45,7 +45,7 @@ El recorrido de la clase va a ser este:
 
 1.  **El esqueleto conceptual:** qué es un objeto espacial, qué es un CRS y cómo se apilan las capas en `ggplot2`.
 2.  **Preparación de datos:** cómo descargar geometrías espaciales (para eso vamos a usar la libería `geobr`) y cómo podemos cruzarlas con nuestros los datos tabulares que estuvimos trabajando en clases pasadas.
-3.  **Visualización estática:** mapas coroplétocos, problemas de escala, comparación entre niveles de agregación y cartogramas.
+3.  **Visualización estática:** mapas coropléticos, problemas de escala, comparación entre niveles de agregación y cartogramas.
 4.  **Visualización dinámica:** mapas interactivos con `leaflet` para explorar los datos a través de una interfaz gráfica.
 
 La idea es que este material les sirva como punto de partida para construir visualizaciones útiles en sus proyectos finales.
@@ -66,8 +66,9 @@ if (!require("pacman")) install.packages("pacman")
 # Cargamos todas las librerías requeridas para la sesión
 pacman::p_load(
   tidyverse,    # Manipulación de datos y visualización base
-  sf,           # Simple Features: el estándar para datos vectoriales en R
-  geobr,        # Geometrías oficiales de Brasil → (son datos del IBGE -Instituto Brasilero de Geografía y Estadística-)
+  sf,           # Simple Features: el estándar para datos geo-vectoriales en R
+  # → (IBGE -Instituto Brasilero de Geografía y Estadística-)
+  geobr,        # Geometrías oficiales de Brasil
   cartogram,    # Cartogramas: distorsionar polígonos según una variable
   leaflet,      # Mapas interactivos en HTML
   patchwork,    # Componer múltiples gráficos en una sola figura
@@ -81,13 +82,13 @@ pacman::p_load(
 
 # El Esqueleto de los Datos Espaciales
 
-Antes de escribir una sola línea de código con nuestros datos de Brasil, necesitamos entender qué es exactamente un objeto espacial en R.
+Antes de escribir código con los datos de Brasil, necesitamos entender qué es exactamente un objeto espacial en R.
 
 ## ¿Qué es un Simple Feature (`sf`)?
 
 La respuesta corta es: **un Simple Feature es un** `dataframe` **de toda la vida, con una columna extra que contiene la geometría**.
 
-Imaginemos que partimos de uno de los `dataset` de Brasil con los que estuvimos trabajando; en ese caso, tendríamos columnas como `nombre_estado`, `poblacion`, `pbi`. Si se tratara de un objeto `sf`, tendríamos además **una columna especial llamada `geometry`** que es una *list-column*: en cada fila, en lugar de un número o un texto, hay un objeto geométrico complejo (un polígono, un punto, una línea) que describe la forma del territorio.
+Imaginemos que partimos de uno de los `dataset` de Brasil con los que estuvimos trabajando; en ese caso, tendríamos columnas como `nombre_estado`, `poblacion`, `pbi`. Si se tratara de un objeto `sf`, tendríamos además **una columna especial llamada `geometry`** que es una *list-column*: **en cada fila**, en lugar de un número o un texto, **hay un objeto geométrico complejo (un polígono, un punto, una línea) que describe la forma del territorio.**
 
 Esto es enormemente poderoso. Significa que podemos hacer todo lo que ya sabemos hacer con `dplyr` —`filter()`, `mutate()`, `left_join()`, `group_by()`— y el objeto sigue siendo espacial. No es necesario aprender un lenguaje nuevo: es el mismo `tidyverse` con una columna especial adicional.
 
@@ -106,7 +107,7 @@ A otra cosa, así
 ::: callout-note
 **¿Por qué "Simple Feature"?**
 
-"Simple Features" es un estándar internacional (ISO 19125) definido por el Open Geospatial Consortium que especifica cómo representar objetos geométricos del mundo real en sistemas computacionales. Cuando R, Python (geopandas), PostGIS o QGIS hablan de "simple features", todos hablan el mismo idioma. Aprender `sf` en R es aprender el estándar universal del análisis geoespacial moderno.
+"Simple Features" es un estándar internacional (ISO 19125) definido por el Open Geospatial Consortium que especifica cómo representar objetos geométricos del mundo real en sistemas computacionales. Cuando R, Python (geopandas), PostGIS o QGIS hablan de "simple features", todos se refieren a lo mismo. Aprender `sf` en R es aprender el estándar universal del análisis geoespacial moderno.
 :::
 
 ## El Sistema de Referencia de Coordenadas (*Coordinate Reference System*)
@@ -117,7 +118,9 @@ La respuesta tiene cinco componentes áltamente relacionados, pero que vale la p
 
 **1. El Datum / Modelado de la Tierra**
 
-La Tierra no es una esfera perfecta sino un geoide irregular. Para poder hacer geometría, necesitamos aproximarla a una forma matemática manejable (un elipsoide). El datum define ese elipsoide de referencia y el punto de anclaje respecto al centro de la Tierra. El más usado hoy es **WGS84**, que es el que usa el GPS. En Brasil, el sistema oficial es **SIRGAS2000**, que usa prácticamente el mismo elipsoide pero está definido específicamente para América del Sur.
+La Tierra no es una esfera perfecta sino un geoide irregular. Para poder hacer geometría, necesitamos aproximarla su forma matemática a un elipsoide.
+
+El datum define ese elipsoide de referencia y el punto de anclaje respecto al centro de la Tierra. El más usado hoy es **WGS84**, que es el que usa el GPS. En Brasil, el sistema oficial es **SIRGAS2000**, que usa prácticamente el mismo elipsoide pero está definido específicamente para América del Sur.
 
 **2. El Sistema de Coordenadas**
 
@@ -127,13 +130,13 @@ Una vez que tenemos el modelo de la Tierra, ¿cómo nombramos las posiciones?
 
 Hay dos familias:
 
-- **Geográficas:** se expresan en relación a la geometría de la Tierra y se construyen tomando como referencia los polos Norte y Sur y el meridiano de Greenwich. En general, se usan *grados* de latitud y longitud (**unidades de medida angular**). Son intuitivas (por ejemplo, sabemos que Buenos Aires está a -34.6° de latitud), pero matemáticamente incómodas para calcular distancias o áreas.
+- **Geográficas:** se expresan en relación a la geometría de la Tierra y se construyen tomando como referencia los polos Norte y Sur y el meridiano de Greenwich. En general, se usan *grados* de latitud y longitud (**unidades de medida angular**). Son intuitivas, pero matemáticamente incómodas para calcular distancias o áreas. Por ejemplo, sabemos que Buenos Aires está a -34.6° de latitud.
 
-- **Proyectadas:** la más usual ser el plano cartesiano (eje X, eje Y), tomando como referencia un punto arbitrario que sea relevante. Las unidades pueden variar acorde a la proyección, para el cartesiano se usan **unidades de distancia**, metros o equivalente. Otra posible es una proyección polar, también sobre un plano. En general, uno proyecta los datos para facilitar cálculos geométricos, la desventaja es que requieren haber "aplanado" la esfera primero.
+- **Proyectadas:** la más usual ser el plano cartesiano (eje X, eje Y), tomando como referencia un punto arbitrario que sea relevante. Las unidades pueden variar acorde a la proyección, para la proyección cartesiana se usan **unidades de distancia**, metros o equivalente. Otra posible es una proyección polar, también sobre un plano. En general, uno proyecta los datos para facilitar cálculos geométricos, la desventaja es que requieren haber "aplanado" la esfera primero.
 
 **3. La Proyección: el problema fundamental de la cartografía**
 
-Aplanar una esfera sobre un papel es matemáticamente imposible sin distorsionar *algo*. Las proyecciones son soluciones de compromiso, y cada una sacrifica una propiedad diferente:
+Aplanar una esfera sobre un papel **es matemáticamente imposible sin distorsionar *algo***. Las proyecciones son soluciones de compromiso, y cada una sacrifica una propiedad diferente:
 
 - **Proyecciones conformes** (ej. Mercator): preservan las *formas* locales, pero distorsionan enormemente las *áreas*.
 - **Proyecciones equivalentes o de igual área** (ej. Equal Earth, Albers): preservan las *áreas* relativas, pero deforman las formas.
@@ -153,7 +156,9 @@ Directamente ligada al tipo de coordenadas: grados (para CRS geográficos) o met
 
 **5. El Código EPSG: un atajo**
 
-Cada CRS estandarizado tiene un código numérico del registro EPSG que actúa como un identificador único (EPSG viene de *European Petroleum Survey Group* que fueronlos primeros en armar un diccionario para identificar numéricamente sistemas de coordenadas). Así nos ahorramos especificar todos los parámetros cada vez. Algunos estándares útiles son
+Cada CRS estandarizado tiene un código numérico del registro EPSG que actúa como un identificador único (EPSG viene de *European Petroleum Survey Group* que fueron los primeros en armar un diccionario para identificar numéricamente sistemas de coordenadas). Esto sirve para ahorramos especificar todos los parámetros cada vez.
+
+Algunos estándares útiles son
 
 - EPSG 4326 → WGS84 geográfico (grados). El del GPS, Google Maps, etc.
 
@@ -229,7 +234,7 @@ Ahora sí, vamos a armar visualizaciones. El flujo de trabajo tiene tres pasos:
 
 1.  **Cargar los datos tabulares** que ya tenemos (información política, económica, demográfica).
 2.  **Descargar las geometrías** oficiales (los polígonos de los estados y municipios).
-3.  **Cruzar ambas cosas** mediante un `left_join`, usando el código identificador de municipio como `key`.
+3.  **Cruzar ambas bases de datos** mediante un `left_join`, usando el código identificador como `key`.
 
 ## Cargando los Datos Tabulares
 
@@ -275,16 +280,16 @@ head(df_municipalities)
 ::: callout-important
 **La columna `id_municipio`: el identificador**
 
-Fijense que todas las tablas comparten la columna `id_municipio`. Este es el código del IBGE (Instituto Brasileiro de Geografia e Estatística), el equivalente al INDEC argentino.
+Fijense que todas las tablas comparten la columna `id_municipio`. Este es el código del IBGE (*Instituto Brasileiro de Geografia e Estatística*), el equivalente al INDEC argentino.
 
 Cada identificador tiene 7 dígitos: los dos primeros identifican el estado, los cinco siguientes al municipio dentro del estado. Este código es el que vamos a usar para cruzar los datos tabulares con las geometrías espaciales.
 
-Nunca hay que usar el nombre del municipio como `key` de `join`: la misma ciudad puede llamarse "São João" en doce municipios distintos o tener errores de tipeo o acentuación que se nos pasaron por alto en la decodificación de la tabla.
+**Nunca hay que usar el nombre del municipio como** `key` de `join`: la misma ciudad puede llamarse "São João" en doce municipios distintos o tener errores de tipeo o acentuación que se nos pasaron por alto en la decodificación de la tabla.
 :::
 
 ## Descargando las Geometrías con `geobr`
 
-`geobr` es una librería desarrollada por el IPEA (Instituto de Pesquisa Econômica Aplicada) que da acceso directo a las geometrías oficiales del IBGE desde R, sin necesidad de descargar y descomprimir *shapefiles* (el formato más popular y utilizado para almacenar datos vectoriales geoespaciales)manualmente.
+`geobr` [es una librería desarrollada por el IPEA (Instituto de Pesquisa Econômica Aplicada) que da acceso directo a las geometrías oficiales del IBGE desde R](https://github.com/ipeaGIT/geobr), sin necesidad de descargar y descomprimir *shapefiles* (el formato más popular y utilizado para almacenar datos vectoriales geoespaciales)manualmente.
 
 Es el equivalente brasileño a lo que sería `ggmap` o `rnaturalearth` para otros contextos, como vieron en la clase de la teórica.
 
@@ -311,10 +316,11 @@ sf_municipios <- geobr::read_municipality(
 )
 
 # Hay una banda de datos interesantes: acá les dejo algunos ejemplos para que piensen posibles visualizaciones
-sf_amazonia <- geobr::read_amazon(
-  year = 2020,
-  showProgress = FALSE
-)
+# TODO hacer en vivo: geobr:: y explorar bases de datos
+# sf_amazonia <- geobr::read_amazon(
+#   year = 2020,
+#   showProgress = FALSE
+# )
 # sf_regiones <- geobr::read_region(
   # year = 2020,
   # showProgress = FALSE
@@ -335,9 +341,9 @@ head(sf_municipios)
 
 Cuando llamamos a `head` sobre un objeto `sf`, R primero nos muestra un resumen crucial antes de las filas del `tibble`:
 
-- **Geometry type:** el tipo de geometría (`MULTIPOLYGON` para polígonos que pueden tener "islas" desconectadas, como São Paulo con la Ilha de Santo Amaro).
+- **Geometry type:** el tipo de geometría. Hay de muchos tipos, por ejemplo, `POINT`, `MULTIPOINT`, `LINESTRING`, `MULTILINESTRING`, `POLYGLON`, `MULTIPOLYGON`, etc. En particular, `MULTIPOLYGON` para polígonos que pueden tener "islas" desconectadas, como São Paulo con la Ilha de Santo Amaro y `GEOMETRY` es un comodín para posibles tipos distintos en un solo objeto.
 - **Dimension:** `XY` indica que tenemos dos dimensiones (longitud y latitud). `XYZ` agregaría altitud.
-- **Bounding box:** las coordenadas extremas del dataset (el rectángulo que lo envuelve todo).
+- **Bounding box:** las coordenadas extremas del *dataset* (el rectángulo que lo envuelve todo).
 - **CRS:** el sistema de referencia. Noten que `geobr` entrega los datos en **SIRGAS2000** (EPSG:4674), el CRS oficial de Brasil.
 
 Toda esta información está disponible programáticamente con `st_geometry_type()`, `st_bbox()` y `st_crs()`.
@@ -530,9 +536,9 @@ Acá se conjugan **dos problemas que pueden entorpecer la visualización**.
 
 1.  El **Problema de la Unidad de Área Modificable** (*Modifiable Area Unit Problem*) describe la distorsión que ocurre cuando los datos estadísticos están atados a unidades geográficas de tamaño variable. Por ejemplo, el estado Amazonas ocupa gran parte del territorio brasileño; si tuviese un PBI relativamente alto en términos absolutos, dominaría visualmente el mapa aunque en términos per cápita sea uno de los más pobres → **la solución es graficar densidades (per capita).** Otra alternativa, es usar **cartogramas** (que veremos más adelante).
 
-    Este sesgo visual no es trivial: influye directamente en la forma en que los lectores interpretan mapas políticos. Un mapa de votos *totales* por estado haría parecer que el norte amazónico es más relevante electoralmente que estados más chicos cuando podría ocurrir lo contrario.
+    Este sesgo visual no es trivial: influye directamente en la forma en que los lectores interpretan mapas políticos. Un mapa de votos *totales* por estado haría parecer que el norte amazónico es más relevante electoralmente que estados más chicos cuando podría ocurrir lo contrario. Vamos a volver sobre este caso más abajo.
 
-2.  Las fuertres **asimetrías regional no son tenidas en cuenta**. Países con diferente densidad poblacional también pueden inclinar fuertemente la escala. Esto no es en principio un problema, pero sí debería ser contemplado a la hora de elegir la escala. Por ejemplo, Sao Paulo tiene cerca de 46 millones de habitantes, mientras que Amazonas tiene apenas 4 millones.
+2.  Las fuertres **asimetrías regionales no son tenidas en cuenta**. Estados con diferente densidad poblacional también pueden inclinar fuertemente la escala. Esto no es en principio un problema, pero sí debería ser contemplado a la hora de elegir la escala. Por ejemplo, Sao Paulo tiene cerca de 46 millones de habitantes, mientras que Amazonas tiene apenas 4 millones.
 :::
 
 ### La corrección: PBI per cápita en escala logarítmica
@@ -575,7 +581,7 @@ p_pbi_percapita <- ggplot(sf_estados_datos) +
 p_pbi_percapita
 ```
 
-**Ahora, la visualización se adecúa a la distribución de ingresos por estado y la extensión no confunde lo que, en verdad, queremos visualizar.**
+**Ahora, la visualización se adecua a la distribución de ingresos por estado y la extensión no confunde lo que en verdad queremos visualizar.**
 
 ::: callout-note
 **¿Por qué `trans = "log10"` en la escala de color?**
@@ -611,7 +617,7 @@ Combinamos ambos mapas para mostrar el contraste:
 
 ## Cambios de escala — Estados vs. Municipios
 
-Una de las discusiones metodológicas cuantitativas más importantes es la **falacia ecológica**: el error de inferir comportamientos individuales (o locales) a partir de agregados de mayor escala. VEamos un ejemplo usando el voto del PT.
+Una de las discusiones metodológicas cuantitativas más importantes es la **falacia ecológica**: el error de inferir comportamientos individuales (o locales) a partir de agregados de mayor escala. Veamos un ejemplo usando el voto del PT.
 
 ### El voto del PT a nivel de estados
 
@@ -714,18 +720,18 @@ p_pt_municipios
 ::: callout-note
 **Falacia Ecológica: la escala importa (y mucho)**
 
-¿Qué diferencias notan entre los dos mapas? La agregación a nivel estado "suaviza" la geografía política: convierte una distribución compleja, con regiones de alto y bajo apoyo al PT intercalados, en un mapa más homogéneo donde los estados del noroeste aparecen como bloques de color uniforme.
+¿Qué diferencias notan entre los dos mapas? La agregación a nivel estado "suaviza" la geografía política: convierte una distribución compleja, con regiones de alto y bajo apoyo al PT en un mapa más homogéneo donde los estados del noroeste aparecen como bloques de color uniforme.
 
 El mapa municipal revela algo que el estatal oculta: **enclaves políticos subnacionales**. Dentro de un estado con promedio bajo o medio de voto al PT, puede haber municipios con un apoyo muy alto. Noten la municipalidad al norte del estado de Amazonas, por ejemplo. O, cómo se dispersan los municipios en el estado con más porcentaje de votos.
 
-En términos metodológicos, la **falacia ecológica** nos advierte que no podemos inferir el comportamiento de los individuos (o de las unidades más pequeñas) a partir del comportamiento de las unidades agregadas. Si un estado tiene un promedio de 20% de voto al PT, eso *no* significa que todos sus municipios votaron 20% al PT, y mucho menos que todos sus ciudadanos lo hicieron.
+En términos metodológicos, la **falacia ecológica** **nos advierte que no podemos inferir el comportamiento de los individuos (o de las unidades más pequeñas) a partir del comportamiento de las unidades agregadas**. Si un estado tiene un promedio de 20% de voto al PT, eso *no* significa que todos sus municipios votaron 20% al PT, y mucho menos que todos sus ciudadanos lo hicieron.
 :::
 
 ------------------------------------------------------------------------
 
 ## Cartogramas → distorsionando mapas en favor del relato
 
-El mapa estándar de Brasil miente de otra manera: el Amazonas, con apenas 4 millones de habitantes, ocupa un espacio visual equivalente a más de cuarenta veces el de São Paulo, que tiene 46 millones. Si queremos representar *poder electoral* o *impacto de política pública*, deberíamos ver Brasil de otra forma.
+El mapa estándar de Brasil puede llevar a confusiones: el Amazonas, con apenas 4 millones de habitantes, ocupa un espacio visual equivalente a más de cuarenta veces el de São Paulo, que tiene 46 millones. Si queremos representar *poder electoral* o *impacto de política pública*, deberíamos ver Brasil de otra forma.
 
 Los **cartogramas** son mapas en los que el tamaño de cada unidad geográfica no refleja su área real sino una variable de interés, típicamente la población.
 
@@ -832,17 +838,17 @@ Un detalle no menor**, si el mapa tradicional no es conocido por la audiencia es
 
 ## Operaciones espaciales y capas combinadas
 
-Hasta ahora trabajamos con los polígonos como contenedores de datos tabulares. Pero los datos espaciales también permiten operaciones *geométricas* genuinas: calcular distancias, generar zonas de influencia (*buffers*), detectar intersecciones. Esto abre un mundo de preguntas de investigación que antes eran imposibles de responder sin un GIS especializado.
+Hasta ahora trabajamos con los polígonos como contenedores de datos tabulares. Pero los datos espaciales también permiten operaciones *geométricas* genuinas: calcular distancias, generar zonas de influencia (*buffers*), detectar intersecciones.
+
+Esto abre un mundo de preguntas de investigación que antes eran imposibles de responder sin un GIS especializado.
 
 ### Capa de capitales sobre los polígonos (¡Vaaamos Manaaos!)
 
-Primero añadimos una capa de puntos: las capitales de cada estado.
+Primero vamos a añadir una capa de puntos: las capitales de cada estado. El lugar donde elegimos poner la marca de la capital dentro de la municipalidad es importante: debe solaparse lo mínimo posible con anotaciones lindantes y, además, debe estar lo más centrada posible en la región de interés para no generar confusiones.
 
-El lugar donde elegimos poner la marca de la capital dentro de la municipalidad es importante: debe solaparse lo mínimo posible con anotaciones lindantes y, además, debe estar lo más centrada posible en la región de interés para no generar confusiones.
+Una elección usual es calcular el centroide del polígono (el centro geométrico de una figura).
 
-Algo usual es calcular el centroide del polígono que es el centro geométrico de una figura.
-
-Acá les dejo un atajo de *shapes* posibles (si escriben *?points* en la consola van a ver una ventana con ayudas). Yo seleccioné el 21.
+Acá les dejo un atajo de *shapes* posibles (si escriben "*?points"* en la consola van a ver una ventana con ayudas). Yo seleccioné el 21.
 
 ![](images/clipboard-2939216878.png){fig-align="center" width="725"}
 
@@ -994,7 +1000,7 @@ ggplot() +
   )
 ```
 
-Ahora hacemos la pregunta de investigación: **¿los municipios dentro del radio de São Paulo reciben más o menos transferencias federales per cápita que los de fuera?**
+Ahora hacemos la pregunta de investigación: **¿los municipios dentro del radio de São Paulo reciben más o menos transferencias federales per cápita que los de afuera?**
 
 ```{r}
 #| label: analisis-buffer
@@ -1026,16 +1032,16 @@ print(comparacion_buffer)
 ::: callout-note
 **Geografía fiscal y poder central**
 
-La comparación entre municipios dentro y fuera de la zona de influencia de São Paulo nos abre una posible pregunta de investigación: ¿El federalismo fiscal brasileño compensa las desigualdades regionales transfiriendo más recursos a los municipios más alejados del centro económico o las refuerza favoreciendo a los municipios mejor conectados políticamente con el poder federal?
+La comparación entre municipios dentro y fuera de la zona de influencia de São Paulo nos abre una posible pregunta de investigación: ¿El federalismo fiscal brasileño compensa las desigualdades regionales transfiriendo más recursos a los municipios más alejados del centro económico, o las refuerza, favoreciendo a los municipios mejor conectados políticamente con el poder federal?
 
-Este tipo de operación espacial —definir zonas de influencia y comparar indicadores dentro y fuera de ellas— es exactamente el tipo de análisis que permite ir más allá de las categorías administrativas formales (estados, regiones) y explorar geografías funcionales alternativas.
+Este tipo de operación espacial —definir zonas de influencia y comparar indicadores dentro y fuera de ellas— es exactamente el tipo de análisis que permite ir más allá de las categorías administrativas formales (estados, regiones) para explorar geografías funcionales alternativas.
 :::
 
 ------------------------------------------------------------------------
 
 ## Mapas dinámicos con `leaflet`
 
-Hasta acá trabajamos con mapas estáticos, que son perfectos para reportes y presentaciones. Pero, para la exploración de datos, la comunicación web, y sobre todo cuando no estamos para defender los gráficos, los mapas interactivos se vuelven clave porque fuerzan al interlocutor a involcurarse con aquello que queremos contar.
+Hasta acá trabajamos con mapas estáticos, que son perfectos para reportes y presentaciones. Pero, para la exploración de datos, la comunicación web, y sobre todo cuando no estamos para defender las visualizaciones, los mapas interactivos se vuelven clave porque fuerzan al interlocutor a involcurarse con aquello que queremos contar.
 
 `leaflet` es la librería estándar para mapas interactivos en R. Genera mapas HTML que funcionan en cualquier navegador y se pueden embeber en documentos Quarto como este.
 
@@ -1151,5 +1157,5 @@ Este tipo de exploración visual es un primer paso indispensable antes de cualqu
 ::: callout-note
 **Leaflet y la comunicación de resultados**
 
-Los mapas dinámicos tienen un papel especial en la comunicación de resultados de ciencias sociales hacia audiencias no académicas. Un funcionario, un periodista o un activista político puede interactuar con un mapa como este sin ningún entrenamiento estadístico y extraer información relevante sobre su municipio o región.
+Los mapas dinámicos tienen un papel especial en la comunicación de resultados hacia audiencias no académicas. Un funcionario, un periodista o un activista político puede interactuar con un mapa como este sin ningún entrenamiento estadístico y extraer información relevante sobre su municipio o región.
 :::
