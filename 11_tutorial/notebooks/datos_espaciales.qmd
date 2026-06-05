@@ -1062,7 +1062,7 @@ sf_sp_mun <- sf_municipios_datos |>
   # Tomamos muchos recaudos sobre los valores numéricos
   # para que los popups funcionen bien
   mutate(
-    pct_pt        = round(pct_pt, 1),
+    pct_pt        = replace_na(pct_pt,0),
     population    = replace_na(population, 0),
     gdp_per_capita = round(gdp / population, 0),
     transfer_total = replace_na(transfer_total, 0),
