@@ -275,10 +275,10 @@ $$Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \ldots + \beta_k X_{ki} + \v
 
 donde
 
--   $Y_i$ es el resultado que queremos explicar (en nuestro caso, el **% de votos al PT** en el municipio $i$).
--   $\beta_0$ es el **intercepto**: el valor promedio de $Y$ cuando todos los $X$ valen cero. Es decir, una valor base respecto al cual las variables independientes sumaran o restaran.
--   $\beta_j$ es el **coeficiente** de la variable $X_j$: en nuestro modelo nos dirá cuántos puntos porcentuales cambia el voto al PT cuando $X_j$ aumenta en una unidad, *manteniendo fijas* todas las demás variables.
--   $\varepsilon_i$ es el **término de error**: condensa todo lo que el modelo no puede explicar para el municipio $i$.
+- $Y_i$ es el resultado que queremos explicar (en nuestro caso, el **% de votos al PT** en el municipio $i$).
+- $\beta_0$ es el **intercepto**: el valor promedio de $Y$ cuando todos los $X$ valen cero. Es decir, una valor base respecto al cual las variables independientes sumaran o restaran.
+- $\beta_j$ es el **coeficiente** de la variable $X_j$: en nuestro modelo nos dirá cuántos puntos porcentuales cambia el voto al PT cuando $X_j$ aumenta en una unidad, *manteniendo fijas* todas las demás variables.
+- $\varepsilon_i$ es el **término de error**: condensa todo lo que el modelo no puede explicar para el municipio $i$.
 
 El método que usa R para encontrar los mejores $\beta$ se llama **Mínimos Cuadrados Ordinarios (OLS —*Ordinary Least Squares—*)**. Este método minimiza la suma de los errores al cuadrado $\sum \varepsilon_i^2$ garantizando que la recta ajustada sea la que mejor se aproxima a los datos.
 
@@ -435,12 +435,12 @@ summary(modelo_1)
 ::: callout-note
 **¿Cómo leer el output de `summary()`?**
 
--   **Estimate**: el coeficiente $\hat{\beta}$ nos dice cuánto cambia `pct_pt` cuando la variable sube una unidad.
--   **Std. Error**: el error estándar del coeficiente. Mide la incertidumbre de la estimación.
--   **T value**: el estadístico de prueba $t = \hat{\beta} / SE(\hat{\beta})$ que mide la "fuerza" del resultado como una relación de cuántos errores estándar se aleja nuestra estimación del cero (mayor a 2 o menor a -2 el efecto suele ser significativo).
--   **Pr(\>\|t\|)**: el p-valor. Si es menor al umbral (usualmente 0.05), rechazamos la hipótesis nula de que $\beta = 0$.
--   **R-squared**: la proporción de la varianza en `pct_pt` que explica el modelo. 1 → ajuste perfecto, 0 → no explica nada.
--   **Ejemplo**: veamos **`regionNordeste`**. Siendo `Centro-Oeste` la categoría de referencia, este coeficiente indica cuántos puntos porcentuales más (o menos) vota al PT en el Nordeste, manteniendo el resto de las variables fijas.
+- **Estimate**: el coeficiente $\hat{\beta}$ nos dice cuánto cambia `pct_pt` cuando la variable sube una unidad.
+- **Std. Error**: el error estándar del coeficiente. Mide la incertidumbre de la estimación.
+- **T value**: el estadístico de prueba $t = \hat{\beta} / SE(\hat{\beta})$ que mide la "fuerza" del resultado como una relación de cuántos errores estándar se aleja nuestra estimación del cero (mayor a 2 o menor a -2 el efecto suele ser significativo).
+- **Pr(\>\|t\|)**: el p-valor. Si es menor al umbral (usualmente 0.05), rechazamos la hipótesis nula de que $\beta = 0$.
+- **R-squared**: la proporción de la varianza en `pct_pt` que explica el modelo. 1 → ajuste perfecto, 0 → no explica nada.
+- **Ejemplo**: veamos **`regionNordeste`**. Siendo `Centro-Oeste` la categoría de referencia, este coeficiente indica cuántos puntos porcentuales más (o menos) vota al PT en el Nordeste, manteniendo el resto de las variables fijas.
 :::
 
 ![Regiones Brasil](images/clipboard-2594739054.png){fig-align="center" width="296"}
@@ -471,9 +471,9 @@ Este resultado ilustra **el valor de las variables control: la región ya capta 
 
 El modelo lineal asume que la relación entre $X$ e $Y$ es una **línea recta**. Pero en la realidad, muchas relaciones son curvilíneas. Por ejemplo:
 
--   El efecto del **GDP per cápita** sobre el voto quizás no sea constante: pasar de ser un municipio muy pobre a uno medianamente pobre puede tener mucho más impacto electoral que pasar de ser rico a muy rico. Esto es una **relación log-lineal**.
--   El efecto del **gasto en ubranismo** podría ser creciente hasta cierto punto y luego revertirse debido al hastío y la sensación de derroche: dando una relación de **curva en U invertida**. Esto es una **relación cuadrática**.
--   El impacto de las **transferencias sociales** sobre el voto al PT quizás no es el mismo en el Nordeste (donde el PT tiene raíces históricas profundas) que en el Sur (donde el PT enfrenta mayor competencia). Esto se modela con una **interacción**.
+- El efecto del **GDP per cápita** sobre el voto quizás no sea constante: pasar de ser un municipio muy pobre a uno medianamente pobre puede tener mucho más impacto electoral que pasar de ser rico a muy rico. Esto es una **relación log-lineal**.
+- El efecto del **gasto en ubranismo** podría ser creciente hasta cierto punto y luego revertirse debido al hastío y la sensación de derroche: dando una relación de **curva en U invertida**. Esto es una **relación cuadrática**.
+- El impacto de las **transferencias sociales** sobre el voto al PT quizás no es el mismo en el Nordeste (donde el PT tiene raíces históricas profundas) que en el Sur (donde el PT enfrenta mayor competencia). Esto se modela con una **interacción**.
 
 ### Logaritmo: interpretación en elasticidades
 
@@ -647,9 +647,9 @@ summary(modelo_2)
 
 Noten cómo influyen los términos logarítmicos:
 
--   al crecer en promedio 1% el GDP per cápita de un municipio, el porcentaje del PT decrece entre 0,03% y 0.05%. Este término antes no era significativo.
+- al crecer en promedio 1% el GDP per cápita de un municipio, el porcentaje del PT decrece entre 0,03% y 0.05%. Este término antes no era significativo.
 
--   Por otro lado, al crecer en promedio 1% la población de un municipio, los votos del PT decrecen entre 0,08% y 0,14%.
+- Por otro lado, al crecer en promedio 1% la población de un municipio, los votos del PT decrecen entre 0,08% y 0,14%.
 
 ## Modelo 3: incorporando interacciones
 
@@ -762,26 +762,26 @@ Si ese coeficiente es negativo **y significativo**, significa que en el Sur las 
 
 El coeficiente cambia de magnitud, signo relativo y significancia entre los tres modelos porque cada especificación le pregunta algo diferente a los datos.
 
--   **Modelo 1 (sin transformar):** el modelo estima cuántos puntos porcentuales adicionales de voto al PT se asocian con cada beneficiario extra de transferencias, en promedio y para todos los municipios por igual. El coeficiente es pequeño en magnitud (≈ 0.002) pero muy significativo: hay una señal clara en los datos, aunque aplastada por la escala de la variable (que va de cientos a cientos de miles de beneficiarios).
+- **Modelo 1 (sin transformar):** el modelo estima cuántos puntos porcentuales adicionales de voto al PT se asocian con cada beneficiario extra de transferencias, en promedio y para todos los municipios por igual. El coeficiente es pequeño en magnitud (≈ 0.002) pero muy significativo: hay una señal clara en los datos, aunque aplastada por la escala de la variable (que va de cientos a cientos de miles de beneficiarios).
 
--   **Modelo 2** **(logaritmo natural):** la pregunta cambia, ahora estimamos cuánto cambia el voto cuando las transferencias crecen un 1%, no cuando suman un beneficiario más. Al comprimir la escala, la variación se redistribuye de forma homogénea entre municipios grandes y chicos. El resultado es que el coeficiente pierde significancia: el efecto promedio de las transferencias sobre el voto al PT, una vez que controlamos por tamaño en escala logarítmica, ya no es estadísticamente distinguible de cero. Dicho de otro modo, un municipio con 500.000 beneficiarios "pesa" muchísimo más que uno con 5.000 al ajustar la recta, pero si logueamos, esa diferencia se achica dramáticamente y la señal que parecía fuerte se debilita.
+- **Modelo 2** **(logaritmo natural):** la pregunta cambia, ahora estimamos cuánto cambia el voto cuando las transferencias crecen un 1%, no cuando suman un beneficiario más. Al comprimir la escala, la variación se redistribuye de forma homogénea entre municipios grandes y chicos. El resultado es que el coeficiente pierde significancia: el efecto promedio de las transferencias sobre el voto al PT, una vez que controlamos por tamaño en escala logarítmica, ya no es estadísticamente distinguible de cero. Dicho de otro modo, un municipio con 500.000 beneficiarios "pesa" muchísimo más que uno con 5.000 al ajustar la recta, pero si logueamos, esa diferencia se achica dramáticamente y la señal que parecía fuerte se debilita.
 
--   **Modelo 3** **(incorporamos la interacción)**: ahora el modelo ya no busca un efecto promedio de las transferencias para todo Brasil, sino que permite que ese efecto se desagregue por región. Al liberar esa restricción, el coeficiente principal de log(transfer_n) recupera magnitud y significancia porque ahora representa el efecto de las transferencias en la categoría de referencia (Centro-Oeste), no el promedio ponderado de cinco regiones con dinámicas políticas muy distintas.
+- **Modelo 3** **(incorporamos la interacción)**: ahora el modelo ya no busca un efecto promedio de las transferencias para todo Brasil, sino que permite que ese efecto se desagregue por región. Al liberar esa restricción, el coeficiente principal de log(transfer_n) recupera magnitud y significancia porque ahora representa el efecto de las transferencias en la categoría de referencia (Centro-Oeste), no el promedio ponderado de cinco regiones con dinámicas políticas muy distintas.
 
 Es decir, el Modelo 2 promediaba efectos heterogéneos y esa heterogeneidad oculta es la que disminuía su poder predictivo. Es un patrón clásico (***aggregation bias***) en regresión: **un coeficiente que parece irrelevante en una especificación puede volverse central en otra cuando se modelan correctamente las interacciones**. Por eso **la interpretación de cualquier coeficiente siempre debe hacerse en el contexto del modelo completo, sin trasladar mecánicamente los resultados de una especificación a otra.**
 
--   En el Modelo 1 (sin logaritmos) el coeficiente es bajo, pero muy significativo: más transferencias, más voto al PT.
+- En el Modelo 1 (sin logaritmos) el coeficiente es bajo, pero muy significativo: más transferencias, más voto al PT.
 
--   En el Modelo 2 (con logaritmo) el coeficiente pierde significancia.
+- En el Modelo 2 (con logaritmo) el coeficiente pierde significancia.
 
--   En el modelo 3 (con logaritmo e interacciones por región) vuelve a ser signficativo (casi) y adquiere un valor mucho más alto.
+- En el modelo 3 (con logaritmo e interacciones por región) vuelve a ser signficativo (casi) y adquiere un valor mucho más alto.
 
-    ```         
-    Modelos (1,2,3)                 Estimate   Std. Error  t value Pr(>|t|) 
-    transfer_n                      2.075e-03  5.548e-04   3.740   0.000195 ***
-    log(transfer_n)                 1.6008     1.3852      1.156   0.2481
-    log(transfer_n)                 6.4727     3.4339      1.885  0.05975 .
-    ```
+  ```         
+  Modelos (1,2,3)                 Estimate   Std. Error  t value Pr(>|t|) 
+  transfer_n                      2.075e-03  5.548e-04   3.740   0.000195 ***
+  log(transfer_n)                 1.6008     1.3852      1.156   0.2481
+  log(transfer_n)                 6.4727     3.4339      1.885  0.05975 .
+  ```
 
 **2. Hay interacciones que no son significativas —y eso también es un resultado.**
 
@@ -927,8 +927,8 @@ OJO: ¡este gráfico evidencia un problema importante! Más abajo lo vemos en de
 
 Cuando los modelos tienen distinto número de parámetros (como es nuestro caso), el R² siempre sube al agregar variables, incluso si no aportan información real. Por eso usamos:
 
--   **AIC (Akaike)**: penaliza moderadamente la complejidad. Favorece modelos con buen ajuste aunque tengan varios parámetros.
--   **BIC (Schwarz)**: penaliza más fuertemente la complejidad. Prefiere modelos más parsimoniosos.
+- **AIC (Akaike)**: penaliza moderadamente la complejidad. Favorece modelos con buen ajuste aunque tengan varios parámetros.
+- **BIC (Schwarz)**: penaliza más fuertemente la complejidad. Prefiere modelos más parsimoniosos.
 
 En ambos casos: **menor es mejor**. Si el Modelo 3 tiene menor AIC que el Modelo 2, la interacción mejora el ajuste lo suficiente como para justificar la mayor complejidad.
 :::
@@ -1122,10 +1122,10 @@ cat("Tabla exportada como 'tabla_regresion.png' en el directorio de trabajo.\n")
 ::: callout-tip
 **Otros formatos de exportación disponibles con `modelsummary`:**
 
--   `output = "tabla.docx"` → Word
--   `output = "tabla.tex"` → LaTeX
--   `output = "tabla.html"` → HTML embebible
--   `output = "tabla.png"` / `"tabla.jpg"` → imagen de alta resolución
+- `output = "tabla.docx"` → Word
+- `output = "tabla.tex"` → LaTeX
+- `output = "tabla.html"` → HTML embebible
+- `output = "tabla.png"` / `"tabla.jpg"` → imagen de alta resolución
 
 Para exportar a `.docx` o `.tex`, el paquete necesita `flextable` (Word) o `kableExtra` (LaTeX).
 :::
