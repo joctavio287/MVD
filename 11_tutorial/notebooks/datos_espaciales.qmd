@@ -66,6 +66,7 @@ if (!require("pacman")) install.packages("pacman")
 # Cargamos todas las librerías requeridas para la sesión
 pacman::p_load(
   tidyverse,    # Manipulación de datos y visualización base
+  sf,           # Simple Features: el estándar para datos vectoriales en R
   geobr,        # Geometrías oficiales de Brasil → (son datos del IBGE -Instituto Brasilero de Geografía y Estadística-)
   cartogram,    # Cartogramas: distorsionar polígonos según una variable
   leaflet,      # Mapas interactivos en HTML
@@ -73,9 +74,6 @@ pacman::p_load(
   ggrepel,      # Etiquetas de texto que no se superponen en ggplot2
   scales,       # Formateo de ejes y etiquetas (miles, porcentajes)
   here          # Rutas relativas al proyecto
-)
-pacman::p_load(
-  sf           # Simple Features: el estándar para datos vectoriales en R
 )
 ```
 
