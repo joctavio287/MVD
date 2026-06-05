@@ -551,7 +551,7 @@ Acá se conjugan **dos problemas que pueden entorpecer la visualización**.
 #| warning: false
 
 p_pbi_percapita <- ggplot(sf_estados_datos) +
-  geom_sf(aes(fill = population_total), color = "white", linewidth = 0.3) +
+  geom_sf(aes(fill = gdp_pc_estado), color = "white", linewidth = 0.3) +
   scale_fill_viridis_c(
     option    = "plasma",
     name      = "PBI per cápita\n(R$)",
