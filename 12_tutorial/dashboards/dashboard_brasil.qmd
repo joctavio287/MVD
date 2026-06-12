@@ -1,0 +1,507 @@
+---
+title: "Brasil Municipal — Datos Electorales y Fiscales 2020"
+format:
+  dashboard:
+    embed-resources: true
+    orientation: columns
+    theme: flatly
+    nav-buttons:
+      - icon: github
+        href: https://github.com/joctavio287/MVD
+logo: ""
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(sf)
+library(geobr)
+library(leaflet)
+library(DT)
+library(reactable)
+library(plotly)
+library(crosstalk)
+library(scales)
+# library(bslib) # en este formato no es necesario
+library(here)
+
+# ── Carga de datos ────────────────────────────────────────────────────────────
+df_elections      <- readRDS(here("09_tutorial/data/elections.rds"))
+df_finance        <- readRDS(here("09_tutorial/data/finance.rds"))
+df_transfers      <- readRDS(here("09_tutorial/data/transfers_combined.rds"))
+df_socioeconomic  <- readRDS(here("09_tutorial/data/socioeconomic.rds"))
+df_municipalities <- readRDS(here("09_tutorial/data/municipalities.rds"))
+
+sf_municipios <- geobr::read_municipality(year = 2020, showProgress = FALSE) |>
+  mutate(id_municipio = as.character(code_muni))
+
+sf_estados <- geobr::read_state(year = 2020, showProgress = FALSE) |>
+  mutate(sigla_uf = abbrev_state) |>
+  st_transform(crs = 4326)
+
+# ── Preparación ───────────────────────────────────────────────────────────────
+df_socio_2020   <- df_socioeconomic |> filter(year == 2020)
+df_finance_2020 <- df_finance       |> filter(year == 2020)
+
+df_transf_2020 <- df_transfers |>
+  filter(year == 2020) |>
+  group_by(id_municipio) |>
+  summarise(transfer_total = sum(transfer_amount, na.rm = TRUE), .groups = "drop")
+
+# % votos por partido en 2020
+df_votos_totales <- df_elections |>
+  filter(year == 2020) |>
+  group_by(id_municipio) |>
+  summarise(total_votos_mun = sum(total_votes, na.rm = TRUE), .groups = "drop")
+
+# PT en particular (para el mapa por defecto)
+df_voto_pt <- df_elections |>
+  filter(year == 2020, sigla_partido == "PT") |>
+  left_join(df_votos_totales, by = "id_municipio") |>
+  mutate(pct_pt = round(total_votes / total_votos_mun * 100, 1)) |>
+  select(id_municipio, pct_pt)
+
+# Tabla maestra de municipios
+df_municipios_completo <- df_municipalities |>
+  left_join(df_socio_2020,   by = "id_municipio") |>
+  left_join(df_finance_2020, by = "id_municipio") |>
+  left_join(df_transf_2020,  by = "id_municipio") |>
+  left_join(df_voto_pt,      by = "id_municipio")
+
+# SF con datos
+sf_municipios_datos <- sf_municipios |>
+  left_join(df_municipios_completo, by = "id_municipio") |>
+  mutate(pct_pt = replace_na(pct_pt, 0)) |>
+  st_transform(crs = 4326)
+
+# Agregación a nivel estado
+df_estados_datos <- df_municipios_completo |>
+  group_by(sigla_uf, region) |>
+  summarise(
+    n_municipios     = n(),
+    population_total = sum(population,     na.rm = TRUE),
+    gdp_pc_estado    = sum(gdp,            na.rm = TRUE) / sum(population, na.rm = TRUE),
+    pct_pt_promedio  = mean(pct_pt,        na.rm = TRUE),
+    transfer_pc      = sum(transfer_total, na.rm = TRUE) / sum(population, na.rm = TRUE),
+    health_exp_pc    = sum(health_exp,     na.rm = TRUE) / sum(population, na.rm = TRUE),
+    educ_exp_pc      = sum(educ_exp,       na.rm = TRUE) / sum(population, na.rm = TRUE),
+    urban_exp_pc     = sum(urban_exp,      na.rm = TRUE) / sum(population, na.rm = TRUE),
+    .groups          = "drop"
+  )
+
+sf_estados_datos <- sf_estados |>
+  left_join(df_estados_datos, by = "sigla_uf")
+
+# Serie temporal por región
+df_gasto_region <- df_finance |>
+  left_join(df_municipalities |> select(id_municipio, region), by = "id_municipio") |>
+  left_join(df_socioeconomic  |> select(id_municipio, year, population),
+            by = c("id_municipio", "year")) |>
+  filter(!is.na(region), !is.na(population), population > 0) |>
+  group_by(year, region) |>
+  summarise(
+    health_exp_pc = sum(health_exp, na.rm = TRUE) / sum(population, na.rm = TRUE),
+    educ_exp_pc   = sum(educ_exp,   na.rm = TRUE) / sum(population, na.rm = TRUE),
+    .groups       = "drop"
+  )
+```
+
+# Mapa Electoral
+
+## {.sidebar}
+
+```{r}
+#| label: sidebar-filtros
+
+# SharedData sobre estados para vincular el mapa con el selector de región
+shared_map <- SharedData$new(
+  df_municipios_completo |>
+    filter(!is.na(region)) |>
+    select(id_municipio, region, sigla_uf),
+  key = ~id_municipio
+)
+
+# Filtro de región (vinculado al mapa vía crosstalk)
+filter_select(
+  id       = "filtro_region",
+  label    = "Filtrar por región",
+  sharedData = shared_map,
+  group    = ~region
+)
+
+# Filtro de estado
+filter_select(
+  id       = "filtro_estado",
+  label    = "Filtrar por estado",
+  sharedData = shared_map,
+  group    = ~sigla_uf
+)
+```
+
+---
+
+**Nota:** el mapa muestra el % de votos al PT en las elecciones municipales 2020. Hacé click en un municipio para ver su detalle en la tabla de la derecha.
+
+Los colores van del amarillo (bajo %) al rojo oscuro (alto %).
+
+## Column {width="65%"}
+
+```{r}
+#| label: mapa-electoral
+#| title: "% votos PT por municipio — Brasil 2020"
+
+paleta_pt <- colorNumeric(
+  palette  = "YlOrRd",
+  domain   = sf_municipios_datos$pct_pt,
+  na.color = "#CCCCCC"
+)
+
+leaflet(sf_municipios_datos) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addPolygons(
+    fillColor   = ~paleta_pt(pct_pt),
+    fillOpacity = 0.75,
+    color       = "white",
+    weight      = 0.4,
+    opacity     = 1,
+    highlight   = highlightOptions(
+      weight       = 2,
+      color        = "#444",
+      fillOpacity  = 0.95,
+      bringToFront = TRUE
+    ),
+    label = ~paste0(name_muni, " (", sigla_uf, ") — ", pct_pt, "% PT"),
+    labelOptions = labelOptions(
+      style    = list("font-size" = "12px", "font-weight" = "bold"),
+      textsize = "12px"
+    ),
+    popup = ~paste0(
+      "<div style='font-family:sans-serif; font-size:13px; min-width:160px'>",
+      "<b style='font-size:14px'>", name_muni, "</b><br>",
+      "<span style='color:#888'>", sigla_uf, " · ", region, "</span>",
+      "<hr style='margin:4px 0'>",
+      "<b>PT:</b> ", pct_pt, "%<br>",
+      "<b>Población:</b> ", format(replace_na(population, 0),
+                                   big.mark = ".", scientific = FALSE), "<br>",
+      "<b>PBI pc:</b> R$ ", format(round(replace_na(gdp, 0) /
+                                           pmax(replace_na(population, 1), 1)),
+                                   big.mark = ".", scientific = FALSE),
+      "</div>"
+    ),
+    layerId = ~id_municipio
+  ) |>
+  addLegend(
+    position  = "bottomright",
+    pal       = paleta_pt,
+    values    = ~pct_pt,
+    title     = "% PT",
+    labFormat = labelFormat(suffix = "%"),
+    opacity   = 0.85
+  ) |>
+  setView(lng = -52, lat = -15, zoom = 4)
+```
+
+## Column {width="35%"}
+
+```{r}
+#| label: tabla-municipios
+#| title: "Detalle por municipio"
+
+df_municipios_completo |>
+  mutate(
+    gdp_pc        = round(gdp        / pmax(population, 1), 0),
+    health_exp_pc = round(health_exp / pmax(population, 1), 0),
+    educ_exp_pc   = round(educ_exp   / pmax(population, 1), 0),
+    transfer_pc   = round(transfer_total / pmax(population, 1), 0)
+  ) |>
+  arrange(desc(pct_pt)) |>
+  select(
+    Municipio     = name,
+    Estado        = sigla_uf,
+    Región        = region,
+    `% PT`        = pct_pt,
+    Población     = population,
+    `PBI pc`      = gdp_pc,
+    `Salud pc`    = health_exp_pc,
+    `Educ. pc`    = educ_exp_pc,
+    `Transf. pc`  = transfer_pc
+  ) |>
+  datatable(
+    rownames   = FALSE,
+    filter     = "top",
+    extensions = "Buttons",
+    options    = list(
+      pageLength = 12,
+      scrollX    = TRUE,
+      dom        = "Bfrtip",
+      buttons    = list("csv", "excel")
+    )
+  ) |>
+  formatCurrency(
+    columns  = c("PBI pc", "Salud pc", "Educ. pc", "Transf. pc"),
+    currency = "R$ ", digits = 0, mark = "."
+  ) |>
+  formatStyle(
+    "% PT",
+    background         = styleColorBar(c(0, 60), "#FC8D59"),
+    backgroundSize     = "98% 55%",
+    backgroundRepeat   = "no-repeat",
+    backgroundPosition = "center"
+  )
+```
+
+# Gasto Fiscal
+
+## Column
+
+```{r}
+#| label: scatter-gasto
+#| title: "Gasto en salud vs. educación per cápita por estado (2020)"
+
+df_scatter_gasto <- df_estados_datos |>
+  filter(!is.na(health_exp_pc), !is.na(educ_exp_pc))
+
+plot_ly(
+  df_scatter_gasto,
+  x         = ~health_exp_pc,
+  y         = ~educ_exp_pc,
+  color     = ~region,
+  size      = ~population_total,
+  text      = ~paste0(
+    "<b>", sigla_uf, "</b><br>",
+    "Salud pc: R$ ", format(round(health_exp_pc), big.mark = "."), "<br>",
+    "Educ. pc: R$ ", format(round(educ_exp_pc),   big.mark = "."), "<br>",
+    "Región: ", region
+  ),
+  hoverinfo = "text",
+  type      = "scatter",
+  mode      = "markers",
+  marker    = list(opacity = 0.8, sizemode = "diameter")
+) |>
+  layout(
+    xaxis  = list(title = "Gasto en salud pc (R$)",
+                  tickformat = ",.0f"),
+    yaxis  = list(title = "Gasto en educación pc (R$)",
+                  tickformat = ",.0f"),
+    legend = list(title = list(text = "Región")),
+    # línea diagonal de referencia: igualdad salud = educación
+    shapes = list(list(
+      type = "line",
+      x0   = min(df_scatter_gasto$health_exp_pc, na.rm = TRUE),
+      x1   = max(df_scatter_gasto$health_exp_pc, na.rm = TRUE),
+      y0   = min(df_scatter_gasto$health_exp_pc, na.rm = TRUE),
+      y1   = max(df_scatter_gasto$health_exp_pc, na.rm = TRUE),
+      line = list(color = "grey", dash = "dot", width = 1)
+    ))
+  )
+```
+
+## Column
+
+```{r}
+#| label: serie-temporal
+#| title: "Evolución del gasto municipal per cápita por región (2013–2020)"
+
+# Transformamos a formato largo para poder graficar salud y educación juntos
+df_ts_largo <- df_gasto_region |>
+  pivot_longer(
+    cols      = c(health_exp_pc, educ_exp_pc),
+    names_to  = "tipo",
+    values_to = "gasto_pc"
+  ) |>
+  mutate(
+    tipo  = recode(tipo,
+                   health_exp_pc = "Salud",
+                   educ_exp_pc   = "Educación"),
+    label = paste0(region, " — ", tipo, "<br>",
+                   "Año: ", year, "<br>",
+                   "R$ ", format(round(gasto_pc), big.mark = "."))
+  )
+
+p_ts <- df_ts_largo |>
+  ggplot(aes(
+    x      = year,
+    y      = gasto_pc,
+    color  = region,
+    linetype = tipo,
+    text   = label
+  )) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 1.8) +
+  scale_y_continuous(labels = label_number(prefix = "R$ ", big.mark = ".")) +
+  scale_linetype_manual(values = c("Salud" = "solid", "Educación" = "dashed")) +
+  labs(x = NULL, y = "Gasto pc (R$)", color = "Región", linetype = NULL) +
+  theme_minimal(base_size = 12)
+
+ggplotly(p_ts, tooltip = "text", dynamicTicks = TRUE) |>
+  rangeslider() |>
+  layout(legend = list(orientation = "h", y = -0.25))
+```
+
+# Resumen
+
+## Column {width="30%"}
+
+```{r}
+#| label: vbox-municipios
+#| content: valuebox
+#| title: "Municipios analizados"
+
+list(
+  icon  = "building",
+  color = "primary",
+  value = scales::comma(nrow(df_municipios_completo))
+)
+```
+
+```{r}
+#| label: vbox-poblacion
+#| content: valuebox
+#| title: "Población total"
+
+list(
+  icon  = "people-fill",
+  color = "info",
+  value = scales::comma(sum(df_municipios_completo$population, na.rm = TRUE))
+)
+```
+
+```{r}
+#| label: vbox-transfer
+#| content: valuebox
+#| title: "Mediana transferencias pc (R$)"
+
+mediana_transf <- df_municipios_completo |>
+  mutate(transfer_pc = transfer_total / pmax(population, 1)) |>
+  pull(transfer_pc) |>
+  median(na.rm = TRUE)
+
+list(
+  icon  = "cash-stack",
+  color = "success",
+  value = paste0("R$ ", format(round(mediana_transf), big.mark = "."))
+)
+```
+
+```{r}
+#| label: vbox-pt
+#| content: valuebox
+#| title: "% PT promedio nacional"
+
+list(
+  icon  = "bar-chart-fill",
+  color = "warning",
+  value = paste0(round(mean(df_municipios_completo$pct_pt, na.rm = TRUE), 1), "%")
+)
+```
+
+```{r}
+#| label: vbox-estados
+#| content: valuebox
+#| title: "Estados + Distrito Federal"
+
+list(
+  icon  = "map-fill",
+  color = "danger",
+  value = n_distinct(df_municipios_completo$sigla_uf)
+)
+```
+
+## Column {width="70%"}
+
+```{r}
+#| label: tabla-resumen-estados
+#| title: "Indicadores por estado — semáforos de gasto"
+
+df_tabla_resumen <- df_estados_datos |>
+  mutate(across(c(gdp_pc_estado, transfer_pc, health_exp_pc,
+                  educ_exp_pc, urban_exp_pc), ~ round(.x, 0)),
+         pct_pt_promedio = round(pct_pt_promedio, 1)) |>
+  arrange(desc(population_total)) |>
+  select(
+    Estado           = sigla_uf,
+    Región           = region,
+    `N municipios`   = n_municipios,
+    Población        = population_total,
+    `PBI pc (R$)`    = gdp_pc_estado,
+    `% PT`           = pct_pt_promedio,
+    `Transf. pc`     = transfer_pc,
+    `Salud pc`       = health_exp_pc,
+    `Educ. pc`       = educ_exp_pc
+  )
+
+reactable(
+  df_tabla_resumen,
+  searchable       = TRUE,
+  striped          = TRUE,
+  highlight        = TRUE,
+  defaultPageSize  = 14,
+  defaultSortOrder = "desc",
+  defaultSorted    = "Población",
+  columns = list(
+    Estado        = colDef(maxWidth = 65),
+    Región        = colDef(maxWidth = 110),
+    `N municipios` = colDef(
+      maxWidth = 100,
+      format   = colFormat(separators = TRUE)
+    ),
+    Población     = colDef(format = colFormat(separators = TRUE)),
+    `PBI pc (R$)` = colDef(
+      format = colFormat(prefix = "R$ ", separators = TRUE, digits = 0),
+      # Intensidad de azul proporcional al valor
+      style  = function(value) {
+        if (is.na(value)) return(list())
+        rng   <- range(df_tabla_resumen$`PBI pc (R$)`, na.rm = TRUE)
+        alpha <- round(0.15 + 0.75 * (value - rng[1]) / diff(rng), 2)
+        list(background = paste0("rgba(52, 152, 219, ", alpha, ")"))
+      }
+    ),
+    `% PT` = colDef(
+      format = colFormat(suffix = "%", digits = 1),
+      # Semáforo: rojo ≥ 20%, amarillo ≥ 12%, verde < 12%
+      style  = function(value) {
+        if (is.na(value)) return(list())
+        color <- if (value >= 20) "#e74c3c" else if (value >= 12) "#f39c12" else "#2ecc71"
+        list(background = color, color = "white",
+             fontWeight = "bold", borderRadius = "4px")
+      }
+    ),
+    `Transf. pc` = colDef(
+      format = colFormat(prefix = "R$ ", separators = TRUE, digits = 0),
+      # Intensidad de verde proporcional al valor
+      style  = function(value) {
+        if (is.na(value)) return(list())
+        rng   <- range(df_tabla_resumen$`Transf. pc`, na.rm = TRUE)
+        alpha <- round(0.12 + 0.75 * (value - rng[1]) / diff(rng), 2)
+        list(background = paste0("rgba(39, 174, 96, ", alpha, ")"))
+      }
+    ),
+    `Salud pc` = colDef(
+      format = colFormat(prefix = "R$ ", separators = TRUE, digits = 0),
+      # Intensidad de rojo proporcional al valor
+      style  = function(value) {
+        if (is.na(value)) return(list())
+        rng   <- range(df_tabla_resumen$`Salud pc`, na.rm = TRUE)
+        alpha <- round(0.12 + 0.75 * (value - rng[1]) / diff(rng), 2)
+        list(background = paste0("rgba(192, 57, 43, ", alpha, ")"))
+      }
+    ),
+    `Educ. pc` = colDef(
+      format = colFormat(prefix = "R$ ", separators = TRUE, digits = 0),
+      # Intensidad de naranja proporcional al valor
+      style  = function(value) {
+        if (is.na(value)) return(list())
+        rng   <- range(df_tabla_resumen$`Educ. pc`, na.rm = TRUE)
+        alpha <- round(0.12 + 0.75 * (value - rng[1]) / diff(rng), 2)
+        list(background = paste0("rgba(211, 84, 0, ", alpha, ")"))
+      }
+    )
+  )
+)
+```
