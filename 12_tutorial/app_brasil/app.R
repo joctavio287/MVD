@@ -394,8 +394,3 @@ server <- function(input, output, session) {
 # ══════════════════════════════════════════════════════════════════════════════
 
 shinyApp(ui = ui, server = server)
-shiny::runGitHub(
-  repo    = "MVD",
-  username = "joctavio287",
-  subdir  = "12_tutorial/notebooks"   # si la app no está en la raíz del repo
-)
