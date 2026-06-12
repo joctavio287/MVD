@@ -114,7 +114,7 @@ df_gasto_region <- df_finance |>
 
 # Mapa Electoral
 
-## {.sidebar}
+##  {.sidebar}
 
 ```{r}
 #| label: sidebar-filtros
@@ -144,7 +144,7 @@ filter_select(
 )
 ```
 
----
+------------------------------------------------------------------------
 
 **Nota:** el mapa muestra el % de votos al PT en las elecciones municipales 2020. Hacé click en un municipio para ver su detalle en la tabla de la derecha.
 
