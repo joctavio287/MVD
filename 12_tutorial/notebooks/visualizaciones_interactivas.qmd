@@ -37,11 +37,11 @@ format:
 
 # ¿De qué trata la clase de hoy?
 
-La clase pasada construimos mapas de Brasil: polígonos, capas, cartogramas. Eran hermosos, pero estáticos. Si alguien quería explorar el voto del PT en Roraima o comparar dos estados en detalle, tenía que volver al código, cambiar un filtro, y rerenderizar.
+La clase pasada construimos mapas de Brasil: polígonos, capas, cartogramas. Eran muy lindos, pero estáticos. Si alguien quería explorar el voto del PT en Rio de Janeiro, en vez de SP, o comparar dos estados en detalle, tenía que volver al código, cambiar un filtro, y rerenderizar la imagen nuevamente.
 
-Hoy resolvemos ese problema. La pregunta central de la clase es: **¿cómo construimos visualizaciones que respondan a las preguntas del lector en lugar de anticiparlas nosotros?**
+Hoy resolvemos ese problema. La pregunta motivadora de la clase es: **¿cómo construimos visualizaciones que permitan al lector investigar sin que estemos para responder?**
 
-Para eso tenemos dos mundos que conviene entender como distintos antes de mezclarlos:
+Para eso tenemos dos mundos:
 
 - **Interactividad del lado del cliente** (*htmlwidgets*): el resultado es un archivo HTML que el navegador ejecuta solo, sin ningún proceso de R corriendo detrás. Plotly, DT, leaflet, crosstalk. El usuario puede filtrar, hacer zoom, seleccionar — pero la lógica está limitada a lo que JavaScript puede hacer en el *browser*.
 
@@ -176,7 +176,7 @@ head(df_estados_datos)
 
 ```
 
-Y volvemos a sumar las geometrías espaciales conobjetos de `sf`.
+Y volvemos a sumar las geometrías espaciales con objetos de `sf`.
 
 ```{r}
 #| label: preparar-datos-espaciales
@@ -201,8 +201,8 @@ sf_estados <- sf_estados |>
 sf_estados_datos <- sf_estados |>
   left_join(df_estados_datos, by = "sigla_uf")
 
-head(sf_municipios)
-head(sf_estados)
+head(sf_municipios_datos)
+head(sf_estados_datos)
 ```
 
 ------------------------------------------------------------------------
@@ -229,6 +229,7 @@ p_scatter <- df_estados_datos |>
     color = region,
     # La columna 'text' es la que va a mostrar plotly en el tooltip
     text  = paste0(
+      # b → bold; br→break (salto de linea)
       "<b>", sigla_uf, "</b><br>",
       "PBI pc: R$ ", format(round(gdp_pc_estado), big.mark = "."), "<br>",
       "% PT: ", round(pct_pt_promedio, 1), "%"
@@ -247,7 +248,7 @@ p_scatter <- df_estados_datos |>
 # p_scatter
 
 # Hacemos el gráfico interactivo
-ggplotly(
+plotly_scatter <- ggplotly(
   p_scatter, 
   # Le dice qué columna usar para el hover
   tooltip = "text"
@@ -262,7 +263,7 @@ Por defecto, `plotly` arma una traza distinta por cada color, entonces, además 
 Además, automáticamente, se suma una barra de control que permite
 
 1.  seleccionar una zona con el *mouse* para hacer *zoom*, autoescalar a la cantidad de datos que estemos visualizando y arrastrar (*pan*) la figura para ver regiones específicas.
-2.  pasar el cursor sobre un punto podremos ver el estado y sus valores exactos. Además podemos configurar para ver puntos específicos o comparar datos cercanos.
+2.  pasar el cursor sobre un punto para poder ver el estado y sus valores exactos. Además podemos configurar para ver puntos específicos o comparar datos cercanos.
 3.  crear cajas o lazos para encerrar una selección específica de datos que queremos estudiar. Al hacer doble click fuera de la región la borramos para restablecer la configuración original.
 
 Este tipo de exploración visual es particularmente útil para encontrar estados con ciertas peculiaridades o *outliers*. Lo cual es propicio como paso previo a la modelización para ahorrarse futuros dolores de cabeza en la especificación.
@@ -681,6 +682,7 @@ Un *dashboard* tiene estos componentes, de afuera hacia adentro:
 
 - **Barra de navegación**: el título y, si hay varias páginas, los *links* entre ellas.
 - **Páginas**: se definen con encabezados `# Nombre de página`. Cada página es un *link* en la barra.
+- **Sidebar:** se define con `## {.sidebar}` dentro de una página y genera un panel lateral fijo a la izquierda. Es el lugar natural para poner filtros, controles de `crosstalk`, o texto explicativo. Solo puede haber un sidebar por página.
 - **Columnas y filas**: encabezados `## Column` o `## Row` con atributos de tamaño (`{width="60%"}`).
 - **Cards**: cada celda de código se convierte automáticamente en una tarjeta.
 - **Tabsets**: `{.tabset}` agrupa varias cards en pestañas dentro del mismo espacio.
@@ -732,9 +734,9 @@ datatable(...)
 ::: callout-note
 **Value boxes**
 
-Los dashboards de Quarto tienen un componente especial llamado *value box*: un indicador numérico destacado, ideal para métricas rápidas.
+Los *dashboards* de Quarto tienen un componente especial llamado *value box*: un indicador numérico destacado, ideal para métricas rápidas.
 
-Dentro de un notebook (y cualquier documento de Quarto) se crean con `bslib::value_box()` dentro de una celda de código que devuelve un componente HTML embebile dentro de un documento narrativo normal.
+Dentro de un *notebook* (y cualquier documento de Quarto) se crean con `bslib::value_box()` dentro de una celda de código que devuelve un componente HTML embebile dentro de un documento narrativo normal.
 
 ``` r
 library(bslib)
@@ -796,11 +798,11 @@ Tabla reactable con semáforos
 ::: callout-tip
 **Dashboards vs. Shiny: la pregunta decisiva**
 
-Antes de decidir si construir un dashboard estático o una app Shiny, hacete esta pregunta: **¿los usuarios necesitan que R calcule algo nuevo con su input?**
+Antes de decidir si construir un dashboard estático o una app Shiny, conviene hacerse esta pregunta: **¿los usuarios necesitan que R calcule algo nuevo con su input?**
 
-Si la respuesta es no — es decir, si el usuario solo filtra, hace zoom, o selecciona subconjuntos de datos ya calculados —, un dashboard estático con `crosstalk` es suficiente, más rápido de publicar, y no requiere servidor.
+Si la respuesta es no — es decir, si el usuario solo filtra, hace zoom, o selecciona subconjuntos de datos ya calculados —, un *dashboard* estático con `crosstalk` es suficiente, más rápido de publicar, y no requiere servidor.
 
-Si la respuesta es sí — el usuario elige un partido, y R tiene que recalcular el porcentaje de votos para ese partido sobre el mapa en tiempo real —, necesitás Shiny.
+Si la respuesta es sí — el usuario elige un partido, y R tiene que recalcular el porcentaje de votos para ese partido sobre el mapa en tiempo real —, necesitamos `Shiny`.
 :::
 
 ------------------------------------------------------------------------
@@ -976,11 +978,11 @@ Observen los tres patrones que se van a repetir en toda *app* `Shiny`:
 
 Esta es la sección central de la clase. Vamos a construir una app `Shiny` que muestre un mapa `leaflet` de Brasil donde el usuario puede elegir un partido político y un estado, y el mapa se repinta con el porcentaje de votos de ese partido en cada municipio. Al hacer click en un municipio, aparece una tabla con el detalle.
 
-La estrategia para entender el código es la misma que se sugiere para enseñar `Shiny`: **primero el código estático con valores fijos escritos a mano, y después vamos parametrizando de a un input por vez hasta llegar a la app completa**.
+La estrategia para entender el código es: **primero el código estático con valores fijos escritos a mano, y después vamos parametrizando de a un input por vez hasta llegar a la app completa**.
 
 ## Paso 1: el código estático
 
-Empezamos sin `Shiny`. Un mapa leaflet de un estado y un partido fijos, con una tabla debajo.
+Empezamos sin `Shiny`. Un mapa *leaflet* de un estado y un partido fijos, con una tabla debajo.
 
 ```{r}
 #| label: app-paso1-estatico
@@ -990,7 +992,6 @@ Empezamos sin `Shiny`. Un mapa leaflet de un estado y un partido fijos, con una 
 # ── Valores fijos que después van a venir de inputs ──────────────────────────
 PARTIDO_ELEGIDO <- "PT"
 ESTADO_ELEGIDO  <- "SP"
-# ─────────────────────────────────────────────────────────────────────────────
 
 # Calculamos el % de votos del partido elegido por municipio
 df_pct_partido <- df_elections |>
@@ -1034,16 +1035,17 @@ leaflet(sf_mapa) |>
             title = paste0("% ", PARTIDO_ELEGIDO), labFormat = labelFormat(suffix = "%"))
 ```
 
+La tabla con los datos del estado elegido
+
 ```{r}
 #| label: app-paso1-tabla
 #| message: false
 #| warning: false
 
 # Tabla con los datos del estado elegido.
-# sf_mapa viene de sf_municipios_datos, que ya tiene population, gdp,
-# health_exp y educ_exp incorporados desde el left_join de preparación.
-# No hace falta un join adicional con df_municipios_completo: haciéndolo
-# se duplicarían esas columnas y aparecerían gdp.x / gdp.y, etc.
+# sf_mapa viene de sf_municipios_datos, que ya tiene 
+# population, gdp, health_exp y educ_exp incorporados 
+# desde el left_join de preparación.
 df_tabla_paso1 <- sf_mapa |>
   st_drop_geometry() |>
   mutate(
@@ -1063,42 +1065,78 @@ datatable(df_tabla_paso1, rownames = FALSE,
           options = list(pageLength = 8, dom = "tip"))
 ```
 
-Bien. Tenemos el mapa y la tabla funcionando con valores fijos. Ahora vamos a parametrizar.
+Bien. Tenemos el mapa y la tabla funcionando con valores fijos.
+
+Ahora tneemos que parametrizar.
 
 ## Paso 2: parametrizando el partido
 
 El cambio conceptual es mínimo: `PARTIDO_ELEGIDO <- "PT"` se convierte en `input$partido` dentro del *server*. Pero para que eso funcione, necesitamos agregar un `selectInput` en la `ui`.
 
-Lo importante es entender **qué es lo que cambia** respecto al código estático: solo dos cosas. En la `ui`, agregamos el control. En el `server`, reemplazamos la constante por `input$partido`. Todo lo demás es idéntico.
+Lo importante es entender **qué es lo que cambia** **respecto al código estático**: solo dos cosas. En la `ui`, agregamos el control. En el `server`, reemplazamos la constante por `input$partido`. Todo lo demás es idéntico.
 
 ```{r}
 #| label: app-paso2-codigo
 #| eval: false
 
+#| label: app-paso2-codigo
+#| eval: false
+
 # Los partidos disponibles los calculamos una sola vez, fuera de ui y server
-# (se ejecuta al cargar la app, no en cada interacción)
+# Esto se ejecuta al cargar la app, no en cada interacción
 partidos_disponibles <- df_elections |>
   filter(year == 2020) |>
   distinct(sigla_partido) |>
   arrange(sigla_partido) |>
   pull(sigla_partido)
 
+# ── UI ──────────────────────────────────────────────────────
+# fluidPage() es el contenedor raíz de la app. "
+# Fluid" significa que el layout se adapta automáticamente al
+# ancho del navegador (responsive). Sus argumentos son los
+# componentes de la página, en orden de arriba a abajo.
 ui <- fluidPage(
+  
+  # Título que aparece en la parte superior de la página
   titlePanel("Voto por partido — Brasil 2020"),
+  
+  # sidebarLayout() divide la página en dos zonas: 
+  # un panel lateral (angosto)
+  # y un panel principal (ancho). 
+  # Es el layout más común en apps simples.
   sidebarLayout(
+    
+    # sidebarPanel() es el panel lateral izquierdo: controles e inputs
     sidebarPanel(
-      # ← NUEVO: el usuario elige el partido
+      
+      # selectInput() genera un dropdown. Sus argumentos:
+      #   inputId  → nombre con el que accedemos al valor en el server (input$partido)
+      #   label    → texto que ve el usuario sobre el dropdown
+      #   choices  → vector de opciones disponibles
+      #   selected → opción seleccionada por defecto al cargar la app
+      # NUEVO: el usuario elige el partido
       selectInput("partido", "Partido:",
                   choices  = partidos_disponibles,
                   selected = "PT")
     ),
+    
+    # mainPanel() es el área principal derecha: outputs (gráficos, mapas, tablas)
+    # leafletOutput() reserva el espacio donde va a aparecer el mapa.
+    # Su argumento es el outputId, que debe coincidir con output$mapa en el server.
     mainPanel(leafletOutput("mapa", height = "500px"))
   )
 )
 
+# ── Server ──────────────────────────────────────────────────
+# La función server recibe tres argumentos que Shiny provee automáticamente:
+#   input   → lista de los valores actuales de todos los inputs de la ui
+#   output  → lista donde escribimos los outputs que se van a mostrar en la ui
+#   session → información sobre la sesión del usuario (zoom, mensajes, etc.)
 server <- function(input, output, session) {
-
-  # datos_filtrados() se recalcula solo cuando cambia input$partido
+  
+  # reactive() define una expresión que se recalcula automáticamente cada vez
+  # que alguno de sus inputs reactivos cambia (acá: input$partido).
+  # El resultado queda cacheado hasta el próximo cambio.
   datos_mapa <- reactive({
     df_pct <- df_elections |>
       filter(year == 2020) |>
@@ -1108,31 +1146,47 @@ server <- function(input, output, session) {
       filter(sigla_partido == input$partido) |>  # ← antes era PARTIDO_ELEGIDO
       mutate(pct = round(total_votes / total_votos_mun * 100, 1)) |>
       select(id_municipio, pct)
-
+    
     sf_municipios_datos |>
       left_join(df_pct, by = "id_municipio") |>
       mutate(pct = replace_na(pct, 0)) |>
-      filter(sigla_uf == "SP") |>           # todavía fijo, lo parametrizamos en el paso 3
+      # todavía fijo, lo vamos a parametrizar en el paso 3
+      filter(sigla_uf == "SP") |>
       st_transform(crs = 4326)
   })
-
+  
+  # renderLeaflet() es la función que construye el mapa y lo asigna a output$mapa.
+  # Se re-ejecuta cada vez que datos_mapa() cambia, es decir
+  # cada vez que el usuario elige un partido distinto en
+  # el dropdown.
+  # Cada tipo de output tiene su render* correspondiente:
+  # renderLeaflet → leafletOutput 
+  # renderDT → DTOutput 
+  # renderPlot → plotOutput
   output$mapa <- renderLeaflet({
-    sf_m   <- datos_mapa()
+    # llamamos a la expresión reactiva con ()
+    sf_m   <- datos_mapa()  
     paleta <- colorNumeric("YlOrRd", domain = sf_m$pct, na.color = "#CCCCCC")
     leaflet(sf_m) |>
       addProviderTiles(providers$CartoDB.Positron) |>
       addPolygons(
         fillColor = ~paleta(pct), fillOpacity = 0.75,
         color = "white", weight = 0.8,
-        highlight = highlightOptions(weight = 2.5, fillOpacity = 0.95, bringToFront = TRUE),
+        highlight = highlightOptions(
+          weight = 2.5, fillOpacity = 0.95, bringToFront = TRUE
+          ),
         label   = ~paste0(name_muni, " — ", pct, "%"),
         layerId = ~id_municipio
       ) |>
-      addLegend("bottomright", pal = paleta, values = ~pct,
-                title = paste0("% ", input$partido), labFormat = labelFormat(suffix = "%"))
+      addLegend(
+        "bottomright", pal = paleta, values = ~pct,
+          title = paste0("% ", input$partido), 
+        labFormat = labelFormat(suffix = "%")
+      )
   })
 }
 
+# Vinculamos con Shiny
 shinyApp(ui, server)
 ```
 
@@ -1190,24 +1244,43 @@ server <- function(input, output, session) {
     }
     sf_base
   })
-
+  # renderLeaflet() se re-ejecuta cuando cambia input$partido
+  # (vía datos_mapa()).
+  # No se re-ejecuta cuando cambia input$estado: el zoom
+  # lo maneja leafletProxy() más abajo, 
+  # sin necesidad de regenerar el mapa entero.
   output$mapa <- renderLeaflet({
     sf_m   <- datos_mapa()
-    paleta <- colorNumeric("YlOrRd", domain = sf_m$pct, na.color = "#CCCCCC")
+    paleta <- colorNumeric(
+      "YlOrRd", domain = sf_m$pct, na.color = "#CCCCCC"
+      )
     leaflet(sf_m) |>
       addProviderTiles(providers$CartoDB.Positron) |>
       addPolygons(
         fillColor = ~paleta(pct), fillOpacity = 0.75,
         color = "white", weight = 0.5,
-        highlight = highlightOptions(weight = 2.5, fillOpacity = 0.95, bringToFront = TRUE),
+        highlight = highlightOptions(
+          weight = 2.5, fillOpacity = 0.95, 
+          bringToFront = TRUE
+          ),
         label   = ~paste0(name_muni, " — ", pct, "%"),
         layerId = ~id_municipio
       ) |>
-      addLegend("bottomright", pal = paleta, values = ~pct,
-                title = paste0("% ", input$partido), labFormat = labelFormat(suffix = "%"))
+      addLegend(
+        "bottomright", pal = paleta, values = ~pct,
+        title = paste0("% ", input$partido), 
+        labFormat = labelFormat(suffix = "%")
+      )
   })
 
-  # ← NUEVO: cuando cambia el estado, hacemos zoom sin regenerar el mapa
+  # ← NUEVO: observeEvent() escucha un evento específico y
+  # ejecuta código con efecto secundario. 
+  # En nuestro caso,input$estado y la acción es mover 
+  # el zoom del mapa.
+  # A diferencia de reactive(), no devuelve un valor.
+  # leafletProxy("mapa") permite modificar 
+  # el mapa ya renderizado sin destruirlo y reconstruirlo 
+  # desde cero: solo actualizamos el viewport.
   observeEvent(input$estado, {
     if (input$estado == "ALL") {
       # Zoom a Brasil completo
@@ -1218,6 +1291,9 @@ server <- function(input, output, session) {
       bbox <- sf_estados_datos |>
         filter(sigla_uf == input$estado) |>
         st_transform(4326) |>
+        # st_bbox() de simple features devuelve el bounding box
+        # del polígono: xmin, ymin, xmax, ymax, 
+        # leyendo la geometría
         st_bbox()
       leafletProxy("mapa") |>
         fitBounds(lng1 = bbox["xmin"], lat1 = bbox["ymin"],
@@ -1250,18 +1326,24 @@ ui <- fluidPage(
                   choices  = c("Todo Brasil" = "ALL", estados_disponibles),
                   selected = "ALL")
     ),
+    # Acá tuneamos un poco la interfaz
     mainPanel(
       leafletOutput("mapa", height = "500px"),
+      # línea horizontal separadora entre el mapa y la tabla
       hr(),
-      h4("Detalle del municipio seleccionado"),
-      # ← NUEVO: espacio donde va a aparecer la tabla
+      # subtítulo (heading nivel 4)
+      h4("Detalle del municipio seleccionado"),  
+      # ← NUEVO: DTOutput() reserva el espacio donde va 
+      # a aparecer la tabla.
+      # El id "tabla" debe coincidir con output$tabla
+      # en el server.
       DTOutput("tabla")
     )
   )
 )
 
 server <- function(input, output, session) {
-
+  
   datos_mapa <- reactive({
     df_pct <- df_elections |>
       filter(year == 2020) |>
@@ -1271,18 +1353,18 @@ server <- function(input, output, session) {
       filter(sigla_partido == input$partido) |>
       mutate(pct = round(total_votes / total_votos_mun * 100, 1)) |>
       select(id_municipio, pct)
-
+    
     sf_base <- sf_municipios_datos |>
       left_join(df_pct, by = "id_municipio") |>
       mutate(pct = replace_na(pct, 0)) |>
       st_transform(crs = 4326)
-
+    
     if (input$estado != "ALL") {
       sf_base <- sf_base |> filter(sigla_uf == input$estado)
     }
     sf_base
   })
-
+  
   output$mapa <- renderLeaflet({
     sf_m   <- datos_mapa()
     paleta <- colorNumeric("YlOrRd", domain = sf_m$pct, na.color = "#CCCCCC")
@@ -1298,7 +1380,7 @@ server <- function(input, output, session) {
       addLegend("bottomright", pal = paleta, values = ~pct,
                 title = paste0("% ", input$partido), labFormat = labelFormat(suffix = "%"))
   })
-
+  
   observeEvent(input$estado, {
     if (input$estado == "ALL") {
       leafletProxy("mapa") |>
@@ -1313,32 +1395,44 @@ server <- function(input, output, session) {
                   lng2 = bbox["xmax"], lat2 = bbox["ymax"])
     }
   })
-
-  # ← NUEVO: tabla que responde al click en el mapa
-  # input$mapa_shape_click se actualiza cada vez que el usuario clickea
-  # un polígono. Vale NULL hasta el primer click.
+  
+  # ← NUEVO: tabla que responde al click en el mapa.
+  # input$mapa_shape_click se actualiza cada vez que el
+  # usuario clickea un polígono. 
+  # Vale NULL hasta el primer click.
+  # renderDT() es el render* correspondiente a DTOutput().
   output$tabla <- renderDT({
     click <- input$mapa_shape_click
-
+    
+    # Mientras no haya click, mostramos un mensaje de ayuda
+    # en lugar de una tabla vacía, 
+    # que podría confundir al usuario
     if (is.null(click)) {
       return(datatable(
-        data.frame(Mensaje = "Hacé click en un municipio del mapa para ver su detalle."),
-        options  = list(dom = "t"),
+        data.frame(
+          Mensaje = "Hacé click en un municipio del mapa para ver su detalle."
+        ),
+        # dom(document object model) = "t" muestra solo 
+        # la tabla, sin controles
+        options  = list(dom = "t"),  
         rownames = FALSE
       ))
     }
-
-    # click$id es el layerId del polígono clickeado, es decir, id_municipio.
-    # datos_mapa() ya tiene todas las columnas socioeconómicas (population, gdp,
-    # health_exp, etc.) porque viene de sf_municipios_datos: no hace falta
-    # un join adicional.
+    
+    # click$id es el layerId del polígono clickeado, 
+    # es decir, id_municipio.
+    # datos_mapa() ya tiene todas las columnas 
+    # socioeconómicas porque viene
+    # de sf_municipios_datos: no hace falta un join adicional.
     df_click <- datos_mapa() |>
-      st_drop_geometry() |>
+      # descartamos la geometría, no la necesitamos en la tabla
+      st_drop_geometry() |>          
       filter(id_municipio == click$id) |>
       mutate(
-        gdp_pc        = round(gdp        / pmax(population, 1), 0),
-        health_exp_pc = round(health_exp / pmax(population, 1), 0),
-        educ_exp_pc   = round(educ_exp   / pmax(population, 1), 0)
+        gdp_pc  = round(gdp        / pmax(population, 1), 0),
+        health_exp_pc=round(health_exp/pmax(population, 1), 0
+          ),
+        educ_exp_pc = round(educ_exp / pmax(population, 1), 0)
       ) |>
       select(
         Municipio       = name_muni,
@@ -1349,7 +1443,7 @@ server <- function(input, output, session) {
         `Salud pc (R$)` = health_exp_pc,
         `Educ. pc (R$)` = educ_exp_pc
       )
-
+    
     datatable(df_click, rownames = FALSE, options = list(dom = "t"))
   })
 }
