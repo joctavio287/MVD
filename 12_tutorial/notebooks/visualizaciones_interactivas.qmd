@@ -248,7 +248,7 @@ p_scatter <- df_estados_datos |>
 # p_scatter
 
 # Hacemos el gráfico interactivo
-plotly_scatter <- ggplotly(
+ggplotly(
   p_scatter, 
   # Le dice qué columna usar para el hover
   tooltip = "text"
