@@ -1,0 +1,19 @@
+id,provincia,region,edad,ingreso,intencion_voto
+1,Buenos Aires,Centro,34,180000,Oficialismo
+2,Buenos Aires,Centro,52,250000,Oposicion
+3,CABA,Centro,29,320000,Oposicion
+4,CABA,Centro,41,410000,Indeciso
+5,Cordoba,Centro,38,210000,Oposicion
+6,Cordoba,Centro,60,150000,Oficialismo
+7,Santa Fe,Centro,45,230000,Indeciso
+8,Mendoza,Cuyo,33,190000,Oposicion
+9,Mendoza,Cuyo,27,160000,Indeciso
+10,San Juan,Cuyo,55,140000,Oficialismo
+11,Salta,Norte,48,120000,Oficialismo
+12,Tucuman,Norte,36,130000,Oficialismo
+13,Jujuy,Norte,42,110000,Indeciso
+14,Chaco,Norte,31,100000,Oficialismo
+15,Neuquen,Patagonia,39,280000,Oposicion
+16,Rio Negro,Patagonia,50,240000,Indeciso
+17,Chubut,Patagonia,44,260000,Oposicion
+18,Santa Cruz,Patagonia,58,300000,Oficialismo

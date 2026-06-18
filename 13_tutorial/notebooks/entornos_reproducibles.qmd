@@ -1,0 +1,387 @@
+---
+title: "Entornos Reproducibles en R y un Vistazo a los LLMs en el Editor"
+date: "`r Sys.Date()`"
+lang: es
+execute:
+  echo: true
+  output: true
+  eval: false
+  cache: false
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-title: "Contenidos"
+    embed-resources: true
+    theme: cosmo
+    code-fold: false
+    code-tools: true
+    df-print: paged
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+          font-size: 16px;
+          line-height: 1.6;
+        }
+        h1, h2, h3 {
+          color: #2C3E50;
+        }
+        .callout {
+          margin-top: 1.5em;
+          margin-bottom: 1.5em;
+        }
+        </style>
+---
+
+# ¿De qué trata la clase de hoy?
+
+Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número. Y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado *diferente* al de la entrega. El clásico **"cuando lo corrí en mi compu funcionaba bien"**.
+
+Ese es, en el fondo, el problema de la **reproducibilidad**: que un análisis pueda volver a correrse y dar el mismo resultado, en otra máquina y en otro momento. No es un lujo de gente obsesiva —un poco sí—, es lo que separa un trabajo bien hecho de una captura de pantalla. Si nadie (ni siquiera ustedes) puede regenerar sus resultados, esos resultados se vuelven poco creíbles.
+
+Hoy, que están cerrando el proyecto final, es el momento justo para incorporar las dos o tres prácticas que hacen que su trabajo sea reproducible sin esfuerzo.
+
+La clase se divide en dos bloques:
+
+1.  **Entornos reproducibles con `renv`**: qué es un *environment*, cómo saber qué paquetes y versiones está usando su proyecto, y cómo "congelar" esas versiones para que cualquiera pueda reconstruir exactamente el mismo entorno.
+2.  **Un vistazo a trabajar con LLMs más allá del chat**: cómo se siente tener la IA integrada al editor (en vez de ir y volver a una pestaña del navegador), con `Copilot` en RStudio y una mirada rápida a R en VSCode.
+
+La última parte es liviana, "para que tengan una idea" de que existe otra forma de trabajar, por si les interesa explorarla.
+
+------------------------------------------------------------------------
+
+# ¿Qué es un entorno (*environment*)?
+
+Cuando corren código en R, ese código no vive en el aire. Depende de un **entorno**: una combinación concreta de
+
+- una **versión de R** (por ejemplo, 4.6.0),
+- un **conjunto de paquetes** (`dplyr`, `ggplot2`, `sf`, ...),
+- cada uno en una **versión específica** (`dplyr` 1.2.1, no "dplyr a secas"),
+- y, por debajo, el **sistema operativo** y algunas librerías del sistema.
+
+El entorno es como la *receta completa* de una cocina. No alcanza con decir "hice un flan". Si quiero que salga idéntico, necesito saber qué ingredientes usé, de qué marca, en qué cantidades, y con qué horno. Cambiar la marca de un ingrediente puede arruinar el resultado. En R, cambiar la versión de un paquete puede hacer que una función devuelva otra cosa, o que directamente no exista.
+
+## El problema de la librería global
+
+Por defecto, R instala **todos los paquetes en un único lugar compartido** por todos sus proyectos: la *librería global*. Esto parece cómodo —instalo `dplyr` una vez y lo uso en todos lados— pero esconde una trampa.
+
+Supongan que tienen dos proyectos. En marzo arrancaron el Proyecto **A** con `dplyr` 1.1.0. En junio arrancan el Proyecto **B** y, de paso, corren `update.packages()`, que actualiza `dplyr` a 1.2.1 **para todos los proyectos a la vez**, porque la librería es una sola. Si la 1.2.1 cambió el comportamiento de alguna función, el Proyecto **A** —que ni tocaron— de repente da otro resultado o tira error.
+
+Es decir, como todos los proyectos comparten la misma librería, **las versiones derivan con el tiempo y no hay forma de saber con qué versiones se corrió originalmente cada análisis**. Eso es exactamente lo que mata la reproducibilidad.
+
+La solución conceptual es simple: que **cada proyecto tenga su propia librería aislada**, con sus propias versiones, y un registro escrito de cuáles son. A eso vamos con `renv`.
+
+Pero antes, veamos cómo inspeccionar el entorno que ya tenemos.
+
+## Inspeccionar lo que estamos usando
+
+Antes de congelar nada, conviene saber **qué tenemos**. R trae varias herramientas para esto.
+
+La más completa es `sessionInfo()`: nos dice la versión de R, el sistema operativo, y todos los paquetes cargados con sus versiones.
+
+```{r}
+#| label: session-info
+#| eval: true
+
+sessionInfo()
+```
+
+Para una sola versión puntual, `packageVersion()`:
+
+```{r}
+#| label: package-version
+#| eval: true
+
+packageVersion("tidyverse")
+packageVersion("base")
+R.version.string
+```
+
+Una alternativa con salida más linda y ordenada es `session_info()` del paquete `sessioninfo` (notar que el paquete se llama `sessioninfo`, todo en minúscula, distinto de la función `sessionInfo()` que esta en la librería `base`).
+
+Separa los paquetes cargados de los disponibles y muestra de qué fuente vino cada uno:
+
+```{r}
+#| label: sessioninfo-pkg
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  sessioninfo, # para cargar la información de la sesión de forma ordenada
+  renv # para gestionar las dependencias del proyecto
+)
+sessioninfo::session_info()
+```
+
+¿Y cómo sabemos **qué paquetes usa un proyecto entero**, sin ir archivo por archivo mirando los `library()`?
+
+Acá brilla `renv::dependencies()`: escanea todos los `.R`, `.Rmd` y `.qmd` del proyecto y detecta cada paquete que aparece en un `library()`, `require()` o llamada con `::`.
+
+Ojo, si corren esta celda sola les va a devolver las dependencias referidas al *notebook* actual.
+
+**Prueben correrlo en la consola y van a ver TODAS las dependencias de MVD**, que son un montonazo: de hecho, seguramente, encuentren conflictos entre tutoriales. Esto es porque no tuvimos ninguno de los recaudos que estamos viendo en esta clase.
+
+```{r}
+#| label: renv-deps
+
+# Escanea el proyecto y lista los paquetes que efectivamente se usan
+renv::dependencies()
+```
+
+::: callout-tip
+**Para el proyecto final**
+
+`renv::dependencies()` es buenísimo para el cierre: les dice exactamente qué paquetes necesita su trabajo. Si en el `.qmd` final cargan diez paquetes pero solo usan seis, lo van a ver acá —y pueden limpiar los `library()` que sobran antes de entregar.
+:::
+
+------------------------------------------------------------------------
+
+# Entornos reproducibles con `renv`
+
+`renv` (de *reproducible environment*) es el paquete estándar de la comunidad de R para manejar entornos por proyecto. Reemplaza formas anticuadas de hacer esto y se integra de forma nativa con los Proyectos de RStudio.
+
+## La idea
+
+La estrategia de `renv` tiene dos patas:
+
+1.  **Una librería privada por proyecto.**
+
+    En vez de la librería global compartida, cada proyecto instala sus paquetes en su propia carpeta (`renv/library/`). Así, actualizar un paquete en un proyecto no toca a los demás.
+
+2.  **Un *lockfile*.**
+
+    Un archivo de texto, `renv.lock`, que registra la versión exacta de R y de **cada** paquete (incluidas las dependencias de las dependencias). Es la "receta completa" que permite reconstruir el entorno en cualquier otra máquina.
+
+Cuando `renv` está activo en un proyecto, vamos a ver estos archivos:
+
+| Archivo / carpeta | Qué hace | ¿Se *commitea* a Git? |
+|------------------|------------------------------|------------------------|
+| `renv.lock` | El lockfile: versiones de R y de todos los paquetes. | **Sí** (es lo que permite reproducir) |
+| `.Rprofile` | Contiene `source("renv/activate.R")`: activa `renv` al abrir el proyecto. | **Sí** |
+| `renv/activate.R` | El "arranque" de `renv`. | **Sí** |
+| `renv/library/` | La librería privada con los paquetes instalados. | **No** (la regenera `renv::restore()`) |
+| `renv/settings.json` | Opciones del proyecto. | **Sí** |
+
+::: callout-note
+**¿Por qué `renv/library/` no se sube a Git?**
+
+Porque puede pesar cientos de megas y es totalmente regenerable: a partir del `renv.lock`, cualquiera reconstruye la librería idéntica con un comando.
+
+Subir los paquetes en sí sería como mandar la torta hecha en vez de la receta. De hecho, `renv` crea automáticamente un `renv/.gitignore` que excluye `library/` por ustedes.
+:::
+
+La integración con RStudio es lo más cómodo: como el `.Rprofile` ejecuta `renv/activate.R` cada vez que abren el `.Rproj`, **el entorno del proyecto se activa solo**. No hay que acordarse de prender nada.
+
+## Cómo crear un entorno: `renv::init()`
+
+Arrancar un entorno en un proyecto existente es un solo comando, corrido desde la consola **dentro del proyecto**:
+
+``` r
+#| label: renv-init
+
+renv::init()
+```
+
+¿Qué hace `init()`?
+
+1.  Escanea el proyecto con `dependencies()` para ver qué paquetes se usan.
+2.  Crea la librería privada (`renv/library/`) e instala ahí esos paquetes.
+3.  Escribe el `.Rprofile` y `renv/activate.R` para que el entorno se active solo.
+4.  Genera el `renv.lock` con las versiones exactas.
+
+El `renv.lock` es un archivo JSON legible. Arriba de todo registra la versión de R y los repositorios; después, una entrada por paquete. Así se ve un fragmento del lockfile **real** de nuestro proyecto de juguete:
+
+``` json
+{
+  "R": {
+    "Version": "4.6.0",
+    "Repositories": [
+      { "Name": "CRAN", "URL": "https://cloud.r-project.org" }
+    ]
+  },
+  "Packages": {
+    "dplyr": {
+      "Package": "dplyr",
+      "Version": "1.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "..."
+    },
+    "ggplot2": {
+      "Package": "ggplot2",
+      "Version": "4.0.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "..."
+    }
+  }
+}
+```
+
+**¿Qué es importante en este archivo?**
+
+Cada paquete tiene su `Version` exacta y su `Source` (de dónde se instaló). El `Hash` es una huella digital que garantiza que se trate del paquete idéntico. Con esa información, `renv` puede reinstalar *exactamente* lo mismo en otra máquina.
+
+## El ciclo de trabajo: `snapshot`, `restore`, `status`
+
+Una vez que el entorno existe, el día a día gira en torno a tres verbos:
+
+**`renv::snapshot()`** — toma una "foto" del estado actual de la librería y la escribe en el `renv.lock`. Lo corren cuando **instalaron un paquete nuevo** (o actualizaron uno) y quieren que ese cambio quede registrado.
+
+Corremos en la consola
+
+``` r
+#| label: renv-snapshot
+
+# Instalo algo nuevo
+install.packages("janitor")
+
+# lo dejo registrado en el lockfile
+renv::snapshot()
+```
+
+**`renv::restore()`** — el inverso: lee el `renv.lock` e instala en la librería privada exactamente las versiones que figuran ahí. Es lo que corre **quien recibe el proyecto** (o ustedes mismos en otra compu) para reconstruir el entorno.
+
+``` r
+#| label: renv-restore
+
+renv::restore()
+```
+
+**`renv::status()`** — compara lo que tienen instalado contra lo que dice el `renv.lock` y avisa si hay diferencias (paquetes instalados que no están en el `lock`, o versiones que no coinciden).
+
+``` r
+#| label: renv-status
+renv::status()
+```
+
+::: callout-tip
+**La regla práctica**
+
+- `snapshot()` después de **instalar o actualizar** un paquete → guardás el cambio en la receta.
+- `restore()` después de **clonar o recibir** el proyecto → reconstruís el entorno desde la receta.
+- `status()` cuando tengas la duda de "¿esto está sincronizado?".
+
+Una buena costumbre: corran `renv::status()` antes de entregar. Si dice *"the project is in a consistent state"*, el `renv.lock` refleja fielmente lo que usaron.
+:::
+
+## Ejemplo mínimo: el proyecto de juguete
+
+En esta misma carpeta (`13_tutorial/proyecto_juguete/`) les dejé un proyecto chiquito y completo, ya con su entorno `renv` armado, para que vean todas las piezas juntas. Su estructura es:
+
+```         
+proyecto_juguete/
+├── proyecto_juguete.Rproj   ← el proyecto de RStudio
+├── README.md                ← cómo reproducirlo
+├── data/
+│   └── encuesta.csv         ← datos ficticios (18 filas)
+├── analisis.R               ← lee el CSV, resume y grafica
+├── renv.lock                ← el lockfile (versiones exactas)
+├── .Rprofile                ← activa renv al abrir el proyecto
+└── renv/
+    ├── activate.R           ← arranque de renv
+    └── .gitignore           ← ignora renv/library/
+```
+
+El `analisis.R` es deliberadamente simple: carga `readr`, `dplyr` y `ggplot2`, lee el CSV, calcula el ingreso medio por región y guarda un gráfico. Lo interesante no es el análisis, sino que viene con las versiones congeladas.
+
+Para reproducirlo **desde cero**, los pasos son exactamente los que vimos:
+
+1.  Abrir `proyecto_juguete.Rproj` en RStudio (el `.Rprofile` activa renv solo).
+2.  En la consola: `renv::restore()` → instala las versiones del `renv.lock`.
+3.  `source("analisis.R")` → corre el análisis y genera `output/ingreso_por_region.png`.
+
+Eso es todo. Cualquiera con R instalado puede clonar ese proyecto y obtener el mismo gráfico, con las mismas versiones, sin tener que adivinar nada.
+
+::: callout-warning
+**Lo que `renv` NO resuelve**
+
+`renv` congela los **paquetes de R**, pero hay cosas que quedan afuera y que también afectan la reproducibilidad:
+
+- **La versión de R.**
+
+  El lockfile la *registra*, pero no la instala por ustedes. Si corren con una versión muy distinta de R puede haber diferencias. Lo ideal es usar la misma (o muy cercana).
+
+- **Librerías del sistema.**
+
+  Paquetes como `sf` dependen de librerías externas (GDAL, GEOS, PROJ) que viven fuera de R. `renv` no las maneja; para eso ya se necesitan herramientas como Docker (fuera del alcance de la materia). Esto es común para todos los paquetes que instalamos de github.
+
+- **La aleatoriedad.**
+
+  Si su código usa funciones aleatorias (`sample()`, `rnorm()`, bootstrap, etc.), fijen siempre `set.seed(...)`. Sin eso, el resultado cambia en cada corrida aunque el entorno sea idéntico.
+
+Para un proyecto del estilo que estuvimos haciendo, con datos y `tidyverse`, `renv` + `set.seed()` + anotar la versión de R cubre el 95% de lo que necesitan.
+:::
+
+## Para cerrar: *checklist* del proyecto final
+
+Llevándolo a lo concreto, esto es lo que les recomiendo hacer antes de entregar para que el trabajo sea reproducible.
+
+- [ ] Correr `renv::init()` en el proyecto (una sola vez) para crear el entorno.
+- [ ] Correr `renv::status()` y `renv::snapshot()` cada vez que instalen o actualicen un paquete.
+- [ ] **Commitear el `renv.lock`** (y `.Rprofile` y `renv/activate.R`) al repositorio. Sin el lockfile, no hay reproducibilidad.
+- [ ] Dejar en el README la **versión de R** que usaron.
+- [ ] Usar `set.seed(...)` en cualquier paso con aleatoriedad.
+- [ ] Antes de entregar, correr `renv::status()` y confirmar que el proyecto está sincronizado.
+
+Con eso, cuando alguien (incluido su yo futuro) abra el proyecto y corra `renv::restore()`, va a poder reconstruir el entorno exacto y obtener los mismos resultados.
+
+------------------------------------------------------------------------
+
+# Trabajar con LLMs más allá del chat
+
+Esta parte es más para que charlemos que para dejar un material al que puedan volver porque es un tema muy nuevo, que está en constante cambio. La idea es que sepan que existe una forma de usar la IA distinta a la que probablemente ya conocen.
+
+## Del *copy-paste* al asistente integrado
+
+Casi todos usan los LLMs en su **versión chat**: abren una pestaña, pegan código o una pregunta, copian la respuesta, la vuelven a pegar en RStudio. Funciona perfecto y, para muchas cosas, alcanza y sobra. Generalmente si queremos planear algo o discutir, la teoría detrás de aquello que queremos implementar o visualizar.
+
+Pero hay otra forma que es propicia para el desarrollo de código: tener la IA **integrada al editor**. En vez de ir y volver a una pestaña del navegador, el asistente vive adentro del programa donde escriben código y les sugiere líneas a medida que tipean (autocompletado inteligente), o responde preguntas sobre el archivo que tienen abierto sin que tengan que copiar nada.
+
+::: callout-note
+No hace falta nada raro para esto, ni "agentes" ni configuraciones complicadas.
+
+Es, básicamente, un autocompletado con esteroides. Si su flujo de copiar y pegar en el chat les funciona, está perfecto y pueden saltear esta sección. Esto es solo para que sepan que la opción existe.
+:::
+
+## Copilot en RStudio
+
+La forma más directa de probar esto sin cambiar de programa es activar **GitHub Copilot** en RStudio. Copilot sugiere código en gris mientras escriben; lo aceptan apretando `Tab`.
+
+Los pasos, a grandes rasgos:
+
+1.  Tener una cuenta de GitHub (por ahora el Copilot es gratis para estudiantes con el [GitHub Student Pack](https://github.com/education), sólo necesitan verificar que son estudiantes y con eso basta para acceder a Copilot por dos años).
+2.  En RStudio, ir a `Tools` → `Global Options...` → `Copilot`.
+3.  Tildar *"Enable GitHub Copilot"* e iniciar sesión con la cuenta de GitHub cuando lo pida.
+4.  Listo: al escribir en un script, van a empezar a ver sugerencias en gris. `Tab` para aceptar, seguir tipeando para ignorar. Ojo: no funciona bien en archivos `.qmd`. Por lo tanto, puede ser útil empezar con un .r para codear la base y, después, integrarla en un *notebook*.
+
+Es la opción de menor fricción: no cambian de editor, solo le suman el asistente al que ya usan.
+
+## R en VSCode
+
+Si en algún momento quieren ir un paso más allá, **VSCode** es un editor muy popular (gratuito, de Microsoft) que se puede configurar para trabajar con R, y donde la integración con IA está más desarrollada que en RStudio.
+
+**¿Por qué alguien se cambiaría?**
+
+VSCode es un editor de propósito general: el mismo programa les sirve para R, Python, Quarto, Git, LaTeX, etc., con una sola interfaz. Y tiene Copilot integrado de fábrica, tanto en modo sugerencia *inline* como en un panel de chat que "ve" sus archivos, por lo que no es necesario que le pasen capturas de código, la herramienta puede acceder directamente a lo que están escribiendo.
+
+Lo que se necesita para usar R en VSCode, en resumen:
+
+- La **extensión de R** (*R Extension for Visual Studio Code*, de REditorSupport), que da resaltado de sintaxis, autocompletado y el panel de objetos.
+- El paquete `languageserver` instalado en R (da las funcionalidades inteligentes).
+- Opcionalmente, **`radian`**, una consola de R más linda y cómoda que la de base.
+- La extensión de **GitHub Copilot**, si quieren la parte de IA.
+
+No vamos a hacer la instalación paso a paso acá. La documentación oficial está muy bien explicada y es el mejor lugar para seguirla:
+
+👉 <https://code.visualstudio.com/docs/languages/r>
+
+::: callout-tip
+**¿Conviene cambiarse?**
+
+No necesariamente. RStudio sigue siendo excelente para R y está pensado específicamente para análisis de datos (el panel de *Environment*, los Proyectos, la integración con Quarto). VSCode brilla cuando trabajan con **varios lenguajes** o quieren la IA más integrada.
+
+Mi sugerencia honesta: si están cómodos con RStudio, quédense ahí y, si les pica la curiosidad, activen Copilot ahí mismo, sobretodo ahora que son estudiantes y pueden acceder de forma gratuita a la herramienta.
+
+Mirar VSCode tiene sentido más adelante, cuando el cuello de botella ya no sea aprender R sino manejar proyectos de código más grandes y diversos
+:::
