@@ -3534,7 +3534,7 @@ margin-bottom: 1.5em;
     <div>
     <div class="quarto-title-meta-heading">Fecha de publicación</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">18 de junio de 2026</p>
+      <p class="date">19 de junio de 2026</p>
     </div>
   </div>
   
@@ -3548,7 +3548,7 @@ margin-bottom: 1.5em;
 
 <section id="de-qué-trata-la-clase-de-hoy" class="level1">
 <h1>¿De qué trata la clase de hoy?</h1>
-<p>Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número. Y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado <em>diferente</em> al de la entrega. El clásico <strong>“cuando lo corrí en mi compu funcionaba bien”</strong>.</p>
+<p>Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado <em>diferente</em> al de la entrega. El clásico <strong>“cuando lo corrí en mi compu funcionaba bien”</strong>.</p>
 <p>Ese es, en el fondo, el problema de la <strong>reproducibilidad</strong>: que un análisis pueda volver a correrse y dar el mismo resultado, en otra máquina y en otro momento. No es un lujo de gente obsesiva —un poco sí—, es lo que separa un trabajo bien hecho de una captura de pantalla. Si nadie (ni siquiera ustedes) puede regenerar sus resultados, esos resultados se vuelven poco creíbles.</p>
 <p>Hoy, que están cerrando el proyecto final, es el momento justo para incorporar las dos o tres prácticas que hacen que su trabajo sea reproducible sin esfuerzo.</p>
 <p>La clase se divide en dos bloques:</p>
@@ -3676,8 +3676,8 @@ Tip
 <p>Cuando <code>renv</code> está activo en un proyecto, vamos a ver estos archivos:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 41%">
+<col style="width: 33%">
+<col style="width: 33%">
 <col style="width: 33%">
 </colgroup>
 <thead>
@@ -4434,7 +4434,7 @@ Tip
 <span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a><span class="fu"># ¿De qué trata la clase de hoy?</span></span>
 <span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número. Y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado *diferente* al de la entrega. El clásico **&quot;cuando lo corrí en mi compu funcionaba bien&quot;**.</span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado *diferente* al de la entrega. El clásico **&quot;cuando lo corrí en mi compu funcionaba bien&quot;**.</span>
 <span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a>Ese es, en el fondo, el problema de la **reproducibilidad**: que un análisis pueda volver a correrse y dar el mismo resultado, en otra máquina y en otro momento. No es un lujo de gente obsesiva —un poco sí—, es lo que separa un trabajo bien hecho de una captura de pantalla. Si nadie (ni siquiera ustedes) puede regenerar sus resultados, esos resultados se vuelven poco creíbles.</span>
 <span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a></span>
@@ -4552,7 +4552,7 @@ Tip
 <span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>Cuando <span class="in">`renv`</span> está activo en un proyecto, vamos a ver estos archivos:</span>
 <span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Archivo / carpeta <span class="pp">|</span> Qué hace <span class="pp">|</span> ¿Se *commitea* a Git? <span class="pp">|</span></span>
-<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a><span class="pp">|------------------|------------------------------|------------------------|</span></span>
+<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a><span class="pp">|----|----|----|</span></span>
 <span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`renv.lock`</span> <span class="pp">|</span> El lockfile: versiones de R y de todos los paquetes. <span class="pp">|</span> **Sí** (es lo que permite reproducir) <span class="pp">|</span></span>
 <span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`.Rprofile`</span> <span class="pp">|</span> Contiene <span class="in">`source(&quot;renv/activate.R&quot;)`</span>: activa <span class="in">`renv`</span> al abrir el proyecto. <span class="pp">|</span> **Sí** <span class="pp">|</span></span>
 <span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`renv/activate.R`</span> <span class="pp">|</span> El &quot;arranque&quot; de <span class="in">`renv`</span>. <span class="pp">|</span> **Sí** <span class="pp">|</span></span>

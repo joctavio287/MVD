@@ -37,7 +37,7 @@ format:
 
 # ¿De qué trata la clase de hoy?
 
-Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número. Y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado *diferente* al de la entrega. El clásico **"cuando lo corrí en mi compu funcionaba bien"**.
+Imaginen que terminan el proyecto final, lo entregan, y dos meses después el profesor —o un coautor, o ustedes mismos en otra computadora— intentan volver a correr el código para revisar un número y no anda. Un paquete cambió de versión y una función ahora se llama distinto, otro paquete directamente desapareció de la máquina, y un tercero devuelve un resultado *diferente* al de la entrega. El clásico **"cuando lo corrí en mi compu funcionaba bien"**.
 
 Ese es, en el fondo, el problema de la **reproducibilidad**: que un análisis pueda volver a correrse y dar el mismo resultado, en otra máquina y en otro momento. No es un lujo de gente obsesiva —un poco sí—, es lo que separa un trabajo bien hecho de una captura de pantalla. Si nadie (ni siquiera ustedes) puede regenerar sus resultados, esos resultados se vuelven poco creíbles.
 
@@ -155,7 +155,7 @@ La estrategia de `renv` tiene dos patas:
 Cuando `renv` está activo en un proyecto, vamos a ver estos archivos:
 
 | Archivo / carpeta | Qué hace | ¿Se *commitea* a Git? |
-|------------------|------------------------------|------------------------|
+|----|----|----|
 | `renv.lock` | El lockfile: versiones de R y de todos los paquetes. | **Sí** (es lo que permite reproducir) |
 | `.Rprofile` | Contiene `source("renv/activate.R")`: activa `renv` al abrir el proyecto. | **Sí** |
 | `renv/activate.R` | El "arranque" de `renv`. | **Sí** |
